@@ -376,3 +376,6 @@ p, .small, .txt, .quote, .kmd p { text-wrap: pretty; }
 .ptl button.fd:active { transform: scale(.99); }
 .ptl-ic { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
 .ptl .chip { flex: none; }
+
+/* required-field marker */
+.req { color: var(--danger); font-weight: 800; margin-left: 2px; }

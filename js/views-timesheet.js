@@ -165,7 +165,7 @@ act("tsEdit", (b) => {
     title: `<span class="eyebrow">${D.f(d, { weekday: "short", day: "numeric", month: "short" })}</span><span style="display:block;font-size:15px;margin-top:2px">${esc(taskName(e))}</span>`,
     body: `<div class="stack s16"><div><span class="small muted">Enter time</span><div class="timer" data-disp style="margin-top:4px">${fmtH(h * 60 + m)}</div></div>
       <div><div class="wheel-lbl"><span>HOURS</span><span>MINUTES</span></div><div class="wheels">${wheel(17, "h")}${wheel(60, "m")}</div></div>
-      <div class="field"><label for="te-c">Comment <span class="opt">(mandatory)</span></label><textarea id="te-c" class="inp" data-c rows="2" style="min-height:70px" placeholder="What did you work on?">${esc(e.comment)}</textarea></div>
+      <div class="field"><label for="te-c">Comment <span class="req" aria-label="required">*</span></label><textarea id="te-c" class="inp" data-c rows="2" style="min-height:70px" placeholder="What did you work on?">${esc(e.comment)}</textarea></div>
       <div class="field"><span class="lbl">Billing type</span><div class="hrow" style="gap:20px"><label class="hrow" style="cursor:pointer"><input type="radio" class="radio" name="bill" value="1" ${bill ? "checked" : ""}><span class="dollar">$</span><b class="small">Billable</b></label><label class="hrow" style="cursor:pointer"><input type="radio" class="radio" name="bill" value="0" ${!bill ? "checked" : ""}><span class="dollar nb">$</span><b class="small">Non-billable</b></label></div></div>
       <div class="banner info small" style="font-weight:600">${I("info")}Billing type selected here applies to this task for the entire week.</div></div>`,
     foot: `<div class="row-btns"><button class="btn danger" data-s="del">${I("trash")}Delete</button><button class="btn primary" data-s="save">Save</button></div>`,
@@ -222,7 +222,7 @@ route("ts/week", (_, q) => {
       ${sum3(all)}
       ${rec.status === "rejected" ? `<div class="banner bad">${I("alert")}${plural(rec.rejected || 1, "task")} rejected by ${esc(person(S.me.manager).name)} — update and resubmit</div>` : ""}
       <div class="card" style="padding-top:4px;padding-bottom:4px"><div class="list">${rows}</div></div>
-      <div class="stack s6"><b class="small">Attachments <span class="faint" style="font-weight:600">(mandatory)</span></b>${attachList(rec.attachments, editable ? "tsDetach" : "")}${editable ? `<button class="link" style="align-self:flex-start" data-act="tsAttach" data-w="${w}">+ Add attachments</button>` : ""}${!rec.attachments.length && !editable ? `<span class="small muted">None</span>` : ""}</div>
+      <div class="stack s6"><b class="small">Attachments <span class="req" aria-label="required">*</span></b>${attachList(rec.attachments, editable ? "tsDetach" : "")}${editable ? `<button class="link" style="align-self:flex-start" data-act="tsAttach" data-w="${w}">+ Add attachments</button>` : ""}${!rec.attachments.length && !editable ? `<span class="small muted">None</span>` : ""}</div>
       <button class="link" style="align-self:flex-start;color:var(--violet)" data-act="tsTimeline" data-w="${w}">${I("clock")} View activity timeline</button>
     </div></div>
     <div class="foot">${foot}</div></div>`;

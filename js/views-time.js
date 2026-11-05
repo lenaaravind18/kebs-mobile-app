@@ -239,15 +239,15 @@ route("req/:type", ({ type }, q) => {
   let fields = "";
   if (type === "wfh" || type === "onduty") {
     fields = `${rangeField("reqDates", F.from, F.to, { dayType: F.dayType })}
-      <div class="field"><label for="f-r">Reason <span class="opt">(mandatory)</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="${type === "wfh" ? "Reason for WFH" : "Ex: Travelling to Delhi office to attend a meeting"}"></div>
-      ${type === "onduty" ? `<div class="field"><span class="lbl">Attachments <span class="opt">(mandatory)</span></span>${attachList(F.attachments, "reqDetach")}<button class="link" style="align-self:flex-start" data-act="reqAttach">+ Add attachments</button><span class="tiny faint">PDF, JPEG or PNG up to 5 MB.</span></div>` : ""}
+      <div class="field"><label for="f-r">Reason <span class="req" aria-label="required">*</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="${type === "wfh" ? "Reason for WFH" : "Ex: Travelling to Delhi office to attend a meeting"}"></div>
+      ${type === "onduty" ? `<div class="field"><span class="lbl">Attachments <span class="req" aria-label="required">*</span></span>${attachList(F.attachments, "reqDetach")}<button class="link" style="align-self:flex-start" data-act="reqAttach">+ Add attachments</button><span class="tiny faint">PDF, JPEG or PNG up to 5 MB.</span></div>` : ""}
       <div class="stack s6"><span class="lbl">Also on ${M.kind} during this period</span>${alsoAway(F.from, F.to, M.kind)}</div>`;
   } else if (type === "partial") {
     fields = `<button class="range-box" data-act="reqDay" style="grid-template-columns:1fr auto"><div><div class="k">SELECTED DAY</div><div class="v" style="color:var(--accent)">${D.nice(F.from)}</div></div>${I("calendar")}</button>
       <span class="tiny muted" style="margin-top:-8px">${SHIFT.name.toUpperCase()} (${D.hm(SHIFT.start)} – ${D.hm(SHIFT.end)})</span>
       <div class="field"><span class="lbl">Partial day type</span><button class="inp sel" data-act="reqPartialType"><span>${esc(F.partialType)}</span>${I("chevD")}</button></div>
       <div class="field"><label for="f-l">${F.partialType === "Early departure" ? "Leaving early by" : F.partialType === "Mid-day break" ? "Away for" : "Late by"} (minutes)</label><input id="f-l" class="inp" type="number" min="5" max="240" step="5" data-bind="lateBy" value="${esc(F.lateBy)}"></div>
-      <div class="field"><label for="f-r">Reason <span class="opt">(mandatory)</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="Ex: Doctor’s appointment"></div>`;
+      <div class="field"><label for="f-r">Reason <span class="req" aria-label="required">*</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="Ex: Doctor’s appointment"></div>`;
   } else {
     const log = dayLog(F.from), h = hoursOf(log);
     if (!F.inTime) { F.inTime = log?.in || SHIFT.start; F.outTime = log?.out || SHIFT.end; }
@@ -255,7 +255,7 @@ route("req/:type", ({ type }, q) => {
       <div class="field"><span class="lbl">Type</span><button class="inp sel" data-act="reqRegType"><span>${esc(F.regType)}</span>${I("chevD")}</button></div>
       <div class="stack s6"><b class="small">Add/update time entries to adjust attendance logs</b><div class="hrow tiny muted"><span class="grow">Effective hours <b style="color:var(--ink)">${fmtMin(h.eff)}</b></span><span>Gross hours <b style="color:var(--ink)">${fmtMin(h.gross)}</b></span></div></div>
       <div class="card grid2"><div class="field"><label for="f-in">${I("arrowIn")} In time</label><input id="f-in" class="inp" type="time" data-bind="inTime" value="${F.inTime}"></div><div class="field"><label for="f-out">${I("arrowOut")} Out time</label><input id="f-out" class="inp" type="time" data-bind="outTime" value="${F.outTime}"></div></div>
-      <div class="field"><label for="f-r">Note <span class="opt">(mandatory)</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="Ex: Biometric did not work"></div>`;
+      <div class="field"><label for="f-r">Note <span class="req" aria-label="required">*</span></label><input id="f-r" class="inp" data-bind="reason" value="${esc(F.reason)}" placeholder="Ex: Biometric did not work"></div>`;
   }
   const notify = type === "regularize" ? "" : notifyField(F.notify, "reqNotify", M.note);
   const foot = type === "regularize"

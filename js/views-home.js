@@ -111,7 +111,7 @@ route("home", () => {
         <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
-      <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2><button class="qa-pill" data-act="editQuick">Edit ${I("chevR")}</button></div>
+      <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2></div>
       <div class="qa">${quick.map(quickTile).join("")}<button class="qa-btn" data-act="editQuick"><span class="ico more">${msIcon("more")}</span>More actions</button></div></section>
       <div style="height:20px"></div>
       <div class="stack">
