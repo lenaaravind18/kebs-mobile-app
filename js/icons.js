@@ -70,5 +70,7 @@ const ICON_PATHS = {
   tag: '<path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.82 8.82a2 2 0 0 0 2.83 0l7.17-7.17a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
 };
 function I(name, cls = "") {
+  const fl = typeof FLUENT !== "undefined" && FLUENT[name];
+  if (fl) return `<span class="i fl ${cls}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor">${fl}</svg></span>`;
   return `<span class="i ${cls}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ""}</svg></span>`;
 }

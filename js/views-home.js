@@ -238,7 +238,7 @@ route("post/:id", ({ id }) => {
     <div class="divider"></div>
     <div class="sec" style="margin-top:8px"><h2>Comments ${p.comments.length}</h2></div>
     <form class="searchbox" data-form="comment" data-id="${p.id}" style="margin-bottom:14px"><input name="text" placeholder="Write your comment here…" aria-label="Comment"><button class="ib sm acc" type="submit" aria-label="Send">${I("send")}</button></form>
-    <div class="stack">${p.comments.map((c, ci) => ({ c, ci })).reverse().map(({ c, ci }) => `<div class="comment">${avatar(c.who, "sm")}<div class="grow" style="min-width:0"><div class="bubble"><div class="hrow"><b class="grow">${esc(person(c.who).name)}</b><span class="tiny faint">${D.ago(c.ts)}</span></div>${esc(c.text)}</div>${commentRx(p, c, ci)}</div></div>`).join("") || `<p class="small muted">Be the first to comment.</p>`}</div>
+    <div class="stack">${p.comments.map((c, ci) => ({ c, ci })).reverse().map(({ c, ci }) => `<div class="comment">${avatar(c.who, "sm")}<div class="grow" style="min-width:0"><div class="bubble"><div class="hrow"><b class="grow">${esc(person(c.who).name)}</b><span class="tiny faint">${D.ago(c.ts)}</span></div>${esc(c.text)}</div>${commentRx(p, c, ci)}</div></div>`).join("") || emptyMini("msg", "No comments yet — start the conversation.")}</div>
   </div>
   <div class="foot">${p.ack ? `<div class="banner ok">${I("checkCircle")}Acknowledged on ${D.short(D.iso(p.ack))}</div>` : `<button class="btn primary block" data-act="ackPost" data-id="${p.id}">Acknowledge</button>`}</div></div>`;
 });

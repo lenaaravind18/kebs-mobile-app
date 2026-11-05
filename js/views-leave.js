@@ -77,7 +77,7 @@ route("leave/balances", (_, q) => {
     ${seg([["upcoming", "Upcoming"], ["past", "Past"]], tab, "lbTab").replace('class="seg-wrap"', 'class="seg-wrap" style="padding:0"')}
     <div class="stack">${list.map((r) => { const lt = LEAVE_TYPES.find((l) => l.id === r.leaveType);
       return `<button class="card hrow" data-go="#/request/${r.id}"><span class="daycell"><small>${D.f(r.from, { month: "short" }).toUpperCase()}</small><b>${D.parse(r.from).getDate()}</b></span><span class="grow" style="min-width:0"><b style="display:block">${esc(lt?.name || "Leave")}</b><span class="small muted">${D.range(r.from, r.to)} · ${r.dayType === "half" ? "½ day" : plural(D.days(r.from, r.to), "day")}</span></span>${statusChip(r.status)}</button>`; }).join("")
-      || `<div class="card soft" style="text-align:center"><span class="small muted">${tab === "upcoming" ? "No upcoming leave — time for a break?" : "No past leave this year."}</span></div>`}</div>
+      || (tab === "upcoming" ? emptyState(["calendar", "sun", "sparkles"], "No upcoming leave", "Time for a break? Plan your next day off.", `<button class=\"btn primary sm\" data-go=\"#/leave/apply\">${I("plus")}Apply leave</button>`) : emptyMini("history", "No past leave this year."))}</div>
   </div></div></div>`;
 });
 act("lbTab", (b) => swap(`#/leave/balances?tab=${b.dataset.v}`));
@@ -91,7 +91,7 @@ route("compoff", () => {
     <div class="card"><div class="sum3" style="grid-template-columns:repeat(3,1fr)"><div><div class="v big" style="justify-content:center">${b.used}</div><div class="small muted">Consumed</div></div><div><div class="v big" style="justify-content:center">${b.total}</div><div class="small muted">Accrued so far</div></div><div><div class="v big" style="justify-content:center;color:var(--accent)">${b.available}</div><div class="small muted">Available</div></div></div></div>
     <div class="row-btns"><button class="btn outline" data-go="#/compoff/request">${I("plus")}Request comp-off</button>${b.available ? `<button class="btn primary" data-go="#/leave/apply?type=compoff">Use comp-off</button>` : ""}</div>
     <div class="sec"><h2>Past requests</h2></div>
-    ${reqs.map(reqCard).join("") || `<p class="muted small">No requests yet.</p>`}
+    ${reqs.map(reqCard).join("") || emptyMini("coffee", "No comp-off requests yet.")}
   </div></div></div>`;
 });
 

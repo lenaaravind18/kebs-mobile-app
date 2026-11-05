@@ -13,7 +13,8 @@ function topbar(title, { back = true, sub = "", right = "", left = "" } = {}) {
   return `<header class="top"><div class="pill">${l}<div class="ttl">${sub ? `<small>${esc(sub)}</small>` : ""}${title}</div>${right || `<span class="spacer"></span>`}</div></header>`;
 }
 const seg = (items, value, actName) => `<div class="seg-wrap"><div class="seg" role="tablist">${items.map(([v, l]) => `<button role="tab" class="${v === value ? "on" : ""}" aria-selected="${v === value}" data-act="${actName}" data-v="${v}">${l}</button>`).join("")}</div></div>`;
-const emptyState = (icons, title, text, extra = "") => `<div class="empty"><div class="empty-art">${icons.map((n) => I(n)).join("")}</div><h3>${title}</h3><p>${text}</p>${extra}</div>`;
+const emptyState = (icons, title, text, extra = "") => `<div class="empty"><div class="empty-ill" aria-hidden="true"><span class="eb e1"></span><span class="eb e2"></span><span class="main">${I(icons[0])}</span>${icons[1] ? `<span class="sat s1">${I(icons[1])}</span>` : ""}${icons[2] ? `<span class="sat s2">${I(icons[2])}</span>` : ""}</div><h3>${title}</h3><p>${text}</p>${extra ? `<div class="empty-cta">${extra}</div>` : ""}</div>`;
+const emptyMini = (icon, text, extra = "") => `<div class="empty-mini"><span class="em-ic">${I(icon)}</span><span class="grow">${text}</span>${extra}</div>`;
 const statusChip = (s) => ({ pending: `<span class="chip warn">Pending</span>`, approved: `<span class="chip ok">Approved</span>`, rejected: `<span class="chip bad">Rejected</span>`, withdrawn: `<span class="chip">Withdrawn</span>`, draft: `<span class="chip">Not submitted</span>`, open: `<span class="chip acc">Open</span>`, resolved: `<span class="chip ok">Resolved</span>` }[s] || `<span class="chip">${esc(s)}</span>`);
 const fmtSize = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1e3)) + " KB");
 

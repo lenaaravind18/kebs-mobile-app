@@ -15,7 +15,7 @@ route("profile", (_, q) => {
   const chip = clockedIn() ? `<span class="chip ok">Clocked in</span>` : S.att.today.outTs ? `<span class="chip">Clocked out</span>` : `<span class="chip acc">Not in yet</span>`;
   let body = "";
   if (tab === "summary") {
-    body = `<div class="sec"><h2>Praises (${S.praises.me.length})</h2></div><div class="stack">${S.praises.me.map(praiseCard).join("") || `<p class="muted small">No praises received yet.</p>`}</div>
+    body = `<div class="sec"><h2>Praises (${S.praises.me.length})</h2></div><div class="stack">${S.praises.me.map(praiseCard).join("") || emptyMini("award", "No praises received yet.")}</div>
       <div class="sec"><h2>About</h2></div>
       <div class="card stack"><span class="eyebrow">Intro</span>${me.intro ? `<p>${esc(me.intro)}</p>` : `<p class="muted">Not a single line about who you are. Impossible! Don’t be shy, let your teammates know you.</p>`}<button class="btn outline block" data-act="editIntro">${me.intro ? "Edit your response" : "Add your response"}</button></div>`;
   } else if (tab === "timeline") {
@@ -74,11 +74,11 @@ route("people/:id", ({ id }, q) => {
   const off = S.offThisWeek.list.find((o) => o.id === id && o.date === D.today());
   const chip = off ? `<span class="chip vio">On leave</span>` : `<span class="chip ok">Available</span>`;
   const body = tab === "summary"
-    ? `<div class="sec"><h2>Praises (${praises.length})</h2></div><div class="stack">${praises.map(praiseCard).join("") || `<p class="muted small">No praises received yet.</p>`}</div>
+    ? `<div class="sec"><h2>Praises (${praises.length})</h2></div><div class="stack">${praises.map(praiseCard).join("") || emptyState(["award", "sparkles", "thumb"], "No praises yet", `Be the first to recognise ${esc(p.name.split(" ")[0])}’s work.`)}</div>
        <button class="btn outline block" style="margin-top:10px" data-act="givePraise" data-id="${id}">Give a praise</button>`
     : `<div class="card" style="margin-top:12px">${[["Designation", p.role], ["Department", p.dept], ["Location", p.loc], ["Email", `${p.name.split(" ")[0].toLowerCase()}@prima.com`]].map(([k, v]) => `<div class="kv"><span>${k}</span><span>${esc(v)}</span></div>`).join("")}</div>`;
   return `<div class="screen">${topbar("Profile")}<div class="scroll">${profileHead(id, chip)}
-    <div class="hrow" style="justify-content:center;margin-top:14px"><button class="ib tint t-blue" style="background:var(--accent-soft)" data-act="contact" data-id="${id}" data-k="mail" aria-label="Email">${I("mail")}</button><button class="ib tint t-blue" style="background:var(--accent-soft)" data-act="contact" data-id="${id}" data-k="chat" aria-label="Message">${I("msg")}</button><button class="btn primary sm" data-act="givePraise" data-id="${id}">${I("award")}Give praise</button></div>
+    <div class="hrow" style="justify-content:center;margin-top:14px"><button class="ib contact-btn" data-act="contact" data-id="${id}" data-k="mail" aria-label="Email">${I("mail")}</button><button class="ib contact-btn" data-act="contact" data-id="${id}" data-k="chat" aria-label="Message">${I("msg")}</button><button class="btn primary sm" data-act="givePraise" data-id="${id}">${I("award")}Give praise</button></div>
     <div style="margin:16px -16px 0">${seg([["summary", "Summary"], ["job", "Job"]], tab, "pplTab")}</div>${body}</div></div>`;
 }, { mount({ id }, q) { if (q.praise) setTimeout(() => ACTIONS.givePraise({ dataset: { id } }), 150); } });
 act("pplTab", (b) => swap(location.hash.split("?")[0] + `?tab=${b.dataset.v}`));

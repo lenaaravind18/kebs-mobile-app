@@ -27,7 +27,7 @@ route("inbox", (_, q) => {
     <div class="scroll">
       <div class="hrow" style="margin-bottom:12px"><label class="searchbox grow">${I("search")}<input data-ixq value="${esc(q.q || "")}" placeholder="Search name / cost center"></label><button class="ib" data-act="ixSort" aria-label="Sort">${I("filter")}${INBOX_SORT !== "date" ? `<span class="dot"></span>` : ""}</button></div>
       ${routine.length ? `<div class="card bulk stack" style="margin-bottom:12px"><div class="hrow"><span class="i" style="color:var(--accent)">${I("sparkles")}</span><b class="grow">Bulk approvals</b><span class="chip solid-ok">${routine.length} ready</span></div><span class="small muted">Kais AI has verified ${plural(routine.length, "routine request")} that match your approval patterns.</span><button class="btn primary sm" style="align-self:flex-start" data-act="ixBulk" data-ids="${routine.map((x) => x.id).join(",")}">Approve all</button></div>` : ""}
-      <div class="stack">${list.map((x) => `<button class="card ix stack s6" data-act="ixOpen" data-id="${x.id}">
+      <div class="stack" data-lazy="6">${list.map((x) => `<button class="card ix stack s6" data-act="ixOpen" data-id="${x.id}">
         <div class="hrow">${avatar(x.who)}<span class="grow"><b style="display:block">${esc(person(x.who).name)}</b><span class="tiny muted hrow">${I("building")}KEBS India</span></span><b class="num">${ixMain(x)}</b></div>
         <div class="divider" style="margin:4px 0"></div>
         <div class="meta">${ixMeta(x)}<span class="hrow">${I("calendar")}${D.short(x.date)}</span></div>

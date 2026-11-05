@@ -74,8 +74,8 @@ route("notifs", () => {
   let body;
   if (!list.length) body = emptyState(["bell", "checkCircle", "sparkles"], "Inbox clear", "You’re all caught up. New notifications land here, sorted by priority.");
   else if (PI_SORT === "priority") body = groups.map((g) => `<div class="pi-sec ${g.tint}" id="pi-${g.id}"><span class="dot"></span><h2>${g.name}</h2><small>${g.items.length}</small><span class="ai">${I("sparkles")}Sorted by Kais</span></div>
-      ${g.items.map(piCard).join("") || `<p class="small muted" style="padding:4px 4px 8px">${g.id === "urgent" ? "Nothing urgent — nice." : "Nothing here."}</p>`}`).join("");
-  else body = `<div style="height:8px"></div>${list.map(piCard).join("")}`;
+      ${g.items.map(piCard).join("") || emptyMini(g.id === "urgent" ? "checkCircle" : "bell", g.id === "urgent" ? "Nothing urgent — nice work." : "Nothing in this group right now.")}`).join("");
+  else body = `<div style="height:8px"></div><div data-lazy="6">${list.map(piCard).join("")}</div>`;
   return `<div class="screen">
     <div class="big-title hrow" style="align-items:flex-start"><div class="grow"><h1>Notifications</h1><p>${unreadCount() ? `${unreadCount()} unread` : "All read"} · swipe to clear</p></div><button class="ib" data-act="piMore" aria-label="More options">${I("dots")}</button></div>
     <div class="pi-bar"><div class="pi-sort" role="tablist" aria-label="Sort"><button class="${PI_SORT === "priority" ? "on" : ""}" data-act="piSort" data-v="priority">${I("sparkles")} Priority</button><button class="${PI_SORT === "newest" ? "on" : ""}" data-act="piSort" data-v="newest">Newest</button></div></div>
@@ -102,6 +102,15 @@ route("notifs", () => {
       };
       fg.addEventListener("pointerup", end); fg.addEventListener("pointercancel", end);
     });
+    // scroll spy: highlight the anchor tab for the section in view
+    const sc = $("[data-pi]"), tabs = $$(".pi-anchors button");
+    const spy = () => {
+      if (!sc || !tabs.length) return;
+      let cur = "urgent";
+      for (const c of ["urgent", "important", "others"]) { const el = document.getElementById("pi-" + c); if (el && el.offsetTop - sc.offsetTop - sc.scrollTop <= 24) cur = c; }
+      tabs.forEach((t) => t.classList.toggle("on", t.dataset.c === cur));
+    };
+    sc?.addEventListener("scroll", spy, { passive: true }); spy();
     if (!S.piOnboarded) setTimeout(piOnboarding, 350);
   },
 });

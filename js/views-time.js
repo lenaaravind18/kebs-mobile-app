@@ -15,7 +15,7 @@ route("apps", (_, q) => {
   if (tab === "time") {
     const pend = pendingRequests();
     body = `<div class="sec"><h2>Pending approval (${pend.length})</h2><button class="link" data-go="#/requests?f=pending">View all</button></div>
-      ${pend.length ? reqCard(pend[0]) : `<div class="card soft small muted">${I("checkCircle")} Nothing waiting on approval.</div>`}
+      ${pend.length ? reqCard(pend[0]) : emptyMini("checkCircle", "Nothing waiting on approval — you’re all set.")}
       <div class="sec"><h2>Attendance</h2></div>
       <div class="grid2">
         ${tileBtn("file", "t-green", "Raise request", "Request WFH, on duty and partial day.", `data-act="raiseReq"`)}
@@ -50,11 +50,11 @@ route("apps", (_, q) => {
         ${tileBtn("chart", "t-violet", "Expense insights", "Where your spend goes.", `data-go="#/expenses?tab=insights"`)}
       </div>
       <div class="sec"><h2>Upcoming holidays</h2><button class="link" data-go="#/holidays">View all</button></div>
-      <div class="card"><div class="list">${hols.map((h) => `<div class="li"><span class="daycell"><small>${D.f(h.date, { month: "short" }).toUpperCase()}</small><b>${D.parse(h.date).getDate()}</b></span><span class="grow"><span class="t" style="display:block">${esc(h.name)}</span><span class="s">${D.dayName(h.date)}</span></span>${h.floater ? `<span class="chip vio">Floater</span>` : ""}</div>`).join("") || `<p class="small muted">No more holidays this year.</p>`}</div></div>`;
+      <div class="card"><div class="list">${hols.map((h) => `<div class="li"><span class="daycell"><small>${D.f(h.date, { month: "short" }).toUpperCase()}</small><b>${D.parse(h.date).getDate()}</b></span><span class="grow"><span class="t" style="display:block">${esc(h.name)}</span><span class="s">${D.dayName(h.date)}</span></span>${h.floater ? `<span class="chip vio">Floater</span>` : ""}</div>`).join("") || emptyMini("calendar", "No more public holidays this year.")}</div></div>`;
   } else if (tab === "performance") {
     const pr = S.praises.me;
     body = `<div class="sec"><h2>Praises (${pr.length})</h2><button class="link" data-go="#/profile">View all</button></div>
-      ${pr[0] ? `<div class="card praise"><div class="hrow">${avatar(pr[0].from, "sm")}<span class="grow"><b style="display:block">${esc(person(pr[0].from).name)}</b><span class="tiny muted">${esc(person(pr[0].from).role)}</span></span><span class="tiny faint">${D.long(pr[0].date)}</span></div><span class="badge-praise">${I("award")}${esc(pr[0].badge)}</span><span class="small">${esc(pr[0].text)}</span></div>` : `<div class="card soft small muted">No praises yet.</div>`}
+      ${pr[0] ? `<div class="card praise"><div class="hrow">${avatar(pr[0].from, "sm")}<span class="grow"><b style="display:block">${esc(person(pr[0].from).name)}</b><span class="tiny muted">${esc(person(pr[0].from).role)}</span></span><span class="tiny faint">${D.long(pr[0].date)}</span></div><span class="badge-praise">${I("award")}${esc(pr[0].badge)}</span><span class="small">${esc(pr[0].text)}</span></div>` : emptyMini("award", "No praises yet. Recognition from teammates shows up here.")}
       <button class="btn outline block" style="margin-top:10px" data-act="praisePick">${I("award")}Give a praise</button>
       <div class="sec"><h2>My goals</h2><span class="small muted">This quarter</span></div>
       <div class="stack">${S.goals.map((g) => `<div class="card hrow"><span class="prog-ring" style="--p:${g.p}" data-l="${g.p}%"></span><span class="grow"><b style="display:block">${esc(g.title)}</b><span class="small muted">${g.p >= 100 ? "Completed" : "In progress"}</span></span><div class="stack s6"><button class="ib sm" data-act="goalStep" data-id="${g.id}" data-d="10" aria-label="Increase progress">${I("plus")}</button><button class="ib sm" data-act="goalStep" data-id="${g.id}" data-d="-10" aria-label="Decrease progress">${I("chevD")}</button></div></div>`).join("")}</div>`;
@@ -164,16 +164,30 @@ route("logs", () => {
         <div class="grid2 tiny muted"><span>Effective hours <b style="color:var(--ink)">${fmtMin(h.eff)}</b></span><span class="right">Gross hours <b style="color:var(--ink)">${fmtMin(h.gross)}</b></span></div>`}
     </button>`;
   }
-  return `<div class="screen">${topbar("Time logs")}<div class="scroll">${html}</div></div>`;
+  return `<div class="screen">${topbar("Time logs")}<div class="scroll" data-lazy="10">${html}</div></div>`;
 });
 
 // ── Request history + detail ──
+function activityFeed(r) {
+  const mgr = S.me.manager;
+  const when = (ts) => new Date(ts).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  const ev = r.activity.slice().reverse().map((x) => {
+    const byMgr = /approved|rejected by/i.test(x.text);
+    const ic = x.kind === "ok" ? ["checkCircle", "t-green"] : x.kind === "bad" ? ["x", "t-red"] : /comment/i.test(x.text) ? ["msg", "t-blue"] : ["send", "t-orange"];
+    return { who: byMgr ? mgr : "me", ic, title: x.text, ts: x.ts };
+  });
+  if (r.status === "pending") ev.unshift({ who: mgr, ic: ["clock", "t-amber"], title: "Waiting for approval", sub: `${person(mgr).name} · ${person(mgr).role}`, pending: true });
+  return `<div class="feed">${ev.map((e) => `<div class="fd ${e.pending ? "pending" : ""}">
+    <div class="fd-av">${avatar(e.who)}<span class="fd-badge ${e.ic[1]}">${I(e.ic[0])}</span></div>
+    <div class="grow" style="min-width:0"><b class="fd-t">${esc(e.title)}</b><span class="small muted" style="display:block">${e.sub ? esc(e.sub) : esc(e.who === "me" ? "You" : person(e.who).name)}${e.ts ? ` · ${when(e.ts)}` : ""}</span></div>
+  </div>`).join("")}</div>`;
+}
 route("requests", (_, q) => {
   const f = q.f || "all";
   const list = S.requests.filter((r) => f === "all" || r.status === f).sort((a, b) => b.created - a.created);
   return `<div class="screen">${topbar("Request history", { right: `<button class="ib" data-act="raiseReq" aria-label="Raise request">${I("plus")}</button>` })}
     ${seg([["all", "All"], ["pending", "Pending"], ["approved", "Approved"], ["withdrawn", "Withdrawn"]], f, "reqFilter")}
-    <div class="scroll"><div class="stack">${list.map(reqCard).join("") || emptyState(["file", "list", "checkCircle"], "Nothing here", "Requests you raise will show up in this list.")}</div></div></div>`;
+    <div class="scroll"><div class="stack" data-lazy="8">${list.map(reqCard).join("") || emptyState(["file", "list", "checkCircle"], "Nothing here", "Requests you raise will show up in this list.")}</div></div></div>`;
 });
 act("reqFilter", (b) => swap(`#/requests?f=${b.dataset.v}`));
 
@@ -199,7 +213,7 @@ route("request/:id", ({ id }, q) => {
     ${r.comments.map((c) => `<div class="comment">${avatar("me", "sm")}<div class="bubble"><div class="hrow"><b class="grow">You</b><span class="tiny faint">${D.ago(c.ts)}</span></div>${esc(c.text)}</div></div>`).join("")}
     ${r.status === "pending" ? `<button class="link" style="align-self:flex-start" data-act="reqComment" data-id="${r.id}">+ Add comment</button>` : ""}
     <div class="sec"><h2>Activity</h2></div>
-    <div class="timeline">${r.status === "pending" ? `<div class="tl"><span class="small muted b">Waiting for approval · ${esc(person(S.me.manager).name)}</span></div>` : ""}${r.activity.slice().reverse().map((a) => `<div class="tl ${a.kind}"><b class="small" style="display:block">${esc(a.text)}</b><span class="tiny muted">${new Date(a.ts).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("")}</div>
+    ${activityFeed(r)}
   </div></div>
   <div class="foot">${q.new ? `<div class="banner ok">${I("checkCircle")}${T2.short} request submitted successfully!</div>` : ""}${r.status === "pending" ? `<button class="btn danger block" data-act="withdrawReq" data-id="${r.id}">Withdraw request</button>` : `<button class="btn ghost block" data-go="#/requests">All requests</button>`}</div></div>`;
 });

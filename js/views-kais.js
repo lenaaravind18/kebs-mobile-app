@@ -248,7 +248,7 @@ act("kaisHistory", () => {
   kaisChat();
   const s = openSheet({
     title: "Chats",
-    body: `<button class="btn primary block" data-s="new">${I("edit")}New chat</button><div class="list" style="margin-top:8px">${S.kais.chats.map((c) => `<div class="li"><button class="grow" style="text-align:left;min-width:0" data-s="open" data-id="${c.id}"><span class="t ell" style="display:block">${esc(c.title)}</span><span class="s">${plural(c.msgs.filter((m) => m.role === "user").length, "message")} · ${D.ago(c.ts)} ago</span></button><button class="ib sm" data-s="del" data-id="${c.id}" aria-label="Delete chat">${I("trash")}</button></div>`).join("") || `<p class="small muted" style="padding:16px 4px">No chats yet — ask Kais anything.</p>`}</div>`,
+    body: `<button class="btn primary block" data-s="new">${I("edit")}New chat</button><div class="list" style="margin-top:8px">${S.kais.chats.map((c) => `<div class="li"><button class="grow" style="text-align:left;min-width:0" data-s="open" data-id="${c.id}"><span class="t ell" style="display:block">${esc(c.title)}</span><span class="s">${plural(c.msgs.filter((m) => m.role === "user").length, "message")} · ${D.ago(c.ts)} ago</span></button><button class="ib sm" data-s="del" data-id="${c.id}" aria-label="Delete chat">${I("trash")}</button></div>`).join("") || emptyState(["msg", "sparkles", "history"], "No chats yet", "Your conversations with Kais are saved here.")}</div>`,
     onMount(el) {
       onS(el, {
         new() { kaisNewChat(); closeSheet(s); rerender(); },
