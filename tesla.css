@@ -690,3 +690,29 @@ body { letter-spacing: 0 !important; }
 .onb2-main { animation: onbIn .6s var(--ease) both !important; }
 
 .onb2-bg .kmark-ghost { top: 46% !important; right: -40px !important; opacity: .22 !important; }
+
+/* ═════ Kais reasoning — Arc UI text shimmer + step timeline ═════ */
+.ts-shimmer { --ts-base: color-mix(in srgb, var(--ink) 38%, transparent); --ts-hi: var(--ink);
+  background: linear-gradient(90deg, var(--ts-base) 0%, var(--ts-base) 35%, var(--ts-hi) 50%, var(--ts-base) 65%, var(--ts-base) 100%);
+  background-size: 280% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  animation: tsSweep 1.7s cubic-bezier(.45,.05,.55,.95) infinite, tsRise .24s cubic-bezier(.22,1,.36,1); }
+@keyframes tsSweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+@keyframes tsRise { from { opacity: 0; transform: translateY(.3em); filter: blur(2px); } }
+@media (prefers-reduced-motion: reduce) { .ts-shimmer { animation: none; -webkit-text-fill-color: currentColor; color: var(--ink-2); background: none; } }
+.kthink { display: flex; flex-direction: column; gap: 8px; }
+.kthink-head { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.kthink-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); animation: ktPing 1.4s ease-out infinite; }
+@keyframes ktPing { 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.kthink-sum { align-self: flex-start; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--panel-2); font-size: 13px; color: var(--ink-2); position: relative; }
+.kthink-sum::after { content: ""; position: absolute; inset: -6px 0; }
+.kthink-sum .i { width: 14px; height: 14px; } .kthink-sum .i:first-child { color: var(--accent); }
+.kthink-steps { position: relative; list-style: none; margin: 2px 0 4px; padding: 0 0 0 4px; display: flex; flex-direction: column; gap: 10px; }
+.kthink-steps::before { content: ""; position: absolute; left: 14px; top: 12px; bottom: 12px; width: 1.5px; background: var(--line); }
+.kthink-steps li { position: relative; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; color: var(--ink-3); animation: tsRise .3s cubic-bezier(.22,1,.36,1); }
+.kthink-steps li.cur { color: var(--ink); font-weight: 600; }
+.kts-ic { position: relative; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink-3); }
+.kts-ic .i { width: 12px; height: 12px; }
+.kthink-steps li.done .kts-ic { background: var(--ok-soft); color: var(--ok); box-shadow: none; }
+.kthink-steps li.cur .kts-ic { color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); animation: ktPulse 1.2s ease-in-out infinite; }
+@keyframes ktPulse { 50% { box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); } }
+.kmd[hidden] { display: none; }

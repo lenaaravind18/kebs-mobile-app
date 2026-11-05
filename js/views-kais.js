@@ -163,8 +163,9 @@ const KAIS_STARTERS = [
 function kaisMsgHtml(m, i, isLast) {
   if (m.role === "user") return `<div class="km user"><div class="kbub">${m.files?.length ? `<div class="kfiles">${m.files.map((f) => `<span class="chip" style="height:auto;padding:4px 10px 4px 4px">${fileIcon(f)}${esc(f)}</span>`).join("")}</div>` : ""}${esc(m.text)}</div></div>`;
   const streaming = KAIS.streaming?.mi === i;
-  return `<div class="km ai"><div class="kname"><img class="kav" src="kais.svg" alt=""><b>Kais</b>${streaming ? `<span class="tiny faint">thinking…</span>` : ""}</div><div class="kbody">
-    <div class="kmd" data-mi="${i}">${streaming ? md(m.text.slice(0, KAIS.streaming.n)) + `<span class="caret"></span>` : md(m.text)}</div>
+  return `<div class="km ai"><div class="kname"><img class="kav" src="kais.svg" alt=""><b>Kais</b></div><div class="kbody">
+    ${kaisReasoning(m, i, streaming)}
+    <div class="kmd" data-mi="${i}" ${streaming && KAIS.streaming.phase === "think" ? "hidden" : ""}>${streaming ? md(m.text.slice(0, KAIS.streaming.n)) + `<span class="caret"></span>` : md(m.text)}</div>
     ${streaming ? "" : kaisCard(m.card, i)}
     ${streaming ? "" : `<div class="ktools"><button class="ib sm" data-act="kaisCopy" data-mi="${i}" aria-label="Copy" title="Copy">${I("copy")}</button>${isLast ? `<button class="ib sm" data-act="kaisRegen" aria-label="Regenerate" title="Regenerate">${I("history")}</button>` : ""}<button class="ib sm ${m.fb === 1 ? "on" : ""}" data-act="kaisFb" data-mi="${i}" data-v="1" aria-label="Good response" title="Good response">${I("thumb")}</button><button class="ib sm flip ${m.fb === -1 ? "on" : ""}" data-act="kaisFb" data-mi="${i}" data-v="-1" aria-label="Bad response" title="Bad response">${I("thumb")}</button></div>`}
     ${!streaming && isLast && m.follow?.length ? `<div class="kfollow">${m.follow.map((f) => `<button data-act="kaisAsk" data-q="${esc(f)}">${I("arrowOut")}${esc(f)}</button>`).join("")}</div>` : ""}
@@ -212,14 +213,22 @@ function kaisSend(text) {
 }
 function kaisRespond(c, text) {
   const a = (c.agent && agentAnswer(c.agent, text)) || kaisAnswer(text);
-  c.msgs.push({ role: "ai", text: a.text, card: a.card || null, follow: a.follow || [] });
+  const steps = kaisSteps(text, a, c.agent);
+  const t0 = Date.now();
+  c.msgs.push({ role: "ai", text: a.text, card: a.card || null, follow: a.follow || [], steps });
   save();
   const mi = c.msgs.length - 1;
-  KAIS.streaming = { mi, n: 0, thinking: true };
+  KAIS.streaming = { mi, n: 0, phase: "think", revealed: 1 };
   rerender();
-  const el = () => $(`.kmd[data-mi="${mi}"]`);
-  const think = el(); if (think) think.innerHTML = `<span class="typing"><span></span><span></span><span></span></span>`;
-  setTimeout(() => {
+  const scrollDown = () => { const th = $("[data-thread]"); if (th) th.scrollTop = th.scrollHeight; };
+  scrollDown();
+  const reveal = () => {
+    if (!KAIS.streaming || KAIS.streaming.mi !== mi) return;
+    if (KAIS.streaming.revealed < steps.length) { KAIS.streaming.revealed++; rerender(); scrollDown(); setTimeout(reveal, 520); return; }
+    // reasoning done → fold it and stream the answer
+    c.msgs[mi].thoughtMs = Date.now() - t0; save();
+    KAIS.streaming.phase = "answer"; rerender();
+    const el = () => $(`.kmd[data-mi="${mi}"]`);
     const step = () => {
       if (!KAIS.streaming || KAIS.streaming.mi !== mi) return;
       KAIS.streaming.n += 3 + Math.floor(Math.random() * 4);
@@ -230,7 +239,8 @@ function kaisRespond(c, text) {
       setTimeout(step, 18);
     };
     step();
-  }, 550);
+  };
+  setTimeout(reveal, 560);
 }
 act("submit:kais", (f) => { const v = f.q.value; f.q.value = ""; kaisSend(v); });
 act("kaisAsk", (b) => kaisSend(b.dataset.q));
@@ -265,6 +275,35 @@ function fileKind(name) {
   const e = name.split(".").pop().toLowerCase();
   return { xlsx: "Spreadsheet", xls: "Spreadsheet", csv: "Spreadsheet", pdf: "PDF", doc: "Document", docx: "Document", ppt: "Presentation", pptx: "Presentation", png: "Image", jpg: "Image", jpeg: "Image", heic: "Image", webp: "Image" }[e] || "File";
 }
+// ── Reasoning (Arc UI text shimmer + step timeline) ──
+function kaisSteps(q, a, agent) {
+  const t = q.toLowerCase(), c = a.card?.type;
+  const read = (what, ic) => [ic, what];
+  if (c === "balances" || /leave|balance/.test(t)) return [read("Reading your leave records", "calendar"), read(`Checking ${LEAVE_TYPES.length} leave types and pending requests`, "list"), read("Preparing your balance summary", "sparkles")];
+  if (c === "week" || /hour|timesheet|logged/.test(t)) return [read("Opening this week’s timesheet", "clipboard"), read("Adding up entries for each day", "clock"), read("Comparing against your 45h target", "chart")];
+  if (c === "donut" || /expense|spend|claim/.test(t)) return [read("Fetching your expense claims", "receipt"), read("Grouping spend by category", "wallet"), read("Building the breakdown chart", "chart")];
+  if (c === "bars" || /revenue|report/.test(t)) return [read("Loading the revenue report", "file"), read("Comparing the last 6 months", "chart"), read("Summarising the trend", "sparkles")];
+  if (c === "approvals" || /approv|inbox|pending/.test(t)) return [read("Scanning your approval inbox", "inbox"), read("Checking each request against policy", "shield"), read("Picking out routine items", "checkCircle")];
+  if (c === "clockin" || c === "clockout" || /clock/.test(t)) return [read("Checking today’s attendance", "fingerprint"), read(`Confirming your ${SHIFT.name} shift and location`, "pin")];
+  if (c === "leave" || c === "wfh") return [read("Checking your calendar and balance", "calendar"), read("Drafting the request for your approver", "edit")];
+  if (c === "log") return [read("Matching the task to your projects", "briefcase"), read("Preparing the time entry", "clock")];
+  if (c === "holidays" || /holiday/.test(t)) return [read("Looking up the holiday calendar", "calendar"), read("Finding the next days off", "sun")];
+  return [read("Understanding your question", "search"), read(agent ? "Checking with the " + (KAIS_AGENTS.find((x) => x.id === agent)?.name || "agent") : "Looking across your workspace", "sparkles")];
+}
+function kaisReasoning(m, i, streaming) {
+  if (!m.steps?.length) return "";
+  const live = streaming && KAIS.streaming.phase === "think";
+  const shown = live ? m.steps.slice(0, KAIS.streaming.revealed) : m.steps;
+  const open = live || m.stepsOpen;
+  const secs = m.thoughtMs ? (m.thoughtMs / 1000).toFixed(1) : null;
+  const head = live
+    ? `<div class="kthink-head"><span class="kthink-dot"></span><span class="ts-shimmer">Thinking…</span></div>`
+    : `<button class="kthink-head kthink-sum" data-act="kaisSteps" data-mi="${i}" aria-expanded="${!!open}">${I("sparkles")}<span>Thought for ${secs || "1.6"}s · ${plural(m.steps.length, "step")}</span>${I(open ? "chevU" : "chevD")}</button>`;
+  const list = open ? `<ol class="kthink-steps">${shown.map(([ic, s], j) => { const cur = live && j === shown.length - 1;
+      return `<li class="${cur ? "cur" : "done"}"><span class="kts-ic">${I(cur ? ic : "check")}</span><span class="${cur ? "ts-shimmer" : ""}">${esc(s)}</span></li>`; }).join("")}</ol>` : "";
+  return `<div class="kthink ${live ? "live" : ""}" aria-live="polite">${head}${list}</div>`;
+}
+act("kaisSteps", (b) => { const m = kaisChat()?.msgs[Number(b.dataset.mi)]; if (!m) return; m.stepsOpen = !m.stepsOpen; save(); rerender(); });
 // ── Agents ──
 const KAIS_AGENTS = [
   { id: "expense", name: "Expense Assistant", icon: "wallet", tint: "t-violet", desc: "Track, manage and submit your expenses effortlessly with AI.",
