@@ -102,8 +102,8 @@ route("home", () => {
   return `<div class="screen">
     <header class="hero" data-hero>
       <span class="hero-mark">${KEBS_MARK}</span>
-      <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu">${ini}</button><div class="grow" style="min-width:0"><b class="ell">${T(greetingKey())}, ${esc(S.me.display)}</b><small>${esc(S.me.role)}</small></div></div>
-      <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1">${ini}</button>
+      <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button><div class="grow" style="min-width:0"><b class="ell">${T(greetingKey())}, ${esc(S.me.display)}</b><small>${esc(S.me.role)}</small></div></div>
+      <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button>
         <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
