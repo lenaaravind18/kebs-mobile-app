@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <!-- one gradient along the whole chevron: red at the top arm, through brand orange, to yellow at the bottom arm -->
+    <linearGradient id="kc" gradientUnits="userSpaceOnUse" x1="0" y1="10" x2="0" y2="31">
+      <stop offset="0" stop-color="#ff2d55"/>
+      <stop offset=".5" stop-color="#ff4013"/>
+      <stop offset="1" stop-color="#ffb020"/>
+    </linearGradient>
+    <filter id="kd" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" flood-color="#c9431a" flood-opacity=".3"/>
+    </filter>
+  </defs>
+  <g transform="translate(2.6 2.2)">
+    <path d="M27.5 10.5 14 20l13.5 9.5" fill="none" stroke="url(#kc)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#kd)"/>
+    <path d="M9.5 4.6l1.25 3.35 3.35 1.25-3.35 1.25L9.5 13.8l-1.25-3.35L4.9 9.2l3.35-1.25z" fill="#ff4013"/>
+    <path d="M16.6 1.6l.65 1.75 1.75.65-1.75.65-.65 1.75-.65-1.75-1.75-.65 1.75-.65z" fill="#ff8a3d"/>
+  </g>
+</svg>
