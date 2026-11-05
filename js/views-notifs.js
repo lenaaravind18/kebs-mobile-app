@@ -89,7 +89,7 @@ route("notifs", () => {
       const fg = sw.querySelector(".sw-fg"); let x0 = null, dx = 0, moved = false;
       fg.addEventListener("pointerdown", (e) => { if (e.target.closest("button")) return; x0 = e.clientX; dx = 0; moved = false; fg.setPointerCapture(e.pointerId); fg.classList.add("drag"); });
       fg.addEventListener("pointermove", (e) => {
-        if (x0 === null) return; dx = e.clientX - x0; if (Math.abs(dx) > 6) moved = true;
+        if (x0 === null) return; dx = (e.clientX - x0) / ZOOM; if (Math.abs(dx) > 6) moved = true;
         fg.style.transform = `translateX(${dx}px)`; sw.classList.toggle("go-r", dx > 0); sw.classList.toggle("go-l", dx < 0);
       });
       const end = () => {

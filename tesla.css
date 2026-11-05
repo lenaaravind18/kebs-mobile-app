@@ -914,3 +914,35 @@ body { letter-spacing: 0 !important; }
 :root[data-theme="dark"] .empty.has-ill .empty-img { display: none; }
 :root[data-theme="dark"] .empty.has-ill .empty-ill { display: grid; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .empty.has-ill .empty-img { display: none; } :root:not([data-theme="light"]) .empty.has-ill .empty-ill { display: grid; } }
+
+/* ═════ Responsive phones: whole UI scales with device width (390pt design → 320–430pt phones) ═════ */
+@media (max-width: 619px) {
+  /* safe areas are real device px; divide so they stay exact inside the zoomed shell */
+  :root { --sat: calc(env(safe-area-inset-top) / var(--z, 1)); --sab: calc(env(safe-area-inset-bottom) / var(--z, 1)); }
+  .shell { zoom: var(--z, 1); height: var(--shell-h, 100dvh); max-width: none; }
+}
+/* compact layouts for short screens (iPhone SE / small Androids), in layout px after zoom */
+@media (max-width: 619px) and (max-height: 700px) {
+  .onb3-hero { height: calc(var(--sat) + 300px) !important; }
+}
+/* on-screen keyboard open: give the space to the content — hide the dock, drop the home-indicator inset */
+.kb-open { --sab: 0px !important; }
+.kb-open .dock, .kb-open .home-ind { display: none !important; }
+.kb-open .scroll { padding-bottom: 16px !important; scroll-padding-bottom: 16px; }
+.kb-open .onb3-hero { height: calc(var(--sat) + 180px) !important; }
+
+/* Quick access, open layout (PhonePe-style): no card, section title on the page, big round icon tiles */
+.qa-card { padding: 6px 0 4px !important; background: none !important; box-shadow: none !important; border-radius: 0 !important; }
+.qa-head { padding: 0 2px 14px !important; }
+.qa-head h2 { font: 700 18px/1.2 var(--font) !important; letter-spacing: -0.3px !important; color: var(--ink); }
+.qa { grid-template-columns: repeat(4, 1fr); gap: 16px 6px !important; align-items: start; }
+.qa-btn { gap: 9px !important; font-size: 13px !important; font-weight: 600 !important; line-height: 1.25 !important; color: var(--ink) !important; }
+.qa-btn .ico, .qa-btn .ico.more { width: 64px !important; height: 64px !important; border-radius: 50% !important; background: var(--panel) !important;
+  box-shadow: 0 0 0 1px var(--line), 0 6px 16px -6px rgba(3,7,18,.14) !important; transition: transform .18s var(--ease), box-shadow .18s var(--ease); }
+.qa-btn .ico .ms-ic { width: 40px !important; height: 40px !important; }
+.qa-btn:hover .ico { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, var(--line)), 0 10px 20px -8px rgba(3,7,18,.2) !important; }
+.qa-btn:active .ico { transform: scale(.94); }
+:root[data-theme="dark"] .qa-btn .ico { background: var(--panel-2) !important; box-shadow: 0 0 0 1px var(--line) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .qa-btn .ico { background: var(--panel-2) !important; box-shadow: 0 0 0 1px var(--line) !important; } }
+/* bottom nav: flat top edge, no rounded corners */
+.dock { border-radius: 0 !important; }

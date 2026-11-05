@@ -144,11 +144,72 @@ document.addEventListener("input", (e) => {
 window.addEventListener("hashchange", () => { closeAllSheets(); closeDrawer(); render(false); });
 
 // iPhone mockup: keep the device at true size and scale it to fit the window
+// Responsive sizing. Wide screens: scale the iPhone mockup to fit. Phones: scale the whole UI
+// (text, spacing, icons, radii) to the device width against a 390pt design, so a 320pt SE and a
+// 430pt Pro Max both get the same proportions; the shell height is set in layout px so it fills the screen.
+let ZOOM = 1;
 function fitDevice() {
-  const s = innerWidth >= 620 ? Math.min(1, (innerHeight - 32) / 884, (innerWidth - 32) / 425) : 1;
-  document.documentElement.style.setProperty("--s", s.toFixed(4));
+  const root = document.documentElement.style, vv = window.visualViewport, w = innerWidth;
+  // visible height: on iOS the keyboard only shrinks the visual viewport, on Android (resizes-content) both shrink
+  const h = Math.round(vv ? vv.height : innerHeight);
+  const portrait = w < innerHeight || w < 620; const key = (portrait ? "p" : "l") + w;
+  if (!fitDevice.full || fitDevice.key !== key || h > fitDevice.full) { fitDevice.full = Math.max(h, innerHeight); fitDevice.key = key; }
+  const ae = document.activeElement, typing = !!ae && (ae.isContentEditable || ae.matches("textarea, select, input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file])"));
+  const kb = w < 620 && typing && h < fitDevice.full - 120;
+  document.documentElement.classList.toggle("kb-open", kb);
+  if (w >= 620) { ZOOM = 1; root.setProperty("--s", Math.min(1, (h - 32) / 884, (w - 32) / 425).toFixed(4)); root.setProperty("--z", "1"); root.removeProperty("--shell-h"); return; }
+  // short screens (SE-class, landscape-ish) shrink a little more so key content stays above the fold
+  const fullH = kb ? fitDevice.full : h, byW = w / 390, byH = fullH < 700 ? fullH / 760 : 1;
+  ZOOM = Math.min(1.1, Math.max(0.8, Math.min(byW, Math.max(byH, byW - 0.06))));
+  root.setProperty("--s", "1"); root.setProperty("--z", ZOOM.toFixed(4)); root.setProperty("--shell-h", (h / ZOOM).toFixed(2) + "px");
 }
+addEventListener("orientationchange", () => setTimeout(fitDevice, 120));
+window.visualViewport?.addEventListener("resize", () => { fitDevice(); keepFocusVisible(); });
+// iOS pans the whole page up when the keyboard opens; pin it so only the inner scroll area moves
+window.visualViewport?.addEventListener("scroll", () => { if (scrollY || visualViewport.offsetTop) scrollTo(0, 0); });
+// keyboard: keep the focused field centred in its scroll area once the viewport has settled
+function keepFocusVisible() {
+  const el = document.activeElement; if (!el || !/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) && !el.isContentEditable) return;
+  // only fields inside a scroll area move; pinned composers (Kais, sheets footers) already sit above the keyboard
+  const sc = el.closest(".scroll, .sheet-body, .drawer"); if (!sc || el.closest(".kcomposer")) return;
+  const r = el.getBoundingClientRect(), s = sc.getBoundingClientRect();
+  if (r.top < s.top + 12 || r.bottom > s.bottom - 12) sc.scrollBy({ top: (r.top + r.height / 2 - (s.top + s.height / 2)) / ZOOM, behavior: "smooth" });
+}
+document.addEventListener("focusin", (e) => { if (e.target.matches("input, textarea, select, [contenteditable]")) setTimeout(() => { fitDevice(); keepFocusVisible(); }, 320); });
+document.addEventListener("focusout", () => setTimeout(fitDevice, 120));
 addEventListener("resize", fitDevice); fitDevice();
+
+// Status bar: in the browser the system bar is tinted by theme-color. Match it to whatever is drawn at the
+// top of the current screen (orange hero, white top bar, dark surfaces) so the bar and the app read as one.
+const barMeta = document.querySelector("meta[name=theme-color]");
+// flatten any CSS color (rgba, color(srgb …), with alpha) onto the page background → solid hex
+const barCtx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+function solidColor(c) {
+  barCtx.globalCompositeOperation = "copy"; barCtx.fillStyle = getComputedStyle(document.getElementById("shell")).backgroundColor; barCtx.fillRect(0, 0, 1, 1);
+  barCtx.globalCompositeOperation = "source-over"; barCtx.fillStyle = "#000"; barCtx.fillStyle = c; barCtx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = barCtx.getImageData(0, 0, 1, 1).data; return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+const isClear = (c) => /^rgba\(0, 0, 0, 0\)$|^transparent$|\/ 0\)$/.test(c);
+function syncStatusBar() {
+  const sh = document.getElementById("shell"); if (!sh) return;
+  const r = sh.getBoundingClientRect(); let el = document.elementFromPoint(r.left + r.width / 2, r.top + 2), c = "";
+  for (; el && el !== document.body && !c; el = el.parentElement) {
+    const cs = getComputedStyle(el);
+    if (cs.backgroundImage !== "none") { const stops = (cs.backgroundImage.match(/(?:rgba?|color)\([^()]*\)|#[0-9a-f]{3,8}\b/gi) || []).filter((x) => !isClear(x)); if (stops.length) { c = stops[Math.floor(stops.length / 2)]; break; } } // top-centre of a diagonal gradient ≈ its middle stop
+    if (!isClear(cs.backgroundColor)) c = cs.backgroundColor;
+  }
+  const hex = solidColor(c || getComputedStyle(sh).backgroundColor);
+  if (barMeta.content !== hex) barMeta.content = hex;
+}
+let barQ = 0; const queueBar = () => { if (!barQ) barQ = requestAnimationFrame(() => { barQ = 0; syncStatusBar(); }); };
+new MutationObserver(queueBar).observe(document.getElementById("shell"), { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-theme"] });
+new MutationObserver(queueBar).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", queueBar);
+document.getElementById("shell").addEventListener("scroll", queueBar, { capture: true, passive: true });
 
 if (!location.hash) location.replace(S.authed ? "#/home" : "#/login");
 render(false);
+// screens slide/fade in and themes cross-fade: re-check once motion settles
+["animationend", "transitionend"].forEach((ev) => document.getElementById("shell").addEventListener(ev, queueBar, true));
+addEventListener("hashchange", () => setTimeout(queueBar, 450));
+queueBar();

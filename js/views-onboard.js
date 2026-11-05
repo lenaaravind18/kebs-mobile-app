@@ -75,7 +75,7 @@ route("welcome", () => {
     const el = $("[data-ob]"); let x0 = null;
     el.addEventListener("pointerdown", (e) => { if (!e.target.closest("button")) x0 = e.clientX; });
     el.addEventListener("pointerup", (e) => {
-      if (x0 === null) return; const dx = e.clientX - x0; x0 = null;
+      if (x0 === null) return; const dx = (e.clientX - x0) / ZOOM; x0 = null;
       if (dx < -50 && OB_I < OB4.length - 1) { OB_I++; rerender(); } else if (dx > 50 && OB_I > 0) { OB_I--; rerender(); }
     });
   },
