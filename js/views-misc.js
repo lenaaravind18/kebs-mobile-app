@@ -169,12 +169,47 @@ act("setLang", (b) => { S.settings.lang = b.dataset.v; save(); rerender(); toast
 route("settings/theme", () => settingsPage("Theme", `<b style="display:block;margin:8px 4px 8px">Choose how KEBS looks on this device</b>
   <div class="list">${[["auto", "Automatic", "Matches your device’s light or dark setting", "sparkles"], ["light", "Light mode", "Always light", "sun"], ["dark", "Dark mode", "Always dark", "moon"]].map(([v, t, s, ic]) => `<button class="opt-row" data-act="setTheme" data-v="${v}"><span class="ic tint t-slate" style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center">${I(ic)}</span><span class="grow"><b style="display:block">${t}</b><span class="small faint">${s}</span></span>${S.settings.theme === v ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`));
 act("setTheme", (b) => { S.settings.theme = b.dataset.v; save(); rerender(); });
+// Device-lock illustration in the Design System's illustration style: dashed blue-grey rings,
+// soft grey objects, one coral gradient accent (#FF8960 → #FF62A5), tiny sparkles
+function secureArt(on) {
+  const shackle = on
+    ? '<path d="M104 92V78a16 16 0 0 1 32 0v14" fill="none" stroke="url(#saG)" stroke-width="7" stroke-linecap="round"/>'
+    : '<path d="M104 92V78a16 16 0 0 1 31.2-5" fill="none" stroke="url(#saG)" stroke-width="7" stroke-linecap="round" class="sa-shackle"/>';
+  return `<figure class="sec-art ${on ? "on" : ""}" aria-hidden="true"><svg viewBox="0 0 240 200">
+    <defs><linearGradient id="saG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8960"/><stop offset="1" stop-color="#FF62A5"/></linearGradient></defs>
+    <circle cx="120" cy="104" r="92" fill="none" stroke="var(--ill-ring)" stroke-width="2" stroke-dasharray="6 7"/>
+    <circle cx="120" cy="104" r="68" fill="none" stroke="var(--ill-ring)" stroke-width="2" stroke-dasharray="6 7"/>
+    <circle cx="120" cy="104" r="48" fill="var(--ill-disc)"/>
+    <path d="M24 118h-6M21 110l-3 4M216 62l5-2M214 54l4 3" stroke="var(--ill-mark)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="44" cy="58" r="3" fill="var(--ill-mark)"/><circle cx="208" cy="150" r="3.5" fill="none" stroke="var(--ill-mark)" stroke-width="2"/>
+    <path d="M196 92l2 4.6 4.6 2-4.6 2-2 4.6-2-4.6-4.6-2 4.6-2z" fill="url(#saG)" class="sa-twinkle"/>
+    <g class="sa-phone">
+      <rect x="146" y="106" width="44" height="74" rx="9" fill="var(--ill-obj)"/>
+      <rect x="150" y="113" width="36" height="58" rx="5" fill="var(--ill-paper)"/>
+      <circle cx="168" cy="132" r="8" fill="none" stroke="var(--ill-mark)" stroke-width="2.4"/>
+      <path d="M163.5 137.5a6.4 6.4 0 0 1 9 0" fill="none" stroke="var(--ill-mark)" stroke-width="2" stroke-linecap="round"/>
+      ${[0, 1, 2, 3].map((i) => `<circle cx="${158 + i * 6.8}" cy="152" r="2.2" fill="${on ? "url(#saG)" : "var(--ill-mark)"}"/>`).join("")}
+      <rect x="158" y="160" width="20" height="3.5" rx="1.75" fill="var(--ill-obj)"/>
+    </g>
+    <g class="sa-chip"><rect x="40" y="128" width="46" height="34" rx="10" fill="var(--ill-paper)" stroke="var(--ill-obj)" stroke-width="2"/>
+      <path d="M52 152c0-5.4 1.8-9 9-9s9 3.6 9 9M56 152c0-3.6 1-5.4 5-5.4s5 1.8 5 5.4M49 145.5c2.6-4.3 6.4-6.3 12-6.3s9.4 2 12 6.3" fill="none" stroke="url(#saG)" stroke-width="2" stroke-linecap="round"/></g>
+    <g class="sa-shield">
+      ${shackle}
+      <rect x="92" y="90" width="56" height="46" rx="12" fill="var(--ill-paper)" stroke="var(--ill-obj)" stroke-width="2.5"/>
+      <rect x="98" y="96" width="44" height="34" rx="8" fill="url(#saG)"/>
+      <circle cx="120" cy="109" r="5" fill="#fff"/><rect x="117.6" y="111" width="4.8" height="10" rx="2.4" fill="#fff"/>
+    </g>
+    <g class="sa-badge"><circle cx="146" cy="88" r="12" fill="var(--ill-paper)"/>
+      ${on ? '<circle cx="146" cy="88" r="9.5" fill="#22a06b"/><path d="M141.5 88l3 3 6-6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+            : '<circle cx="146" cy="88" r="9.5" fill="#f5a524"/><path d="M146 83v6M146 93v.2" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>'}</g>
+  </svg></figure>`;
+}
 route("settings/secure", () => {
   const on = S.settings.secure;
   return settingsPage("Secure your KEBS app", `<b style="display:block;margin:8px 4px 6px">Do you want to secure your KEBS app?</b>
     <p class="small muted" style="margin:0 4px">Enabling this asks for your device’s passcode, pattern, fingerprint or face recognition every time KEBS opens.</p>
     <div class="card hrow" style="margin-top:16px"><b class="grow">Enable device authentication</b><button class="switch" role="switch" aria-checked="${on}" aria-label="Enable device authentication" data-act="toggleSecure"></button></div>
-    <div class="lock-art ${on ? "on" : ""}" style="margin-top:36px">${I(on ? "lock" : "unlock")}</div>
+    ${secureArt(on)}
     <p class="small muted" style="text-align:center;max-width:300px;margin:0 auto">${on ? "KEBS is secured. You’ll unlock it with your device each time you open the app." : "Your KEBS app is not secured. Anyone with access to your phone can open it."}</p>`);
 });
 act("toggleSecure", () => {

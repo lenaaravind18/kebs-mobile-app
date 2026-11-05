@@ -880,3 +880,37 @@ body { letter-spacing: 0 !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 /* Helpdesk "Need help?" card: light M365 tile like the app tiles */
 .card.accent .help-ic { flex: none; margin: 0; }
+
+/* Secure-app illustration */
+.sec-art { --sa-bg1: #fff1ea; --sa-bg2: #ffe3d6; --sa-body: #fff; --sa-screen: #f6f7fb; --sa-edge: #e5e7ee; --sa-line: #d6d9e2; --sa-shadow: rgba(255,64,19,.10);
+  width: 240px; max-width: 100%; margin: 28px auto 14px; }
+.sec-art.on { --sa-bg1: #e8f8f0; --sa-bg2: #d3f2e3; --sa-shadow: rgba(5,150,105,.12); }
+.sec-art svg { display: block; width: 100%; height: auto; overflow: visible; }
+:root[data-theme="dark"] .sec-art { --sa-bg1: #2a1d18; --sa-bg2: #1f1714; --sa-body: #20242c; --sa-screen: #171a20; --sa-edge: #2f3541; --sa-line: #3a414e; --sa-shadow: rgba(0,0,0,.35); }
+:root[data-theme="dark"] .sec-art.on { --sa-bg1: #15261f; --sa-bg2: #111d18; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sec-art { --sa-bg1: #2a1d18; --sa-bg2: #1f1714; --sa-body: #20242c; --sa-screen: #171a20; --sa-edge: #2f3541; --sa-line: #3a414e; --sa-shadow: rgba(0,0,0,.35); }
+  :root:not([data-theme="light"]) .sec-art.on { --sa-bg1: #15261f; --sa-bg2: #111d18; } }
+.sa-shield, .sa-badge, .sa-chip { transform-box: fill-box; transform-origin: center; }
+.sa-shield { animation: saPop .55s cubic-bezier(.34,1.56,.64,1) both; filter: drop-shadow(0 10px 14px rgba(0,0,0,.18)); }
+.sa-badge { animation: saPop .5s cubic-bezier(.34,1.56,.64,1) .25s both; }
+.sa-chip { animation: saFloat 4s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(0,0,0,.08)); }
+.sa-twinkle { transform-box: fill-box; transform-origin: center; animation: saTw 2.4s ease-in-out infinite; }
+@keyframes saPop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes saFloat { 50% { transform: translateY(-5px); } }
+@keyframes saTw { 50% { opacity: .3; transform: scale(.6); } }
+@media (prefers-reduced-motion: reduce) { .sa-shield, .sa-badge, .sa-chip, .sa-twinkle { animation: none; } }
+
+/* Design System illustration palette (blue-grey scenes, coral accent) — used by inline illustrations */
+.sec-art { --ill-ring: #E9EAEC; --ill-disc: #F1F2F7; --ill-obj: #D8DBEA; --ill-paper: #FEFEFE; --ill-mark: #D2D8DF; width: 220px; margin: 22px auto 10px; }
+.sec-art.on { --ill-disc: #EAF6F0; }
+:root[data-theme="dark"] .sec-art { --ill-ring: #262b34; --ill-disc: #1c2028; --ill-obj: #343b48; --ill-paper: #20242c; --ill-mark: #3d4452; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sec-art { --ill-ring: #262b34; --ill-disc: #1c2028; --ill-obj: #343b48; --ill-paper: #20242c; --ill-mark: #3d4452; } }
+.sec-art .sa-shield { filter: drop-shadow(0 10px 16px rgba(255,98,165,.22)); }
+
+.empty-img { display: block; width: 220px; max-width: 70%; height: auto; margin: 0 auto 6px; animation: screenIn .45s var(--ease); }
+.empty.has-ill .empty-ill { display: none; }
+/* the pack is drawn for light grounds: in dark, fall back to the icon composition */
+:root[data-theme="dark"] .empty.has-ill .empty-img { display: none; }
+:root[data-theme="dark"] .empty.has-ill .empty-ill { display: grid; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .empty.has-ill .empty-img { display: none; } :root:not([data-theme="light"]) .empty.has-ill .empty-ill { display: grid; } }
