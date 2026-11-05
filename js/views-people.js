@@ -19,13 +19,18 @@ route("profile", (_, q) => {
       <div class="sec"><h2>About</h2></div>
       <div class="card stack"><span class="eyebrow">Intro</span>${me.intro ? `<p>${esc(me.intro)}</p>` : `<p class="muted">Not a single line about who you are. Impossible! Don’t be shy, let your teammates know you.</p>`}<button class="btn outline block" data-act="editIntro">${me.intro ? "Edit your response" : "Add your response"}</button></div>`;
   } else if (tab === "timeline") {
+    const when = (ts) => new Date(ts).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const ev = [
-      ...S.requests.map((r) => ({ ts: r.created, text: `Raised ${REQ_TYPES[r.type].short} request · ${D.range(r.from, r.to)}`, kind: r.status === "approved" ? "ok" : r.status === "pending" ? "on" : "" })),
-      ...Object.entries(S.ts.weeks).filter(([, w]) => w.submittedAt).map(([k, w]) => ({ ts: w.submittedAt, text: `Submitted timesheet · week of ${D.short(k)}`, kind: "on" })),
-      ...S.praises.me.map((p) => ({ ts: D.parse(p.date).getTime(), text: `Received “${p.badge}” from ${person(p.from).name}`, kind: "ok" })),
-      { ts: D.parse(me.joined).getTime(), text: `Joined ${me.company}`, kind: "ok" },
+      ...S.requests.map((r) => ({ ts: r.created, title: `${r.type === "leave" ? (LEAVE_TYPES.find((l) => l.id === r.leaveType)?.name || "Leave") : REQ_TYPES[r.type].name} request`, sub: D.range(r.from, r.to), icon: REQ_TYPES[r.type].icon, tint: REQ_TYPES[r.type].tint, chip: statusChip(r.status), go: `#/request/${r.id}` })),
+      ...Object.entries(S.ts.weeks).filter(([, w]) => w.submittedAt).map(([k, w]) => ({ ts: w.submittedAt, title: "Timesheet submitted", sub: `Week of ${D.short(k)}`, icon: "clipboard", tint: "t-teal", chip: statusChip(w.status === "draft" ? "draft" : w.status), go: `#/ts/week?w=${k}` })),
+      ...S.praises.me.map((p) => ({ ts: D.parse(p.date).getTime(), title: `Received “${p.badge}”`, sub: `from ${person(p.from).name}`, who: p.from, icon: "award", tint: "t-amber" })),
+      { ts: D.parse(me.joined).getTime(), title: `Joined ${me.company}`, sub: me.role, icon: "building", tint: "t-blue" },
     ].sort((a, b) => b.ts - a.ts);
-    body = `<div class="timeline" style="margin-top:12px">${ev.map((e) => `<div class="tl ${e.kind}"><b class="small" style="display:block">${esc(e.text)}</b><span class="tiny muted">${new Date(e.ts).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span></div>`).join("")}</div>`;
+    body = `<div class="feed ptl" style="margin-top:14px">${ev.map((e) => `<${e.go ? `button data-go="${e.go}"` : "div"} class="fd">
+        <div class="fd-av">${e.who ? `${avatar(e.who)}<span class="fd-badge ${e.tint}">${I(e.icon)}</span>` : `<span class="ic tint ${e.tint} ptl-ic">${I(e.icon)}</span>`}</div>
+        <div class="grow" style="min-width:0"><b class="fd-t">${esc(e.title)}</b><span class="small muted" style="display:block">${esc(e.sub)} · ${when(e.ts)}</span></div>
+        ${e.chip || ""}
+      </${e.go ? "button" : "div"}>`).join("")}</div>`;
   } else if (tab === "personal") {
     body = `<div class="card" style="margin-top:12px">${[["First name", me.first], ["Middle name", me.middle], ["Last name", me.last], ["Display name", me.display], ["Date of birth", D.long(me.dob)], ["Marital status", me.marital], ["Gender", me.gender], ["Phone", me.phone], ["Work email", S.email]].map(([k, v]) => `<div class="kv"><span>${k}</span><span>${esc(v || "—")}</span></div>`).join("")}</div>
       <button class="btn primary block" style="margin-top:12px" data-go="#/profile/edit">${I("edit")}Edit personal details</button>`;

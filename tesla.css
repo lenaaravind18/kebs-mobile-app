@@ -368,3 +368,11 @@ p, .small, .txt, .quote, .kmd p { text-wrap: pretty; }
 .drawer-foot .hrow { gap: 9px !important; }
 .drawer-foot .logo-word { font-size: 21px !important; }
 .drawer-foot .tiny { font-size: 11.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+
+/* profile timeline: icon tiles / avatars on a rail */
+.ptl .fd { width: 100%; text-align: left; align-items: center; padding: 10px 12px; margin-bottom: 8px; border-radius: 18px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
+.ptl .fd::before { left: 31px; top: 54px; bottom: -10px; }
+.ptl .fd:last-child::before { display: none; }
+.ptl button.fd:active { transform: scale(.99); }
+.ptl-ic { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+.ptl .chip { flex: none; }
