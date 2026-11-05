@@ -41,7 +41,13 @@ route("apps", (_, q) => {
     const approved = S.expenses.filter((e) => e.status === "approved" && e.date.startsWith(month)).reduce((a, e) => a + e.amount, 0);
     const hols = holidays().filter((h) => h.date >= D.today()).slice(0, 3);
     const mon = D.f(D.today(), { month: "short" });
-    body = `<div class="card accent stat2" style="margin-top:6px"><div><span class="eyebrow">Pending payout</span><div class="timer">${money(pending)}</div><span class="tiny muted">${plural(S.expenses.filter((e) => e.status === "pending").length, "claim")}</span></div><div><span class="eyebrow">Approved · ${mon}</span><div class="timer">${money(approved)}</div><span class="tiny muted">${plural(S.expenses.filter((e) => e.status === "approved" && e.date.startsWith(month)).length, "claim")}</span></div></div>
+    const pN = S.expenses.filter((e) => e.status === "pending").length, aN = S.expenses.filter((e) => e.status === "approved" && e.date.startsWith(month)).length;
+    const rs = (n) => `<span class="pc-cur">₹</span>${Number(n).toLocaleString("en-IN")}`;
+    body = `<a class="paycard" href="#/expenses" aria-label="Pending payout ${money(pending)}, view claims">
+        <div class="pc-top"><span class="pc-ic">${I("wallet")}</span><span class="pc-lbl">Pending payout</span><span class="pc-chip">${I("clock")}${plural(pN, "claim")}</span></div>
+        <div class="pc-amt">${rs(pending)}</div>
+        <div class="pc-foot"><span class="pc-sub">${I("checkCircle")}<span>Approved in ${mon}</span><b>${rs(approved)}</b><em>· ${plural(aN, "claim")}</em></span><span class="pc-go">${I("chevR")}</span></div>
+      </a>
       <div class="sec"><h2>Expenses</h2></div>
       <div class="grid2">
         ${tileBtn("wallet", "t-amber", "Track expense", "Claims, statuses and receipts.", `data-go="#/expenses"`)}
@@ -59,7 +65,7 @@ route("apps", (_, q) => {
       <div class="sec"><h2>My goals</h2><span class="small muted">This quarter</span></div>
       <div class="stack">${S.goals.map((g) => `<div class="card hrow"><span class="prog-ring" style="--p:${g.p}" data-l="${g.p}%"></span><span class="grow"><b style="display:block">${esc(g.title)}</b><span class="small muted">${g.p >= 100 ? "Completed" : "In progress"}</span></span><div class="stack s6"><button class="ib sm" data-act="goalStep" data-id="${g.id}" data-d="10" aria-label="Increase progress">${I("plus")}</button><button class="ib sm" data-act="goalStep" data-id="${g.id}" data-d="-10" aria-label="Decrease progress">${I("chevD")}</button></div></div>`).join("")}</div>`;
   } else {
-    body = `<div class="card accent hrow" style="margin-top:6px"><span class="kais-mark">${I("ticket")}</span><span class="grow"><b style="display:block">Need help?</b><span class="small muted">IT, payroll, facilities or HR — we’ll route it.</span></span><button class="btn primary sm" data-act="newTicket">Raise ticket</button></div>
+    body = `<div class="card accent hrow" style="margin-top:6px"><span class="tico ms help-ic">${msIcon("helpdesk")}</span><span class="grow"><b style="display:block">Need help?</b><span class="small muted">IT, payroll, facilities or HR — we’ll route it.</span></span><button class="btn primary sm" data-act="newTicket">Raise ticket</button></div>
       <div class="sec"><h2>My tickets</h2></div>
       <div class="stack">${S.tickets.map((t) => `<button class="card stack s6" data-act="openTicket" data-id="${t.id}"><div class="hrow"><span class="small muted grow">${t.id} · ${esc(t.cat)}</span>${statusChip(t.status)}</div><b>${esc(t.subject)}</b><span class="tiny faint">Raised ${D.ago(t.ts)} ago</span></button>`).join("") || emptyState(["ticket", "help", "msg"], "No tickets", "Anything you raise shows up here.")}</div>`;
   }

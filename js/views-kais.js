@@ -163,7 +163,7 @@ const KAIS_STARTERS = [
 function kaisMsgHtml(m, i, isLast) {
   if (m.role === "user") return `<div class="km user"><div class="kbub">${m.files?.length ? `<div class="kfiles">${m.files.map((f) => `<span class="chip" style="height:auto;padding:4px 10px 4px 4px">${fileIcon(f)}${esc(f)}</span>`).join("")}</div>` : ""}${esc(m.text)}</div></div>`;
   const streaming = KAIS.streaming?.mi === i;
-  return `<div class="km ai"><div class="kname"><img class="kav" src="kais.svg" alt=""><b>Kais</b></div><div class="kbody">
+  return `<div class="km ai"><div class="kname"><span class="kav-wrap ${streaming ? "busy" : ""}" style="--ad:-${Date.now() % 900}ms"><img class="kav" src="kais.svg" alt=""></span><b>Kais</b>${streaming ? `<span class="sr-only">is responding</span>` : ""}</div><div class="kbody">
     ${kaisReasoning(m, i, streaming)}
     <div class="kmd" data-mi="${i}" ${streaming && KAIS.streaming.phase === "think" ? "hidden" : ""}>${streaming ? md(m.text.slice(0, KAIS.streaming.n)) + `<span class="caret"></span>` : md(m.text)}</div>
     ${streaming ? "" : kaisCard(m.card, i)}
@@ -434,7 +434,8 @@ act("kaisDo", (b) => {
 
 // Entry points: dock button, search "ask", home ask bar
 function openKais(q = "") { go(q ? `#/kais?q=${encodeURIComponent(q)}` : "#/kais"); }
-act("kais", () => openKais());
+// Dock button always lands on the Kais home (new chat); past chats stay in the sidebar
+act("kais", () => { kaisNewChat(); KAIS.streaming = null; save(); if (location.hash.split("?")[0] === "#/kais") rerender(); else openKais(); });
 
 // ── Voice mode (ChatGPT / Claude style): orb reacts to your voice, live captions, Kais speaks back ──
 const VOICE = { on: false, rec: null, stream: null, ctx: null, raf: 0, muted: false, captions: true, state: "idle" };

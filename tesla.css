@@ -840,3 +840,43 @@ body { letter-spacing: 0 !important; }
 
 /* hamburger badge: fixed dark chip with white icon, visible in light and dark */
 .hero-menu { background: #1f2430 !important; color: #fff !important; }
+
+/* Finances: payout wallet card */
+.paycard { position: relative; display: flex; flex-direction: column; margin-top: 6px; padding: 16px 16px 14px; border-radius: 24px; overflow: hidden; color: #fff; text-decoration: none; isolation: isolate;
+  background: radial-gradient(120% 120% at 0% 0%, #ff9a6b 0%, transparent 55%), radial-gradient(90% 120% at 100% 0%, #ff3d6e 0%, transparent 60%), linear-gradient(150deg, #ff7a45, #ff4013 60%, #e2335a);
+  box-shadow: 0 14px 30px -12px rgba(255,64,19,.55); transition: transform .2s var(--ease); }
+.paycard:active { transform: scale(.985); }
+.paycard::after { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; z-index: -1; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 70%); }
+:root[data-theme="dark"] .paycard { background: radial-gradient(120% 120% at 0% 0%, #b4482a 0%, transparent 55%), radial-gradient(90% 120% at 100% 0%, #a3203f 0%, transparent 60%), linear-gradient(150deg, #7a2a16, #8f2a12 60%, #6d1830); box-shadow: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .paycard { background: radial-gradient(120% 120% at 0% 0%, #b4482a 0%, transparent 55%), radial-gradient(90% 120% at 100% 0%, #a3203f 0%, transparent 60%), linear-gradient(150deg, #7a2a16, #8f2a12 60%, #6d1830); box-shadow: none; } }
+.pc-top { display: flex; align-items: center; gap: 10px; }
+.pc-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.28); }
+.pc-ic .i { width: 18px; height: 18px; color: #fff; }
+.pc-lbl { flex: 1; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,.9); }
+.pc-chip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.2); color: #fff; }
+.pc-chip .i { width: 13px; height: 13px; }
+.pc-amt { margin: 14px 0 14px; font: 800 34px/1 var(--font); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.pc-cur { font-size: 22px; font-weight: 700; margin-right: 3px; opacity: .85; vertical-align: 6px; }
+.pc-foot { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.22); }
+.pc-sub { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,.85); white-space: nowrap; }
+.pc-sub .i { width: 15px; height: 15px; flex: none; }
+.pc-sub b { color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pc-sub b .pc-cur { font-size: inherit; vertical-align: 0; margin-right: 1px; }
+.pc-sub em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
+.pc-go { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #fff; color: #ff4013; flex: none; }
+.pc-go .i { width: 16px; height: 16px; }
+
+/* Kais message avatar: spinning ring while generating, bare logo once done */
+.kav-wrap { position: relative; display: grid; place-items: center; width: 28px; height: 28px; flex: none; }
+.kname .kav { width: 26px; height: 26px; padding: 0; border-radius: 0; background: none; box-shadow: none; transition: transform .3s var(--ease); }
+.kav-wrap.busy .kav { transform: scale(.72); }
+.kav-wrap.busy::before { content: ""; position: absolute; inset: -2px; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 20%, #ff9a6b 45%, #ff4013 75%, #e2335a 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  animation: kavSpin .9s linear infinite; animation-delay: var(--ad, 0ms); }
+.kav-wrap.busy::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--accent) 14%, transparent); }
+@keyframes kavSpin { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .kav-wrap.busy::before { animation-duration: 2.4s; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Helpdesk "Need help?" card: light M365 tile like the app tiles */
+.card.accent .help-ic { flex: none; margin: 0; }
