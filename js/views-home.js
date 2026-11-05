@@ -3,25 +3,21 @@
 // ── Login ──
 route("login", () => `
   <div class="screen"><div class="login">
-    <div class="hero-art">
-      <span class="spark" style="left:16%;top:22%">${I("sparkles")}</span>
-      <span class="spark" style="right:18%;top:30%;animation-delay:.8s">${I("sparkles")}</span>
-      <span class="spark" style="left:26%;bottom:16%;animation-delay:1.4s">${I("sparkles")}</span>
-      <div class="bot"><span class="ear" style="left:20px"></span><span class="ear" style="right:20px"></span><div class="head"><div class="face"><span class="eye"></span><span class="eye"></span></div></div><div class="body">${I("power")}</div></div>
-    </div>
-    <div class="hrow" style="justify-content:center;gap:10px;margin-bottom:10px"><img src="icon.svg" alt="" style="width:38px;height:38px;border-radius:11px"><span class="logo-word">KEBS<span>.</span></span></div>
-    <h1>Welcome aboard!</h1>
-    <p class="sub">Manage tasks, delegate jobs, business clutter-free.</p>
+    ${curtain(`<div class="bot"><span class="ear" style="left:20px"></span><span class="ear" style="right:20px"></span><div class="head"><div class="face"><span class="eye"></span><span class="eye"></span></div></div><div class="body">${I("power")}</div></div>
+      <span class="spark" style="left:18%;top:34%">${I("sparkles")}</span><span class="spark" style="right:20%;top:44%;animation-delay:.8s">${I("sparkles")}</span>`, "login-curtain")}
+    <h1>Welcome to KEBS!</h1>
+    <p class="sub">Manage tasks, delegate jobs, business clutter-free!</p>
     <div class="stack">
       <button class="btn outline block" data-act="sso"><span class="ms"><i></i><i></i><i></i><i></i></span>Sign in with Office 365</button>
-      <div class="or">or sign in with your email</div>
+      <div class="or">Or, sign in with your email ID</div>
       <form class="stack" data-form="login" novalidate>
         <input class="inp" type="email" name="email" placeholder="name@example.com" autocomplete="email" value="${esc(S.email)}" aria-label="Work email">
         <span class="err" data-err hidden>Enter a valid work email address.</span>
         <button class="btn primary block" type="submit">Sign in</button>
       </form>
     </div>
-    <p class="tiny faint" style="text-align:center;margin-top:auto;padding-top:24px">Demo workspace · your data stays on this device</p>
+    <button class="link" style="align-self:center;margin-top:18px" data-act="replayIntro">${I("sparkles")} See what KEBS can do</button>
+    <p class="tiny faint" style="text-align:center;margin-top:auto;padding-top:18px">Demo workspace · your data stays on this device</p>
   </div></div>`);
 
 function signIn(email) {
@@ -309,6 +305,7 @@ act("drawer", () => {
       ${row("lock", "Secure your KEBS app", S.settings.secure ? "Enabled" : "Disabled", `data-go="#/settings/secure"`)}
       ${row("msg", "Send feedback", "Give your valuable feedback", `data-go="#/feedback"`)}
       ${row("palette", "Theme", { auto: "Automatic", light: "Light mode", dark: "Dark mode" }[S.settings.theme], `data-go="#/settings/theme"`)}
+      ${row("sparkles", "Replay intro", "See the welcome tour again", `data-act="replayIntro"`)}
       ${row("history", "Reset demo data", "Restore the sample workspace", `data-act="resetDemo"`)}
       ${row("logout", "Logout", esc(S.email || "demo.kebs.app"), `data-act="logout"`)}
     </div>

@@ -1,18 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-  <defs>
-    <!-- one gradient along the whole chevron: red at the top arm, through brand orange, to yellow at the bottom arm -->
-    <linearGradient id="kc" gradientUnits="userSpaceOnUse" x1="0" y1="10" x2="0" y2="31">
-      <stop offset="0" stop-color="#ff2d55"/>
-      <stop offset=".5" stop-color="#ff4013"/>
-      <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
-    <filter id="kd" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" flood-color="#c9431a" flood-opacity=".3"/>
-    </filter>
-  </defs>
-  <g transform="translate(2.6 2.2)">
-    <path d="M27.5 10.5 14 20l13.5 9.5" fill="none" stroke="url(#kc)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#kd)"/>
-    <path d="M9.5 4.6l1.25 3.35 3.35 1.25-3.35 1.25L9.5 13.8l-1.25-3.35L4.9 9.2l3.35-1.25z" fill="#ff4013"/>
-    <path d="M16.6 1.6l.65 1.75 1.75.65-1.75.65-.65 1.75-.65-1.75-1.75-.65 1.75-.65z" fill="#ff8a3d"/>
-  </g>
+<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<image x="3.91797" y="-0.1875" width="35.8086" height="35.4961" preserveAspectRatio="none" xlink:href="data:image/png;base64,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"/>
+<path class="s1" d="M8.29236 0L9.59244 4.10774L13.7 5.40788L9.59244 6.70802L8.29236 10.8158L6.99229 6.70802L2.88477 5.40788L6.99229 4.10774L8.29236 0Z" fill="url(#paint0_linear_2430_144926)"/>
+<path class="s2" d="M2.7038 7.57031L3.35384 9.62418L5.4076 10.2743L3.35384 10.9243L2.7038 12.9782L2.05376 10.9243L0 10.2743L2.05376 9.62418L2.7038 7.57031Z" fill="#F27A6C"/>
+<style>
+.s1,.s2{transform-box:fill-box;transform-origin:center;animation:tw 2.6s ease-in-out infinite}
+.s2{animation-delay:-1.3s}
+@keyframes tw{0%,100%{transform:scale(1) rotate(0deg);opacity:1}45%{transform:scale(.55) rotate(45deg);opacity:.55}60%{transform:scale(1.12) rotate(60deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){.s1,.s2{animation:none}}
+</style>
+<defs>
+<linearGradient id="paint0_linear_2430_144926" x1="13.7" y1="5.40788" x2="2.3122" y2="5.40788" gradientUnits="userSpaceOnUse">
+<stop stop-color="#EF4A61"/>
+<stop offset="1" stop-color="#F27A6C"/>
+</linearGradient>
+</defs>
 </svg>

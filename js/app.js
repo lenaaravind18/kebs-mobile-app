@@ -33,7 +33,7 @@ act("unlock", () => { $("[data-lock]")?.classList.add("scanning"); setTimeout(()
 // first visit to a screen in this session shows a skeleton while it "loads"
 const SEEN = new Set();
 function skelKind(path) {
-  if (/^(login|kais|search|clockin|feedback|settings|req\/|leave\/apply|compoff\/request|expenses\/new|profile\/edit)/.test(path)) return null;
+  if (/^(welcome|login|kais|search|clockin|feedback|settings|req\/|leave\/apply|compoff\/request|expenses\/new|profile\/edit)/.test(path)) return null;
   if (path === "home") return "home";
   if (/^(apps|leave\/balances|expenses)/.test(path)) return "grid";
   if (/^(post|request|people|profile|attendance)/.test(path)) return "detail";
@@ -82,7 +82,7 @@ function render(keep) {
   ensureToday(); applyTheme();
   const { path, q } = parseHash();
   const view = $("#view"), dock = $("#dock");
-  if (!S.authed && path !== "login") return location.replace("#/login");
+  if (!S.authed && path !== "login" && path !== "welcome") return location.replace(S.onboarded ? "#/login" : "#/welcome");
   if (S.authed && path === "login") return location.replace("#/home");
   FORM_CHECK = null;
   if (S.authed && S.settings.secure && !unlocked) { view.className = "view"; view.innerHTML = lockView(); dock.hidden = true; return; }

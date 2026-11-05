@@ -3,6 +3,44 @@
 // Notifications live in views-notifs.js (Priority Inbox)
 
 // ── Inbox (approvals) ──
+// Kais policy check: explains a flag — rule, checks with evidence, recommendation, policy reference
+function flagDetails(x) {
+  const p = person(x.who).name.split(" ")[0];
+  if (x.kind === "expense" && /travel/i.test(x.flag)) return {
+    sev: "High", rule: "Domestic travel must be booked through the KEBS travel desk, economy class, within ₹8,000 per trip.",
+    checks: [["Booked via travel desk", false, "Booked directly with the airline"], ["Within trip limit", false, `${money(x.amount)} vs ${money(8000)} limit`], ["Receipt attached", true, "e-ticket + invoice"], ["Trip pre-approved", true, "Client visit, approved 2 Nov"]],
+    rec: `Ask ${p} for the travel-desk quote, or approve up to ${money(8000)} and reject the difference.`, ref: "Travel & Expense Policy v3 · §4.2", partial: `Approve ${money(8000)}` };
+  if (x.kind === "expense") return {
+    sev: "Medium", rule: "Meals & entertainment above ₹5,000 need prior approval and an itemised GST bill.",
+    checks: [["Within category limit", false, `${money(x.amount)} vs ${money(5000)} limit`], ["Itemised bill", true, "Bill uploaded"], ["GST number on bill", false, "Missing GSTIN"], ["Prior approval", false, "No pre-approval found"]],
+    rec: `Request the GST bill from ${p}. If it’s a client meal, approve ${money(5000)} now and ask for pre-approval next time.`, ref: "Travel & Expense Policy v3 · §6.1", partial: `Approve ${money(5000)}` };
+  if (x.kind === "timesheet" && /below/i.test(x.flag)) return {
+    sev: "Low", rule: "Full-time staff log at least 40 billable/non-billable hours per week.",
+    checks: [["Weekly minimum", false, `${x.hours}h vs 40h`], ["Leave or holiday in week", false, "None found"], ["All days submitted", true, "Mon–Fri"]],
+    rec: `Likely a missed entry — ask ${p} to add the remaining ${40 - x.hours}h or note the reason.`, ref: "Timesheet Policy · §2.1" };
+  if (x.kind === "timesheet") return {
+    sev: "Medium", rule: "Weekly hours are capped at 48 without overtime approval; weekend work needs a reason.",
+    checks: [["Weekly cap", false, `${x.hours}h vs 48h cap`], ["Overtime approved", false, "No OT request"], ["Weekend entries", false, "Sat 4h · Sun 4h"], ["Project code valid", true, x.proj]],
+    rec: `Approve 48h and ask ${p} to raise an overtime request for the extra ${x.hours - 48}h.`, ref: "Timesheet Policy · §3.4", partial: "Approve 48h" };
+  return {
+    sev: "Medium", rule: "Leave during a planned team release needs manager sign-off and a handover.",
+    checks: [["Balance available", true, "6 days left"], ["Overlaps release window", false, "Release on the same day"], ["Handover added", false, "No handover note"]],
+    rec: `Approve if ${p} adds a handover, or suggest the next day instead.`, ref: "Leave Policy · §5.3" };
+}
+function flagCard(x) {
+  const f = flagDetails(x), failed = f.checks.filter((c) => !c[1]).length;
+  return `<div class="fc">
+    <div class="hrow"><span class="fc-ic">${I("sparkles")}</span><span class="grow"><b style="display:block">Kais flagged this request</b><span class="small">${esc(x.flag)}</span></span><span class="chip ${f.sev === "High" ? "bad" : f.sev === "Medium" ? "warn" : ""}">${f.sev}</span></div>
+    <div class="fc-sum small">${failed} of ${f.checks.length} policy checks failed</div>
+    <div class="fc-more" hidden>
+      <div class="fc-sec"><span class="eyebrow">Policy rule</span><p class="small">${esc(f.rule)}</p></div>
+      <div class="fc-sec"><span class="eyebrow">What Kais checked</span>${f.checks.map(([t, ok, ev]) => `<div class="fc-chk ${ok ? "ok" : "bad"}"><span class="fc-dot">${I(ok ? "check" : "x")}</span><span class="grow"><b class="small" style="display:block">${esc(t)}</b><span class="tiny muted">${esc(ev)}</span></span></div>`).join("")}</div>
+      <div class="fc-sec fc-rec"><span class="eyebrow">Recommendation</span><p class="small">${esc(f.rec)}</p>${f.partial ? `<button class="btn ghost sm" data-s="partial">${esc(f.partial)}</button>` : ""}</div>
+      <span class="tiny muted">${I("file")} ${esc(f.ref)}</span>
+    </div>
+    <button class="link fc-toggle" data-s="more" aria-expanded="false">View more ${I("chevD")}</button>
+  </div>`;
+}
 let INBOX_SORT = "date";
 function ixMain(x) {
   if (x.kind === "expense") return money(x.amount);
@@ -57,12 +95,14 @@ act("ixOpen", (b) => {
     title,
     body: `<div class="stack"><div class="hrow">${avatar(x.who, "lg")}<span class="grow"><b style="display:block;font-size:17px">${esc(person(x.who).name)}</b><span class="small muted">${esc(person(x.who).role)} · KEBS India</span></span></div>
       <div class="card"><div class="kv"><span>${x.kind === "expense" ? "Amount" : x.kind === "timesheet" ? "Hours" : "Duration"}</span><span>${ixMain(x)}</span></div><div class="kv"><span>Details</span><span class="small">${ixMeta(x).replace(/<span class="i[\s\S]*?<\/svg><\/span>/g, "")}</span></div><div class="kv"><span>Submitted</span><span>${D.long(x.date)}</span></div></div>
-      ${x.flag ? `<div class="banner bad">${I("sparkles")}<span>Kais flagged: ${esc(x.flag)}</span></div>` : `<div class="banner ok">${I("checkCircle")}No policy issues found</div>`}
+      ${x.flag ? flagCard(x) : `<div class="banner ok">${I("checkCircle")}No policy issues found</div>`}
       <div class="field"><label for="ix-r">Comment <span class="opt">(required to reject)</span></label><textarea id="ix-r" class="inp" data-r style="min-height:70px" placeholder="Add a note for ${esc(person(x.who).name.split(" ")[0])}"></textarea></div></div>`,
     foot: `<div class="row-btns"><button class="btn danger" data-s="rej">Reject</button><button class="btn ok" data-s="ok">${I("check")}Approve</button></div>`,
     onMount(el) {
       onS(el, {
         ok() { closeSheet(s); ixDecide([x.id], "approved"); },
+        more(b) { const box = el.querySelector(".fc-more"); const open = box.hasAttribute("hidden"); box.toggleAttribute("hidden", !open); b.setAttribute("aria-expanded", open); b.innerHTML = (open ? "View less " : "View more ") + I(open ? "chevU" : "chevD"); },
+        partial() { closeSheet(s); ixDecide([x.id], "approved"); toast("Approved within the policy limit", "info"); },
         rej() { const r = el.querySelector("[data-r]").value.trim(); if (!r) { el.querySelector("[data-r]").focus(); return toast("Add a reason to reject", "bad"); } closeSheet(s); ixDecide([x.id], "rejected", r); },
       });
     },

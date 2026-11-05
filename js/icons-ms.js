@@ -17,6 +17,13 @@ const MS_STYLE = {
   onduty:    ["briefcase", "#3E6FC0", "#1E3F82", "#BCD0F0", "#7D9EDA"],
   balances:  ["list",      "#2EA866", "#13713F", "#B8E8CB", "#6CCB94"],
   helpdesk:  ["ticket",    "#0EA5E9", "#0369A1", "#B9E6FB", "#6CC8F3"],
+  "ag-expense":  ["wallet",      "#9061F9", "#5B2BC9", "#D8C7FD", "#AF8BFB"],
+  "ag-report":   ["chart",       "#4C8BF5", "#1A56C4", "#BBD3FB", "#7AA7F2"],
+  "ag-approval": ["checkCircle", "#F25A4F", "#C62828", "#FBC3BE", "#F0857C"],
+  "ag-prompts":  ["list",        "#F7B928", "#C98A00", "#FCE6A8", "#F6CD61"],
+  request:   ["file",        "#FF8A3D", "#E2531F", "#FFD2B3", "#FFA66E"],
+  attend:    ["fingerprint", "#20B2A6", "#0B7A70", "#B5ECE6", "#64CFC4"],
+  alert:     ["alert",       "#F7B928", "#C98A00", "#FCE6A8", "#F6CD61"],
   more:      ["gridPlus",  "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"],
 };
 let MS_ID = 0;
