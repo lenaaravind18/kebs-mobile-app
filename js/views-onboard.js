@@ -20,19 +20,24 @@ function obArt(s) {
 
 route("welcome", () => {
   const s = OB[OB_I], last = OB_I === OB.length - 1;
-  const pct = ((OB_I + 1) / OB.length) * 100;
-  return `<div class="screen ob" data-ob>
-    ${curtain(`<div class="ob-art" aria-hidden="true">${obArt(s)}</div>`)}
-    <div class="ob-copy" aria-live="polite">
-      <h1>${s.title}</h1>
-      <p class="ob-tag">${s.tag}</p>
-      <p class="ob-body">${s.body}</p>
+  const [main, ...acc] = s.art;
+  return `<div class="screen onb2" data-ob data-step="${OB_I}">
+    <div class="onb2-bg" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i><span class="kmark-ghost r">${KEBS_MARK}</span></div>
+    <div class="onb2-top"><span class="onb2-brand"><img src="icon.svg" alt="">KEBS</span>${last ? "" : `<button class="onb2-skip" data-act="obDone">Skip</button>`}</div>
+    <div class="onb2-art" aria-hidden="true">
+      <span class="onb2-halo"></span>
+      <img class="onb2-main" src="assets/ob/${main[0]}" alt="" draggable="false">
+      ${acc.map(([img, pos], i) => `<img class="onb2-acc ${pos}" style="--d:${160 + i * 90}ms" src="assets/ob/${img.includes(".") ? img : img + ".png"}" alt="" draggable="false">`).join("")}
     </div>
-    <div class="ob-dots" role="tablist" aria-label="Slides">${OB.map((_, i) => `<button class="${i === OB_I ? "on" : ""}" data-act="obGo" data-i="${i}" aria-label="Slide ${i + 1}" aria-selected="${i === OB_I}"></button>`).join("")}</div>
-    <div class="ob-foot">
-      ${last ? `<span></span>` : `<button class="link ob-skip" data-act="obDone">Skip</button>`}
-      ${last ? `<button class="btn primary ob-start" data-act="obDone">Get started ${I("arrowOut")}</button>`
-        : `<button class="ob-next" data-act="obNext" aria-label="Next slide"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" class="trk"/><circle cx="32" cy="32" r="29" class="bar" style="stroke-dashoffset:${182 - (182 * pct) / 100}"/></svg><span>${I("chevR")}</span></button>`}
+    <div class="onb2-card">
+      <span class="onb2-step">0${OB_I + 1} <i>/ 0${OB.length}</i></span>
+      <h1>${s.title}</h1>
+      <p class="onb2-tag">${s.tag}</p>
+      <p class="onb2-body">${s.body}</p>
+      <div class="onb2-foot">
+        <div class="onb2-bars" role="tablist" aria-label="Slides">${OB.map((_, i) => `<button class="${i < OB_I ? "done" : i === OB_I ? "on" : ""}" data-act="obGo" data-i="${i}" aria-label="Slide ${i + 1}" aria-selected="${i === OB_I}"><i></i></button>`).join("")}</div>
+        <button class="btn primary onb2-cta" data-act="${last ? "obDone" : "obNext"}">${last ? "Get started" : "Next"} ${I("arrowOut")}</button>
+      </div>
     </div>
   </div>`;
 }, {
