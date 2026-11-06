@@ -229,3 +229,14 @@ render(false);
 ["animationend", "transitionend"].forEach((ev) => document.getElementById("shell").addEventListener(ev, queueBar, true));
 addEventListener("hashchange", () => setTimeout(queueBar, 450));
 queueBar();
+
+// Phone back button / gesture (Android app): close what's on top first, then step back a screen,
+// and only leave the app from Home — like a native app.
+window.kebsBack = () => {
+  if (typeof sheets !== "undefined" && sheets.length) { closeSheet(); return "handled"; }
+  if (typeof drawerEl !== "undefined" && drawerEl) { closeDrawer(); return "handled"; }
+  const h = location.hash.split("?")[0];
+  if (!h || h === "#/home" || h === "#/login" || h.startsWith("#/onboard")) return "exit";
+  ACTIONS.back();
+  return "handled";
+};

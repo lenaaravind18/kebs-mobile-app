@@ -17,6 +17,7 @@ import android.view.Window;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -51,6 +52,18 @@ public class MainActivity extends BridgeActivity {
         final WebView web = getBridge().getWebView();
         web.setBackgroundColor(Color.WHITE);
         web.addJavascriptInterface(new Bars(), "KebsNative");
+
+        // Back gesture: let the web app close sheets / go back a screen; leave the app only from Home
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                web.evaluateJavascript("window.kebsBack ? kebsBack() : \"none\"", (res) -> {
+                    if ("\"handled\"".equals(res)) return;
+                    if (!"\"exit\"".equals(res) && web.canGoBack()) { web.goBack(); return; }
+                    moveTaskToBack(true);
+                });
+            }
+        });
 
         final float density = getResources().getDisplayMetrics().density;
         ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
