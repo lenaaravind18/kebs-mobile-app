@@ -74,6 +74,7 @@ const daysLeft = (p) => (p.end ? D.diff(D.today(), p.end) : null);
 const pjBadge = (p) => `<span class="pj-badge s-${p.status}">${PJ_STATUS[p.status]}</span>`;
 const prDot = (pr) => `<i class="pr-dot" style="background:${TK_PRI[pr][1]}" title="${TK_PRI[pr][0]} priority"></i>`;
 const pjLocked = (p) => p.status !== "active";
+const pjIcon = (p) => p.icon || { p1: "phone", p2: "palette", p3: "phone", p4: "wallet", p5: "users", p6: "globe" }[p.id] || "folder";
 
 // ── shared bits ──
 function undoToast(msg, undo) {
@@ -93,7 +94,7 @@ function tkRow(p, t, showProject = true) {
     </button>
   </div>`;
 }
-const pjName = (p) => PROJECTS.find((x) => x.id === p.id)?.name || p.name || p.code;
+const pjName = (p) => PROJECTS.find((x) => x.id === p.id)?.name || p.name || { p6: "NextGen website revamp" }[p.id] || p.code;
 
 // ── Projects (list) and My tasks ──
 route("projects", (_, q) => {
@@ -146,7 +147,7 @@ route("projects", (_, q) => {
 function pjCard(p) {
   const prog = pjProg(p), dl = daysLeft(p), hrs = Math.round(pjMins(p) / 60), over = p.budget && hrs > p.budget, mo = myOpen(p);
   return `<button class="card pj-card" data-go="#/projects/${p.id}">
-    <span class="hrow"><span class="pj-ic tint ${p.tint}">${I("briefcase")}</span><span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(pjName(p))}</b><span class="tiny muted ell" style="display:block">${esc(p.client)} · ${esc(p.code)}</span></span>${pjBadge(p)}</span>
+    <span class="hrow"><span class="pj-ic tint ${p.tint}">${I(pjIcon(p))}</span><span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(pjName(p))}</b><span class="tiny muted ell" style="display:block">${esc(p.client)} · ${esc(p.code)}</span></span>${pjBadge(p)}</span>
     <span class="pj-prog"><i style="width:${Math.round(prog * 100)}%;background:${p.status === "done" ? "var(--ok)" : rangeColor(prog)}"></i></span>
     <span class="pj-foot"><span>${Math.round(prog * 100)}% · ${pjDone(p)}/${p.tasks.length} tasks</span>
       <span class="${over ? "bad" : ""}">${p.budget ? `${hrs}/${p.budget}h` : `${hrs}h logged`}</span>

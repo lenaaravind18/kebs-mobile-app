@@ -2322,3 +2322,13 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 /* header divider: inset 16px from each side instead of edge to edge */
 .top { border-bottom-color: transparent !important; background-image: linear-gradient(var(--line), var(--line)); background-size: calc(100% - 32px) 1px; background-position: center bottom; background-repeat: no-repeat; }
 .screen.kais .top { background-image: none; }
+/* search boxes: card surface + thin outline so they stand out on tinted backgrounds */
+.searchbox { background: var(--panel) !important; box-shadow: inset 0 0 0 1px var(--line) !important; }
+.searchbox:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 4px var(--accent-soft) !important; }
+/* Ask Kais bar: round mic + search buttons with bigger icons */
+.hero-ask .go { width: 34px !important; height: 34px !important; border-radius: 50%; background: rgba(255,255,255,.2); margin-left: 2px; }
+.hero-ask .go .i { width: 19px !important; height: 19px !important; opacity: 1; }
+.hero-ask .go:active { transform: scale(.92); background: rgba(255,255,255,.3); }
+.hero-ask .go.mic { margin-right: 0 !important; }
+:root[data-theme="dark"] .hero-ask .go { background: rgba(255,255,255,.12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask .go { background: rgba(255,255,255,.12); } }

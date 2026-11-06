@@ -1,5 +1,7 @@
 // Stroke icons (24px grid, Lucide-style geometry)
 const ICON_PATHS = {
+  phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
+  folder: '<path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/>',
   compose: '<path d="M12 3.5H6A2.5 2.5 0 0 0 3.5 6v12A2.5 2.5 0 0 0 6 20.5h12a2.5 2.5 0 0 0 2.5-2.5v-6"/><path d="M18.1 3.4a1.9 1.9 0 0 1 2.7 2.7l-8.2 8.2-3.6.9.9-3.6Z"/>',
   cake: '<path d="M4 21h16"/><path d="M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7"/><path d="M5 16c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0"/><path d="M12 12V9"/><path d="M12 6.5c.8-.8.8-2 0-3-.8 1-.8 2.2 0 3Z"/>',
   minus: '<path d="M5 12h14"/>',
