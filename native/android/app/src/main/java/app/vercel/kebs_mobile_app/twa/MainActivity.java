@@ -1,6 +1,17 @@
 package app.vercel.kebs_mobile_app.twa;
 
+import android.Manifest;
 import android.app.DownloadManager;
+import android.content.pm.PackageManager;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import java.util.ArrayList;
+import java.util.Locale;
+import org.json.JSONObject;
+import androidx.core.app.ActivityCompat;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +44,13 @@ import com.getcapacitor.BridgeActivity;
  */
 public class MainActivity extends BridgeActivity {
     private float top = 0, bottom = 0;
+    private WebView webRef;
+    // speech: Android WebView has no Web Speech API, so the app provides it natively
+    private SpeechRecognizer recognizer;
+    private TextToSpeech tts;
+    private String pendingLang = null;
+    private String lastUtterance = null;
+    private static final int REQ_MIC = 7101;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +68,14 @@ public class MainActivity extends BridgeActivity {
         }
 
         final WebView web = getBridge().getWebView();
+        webRef = web;
+        tts = new TextToSpeech(this, (status) -> { if (status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("en", "IN")); });
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override public void onStart(String id) {}
+            @Override public void onDone(String id) { emit("ttsend", id); }
+            @Override public void onError(String id) { emit("ttsend", id); }
+            @Override public void onStop(String id, boolean interrupted) { emit("ttsend", id); }
+        });
         web.setBackgroundColor(Color.WHITE);
         web.addJavascriptInterface(new Bars(), "KebsNative");
 
@@ -88,6 +114,69 @@ public class MainActivity extends BridgeActivity {
         web.post(() -> web.evaluateJavascript(js, null));
     }
 
+    private void emit(String type, String text) {
+        if (webRef == null) return;
+        final String js = "window.dispatchEvent(new CustomEvent('kebsspeech',{detail:{type:'" + type + "',text:" + JSONObject.quote(text == null ? "" : text) + "}}))";
+        webRef.post(() -> webRef.evaluateJavascript(js, null));
+    }
+
+    private void listen(String lang) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            pendingLang = lang;
+            ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.RECORD_AUDIO }, REQ_MIC);
+            return;
+        }
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) { emit("error", "service-not-allowed"); emit("end", ""); return; }
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            recognizer.setRecognitionListener(new RecognitionListener() {
+                @Override public void onReadyForSpeech(Bundle b) { emit("audiostart", ""); }
+                @Override public void onBeginningOfSpeech() { emit("speechstart", ""); }
+                @Override public void onRmsChanged(float v) {}
+                @Override public void onBufferReceived(byte[] b) {}
+                @Override public void onEndOfSpeech() {}
+                @Override public void onError(int code) {
+                    String e = code == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ? "not-allowed"
+                        : (code == SpeechRecognizer.ERROR_NETWORK || code == SpeechRecognizer.ERROR_NETWORK_TIMEOUT) ? "network"
+                        : code == SpeechRecognizer.ERROR_AUDIO ? "audio-capture"
+                        : (code == SpeechRecognizer.ERROR_NO_MATCH || code == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) ? "no-speech" : "aborted";
+                    emit("error", e); emit("end", "");
+                }
+                @Override public void onResults(Bundle b) {
+                    ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    emit("final", r != null && !r.isEmpty() ? r.get(0) : ""); emit("end", "");
+                }
+                @Override public void onPartialResults(Bundle b) {
+                    ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (r != null && !r.isEmpty() && !r.get(0).isEmpty()) emit("partial", r.get(0));
+                }
+                @Override public void onEvent(int t, Bundle b) {}
+            });
+        }
+        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang == null || lang.isEmpty() ? "en-IN" : lang)
+            .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        recognizer.startListening(i);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+        super.onRequestPermissionsResult(code, perms, res);
+        if (code != REQ_MIC) return;
+        String lang = pendingLang; pendingLang = null;
+        if (res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED) listen(lang);
+        else { emit("error", "not-allowed"); emit("end", ""); }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (recognizer != null) recognizer.destroy();
+        if (tts != null) tts.shutdown();
+        super.onDestroy();
+    }
+
     /** Downloads a newer signed APK into the app's own folder, then hands it to Android's installer. */
     private void downloadAndInstall(String url) {
         File dir = getExternalFilesDir("updates");
@@ -122,6 +211,31 @@ public class MainActivity extends BridgeActivity {
             try { return (int) androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(getPackageManager().getPackageInfo(getPackageName(), 0)); }
             catch (Exception e) { return 0; }
         }
+
+        @JavascriptInterface
+        public boolean hasSpeech() { return true; }
+
+        @JavascriptInterface
+        public void startListening(final String lang) { runOnUiThread(() -> listen(lang)); }
+
+        @JavascriptInterface
+        public void stopListening() { runOnUiThread(() -> { if (recognizer != null) recognizer.stopListening(); }); }
+
+        @JavascriptInterface
+        public void abortListening() { runOnUiThread(() -> { if (recognizer != null) recognizer.cancel(); emit("end", ""); }); }
+
+        @JavascriptInterface
+        public void speak(final String text, final float rate, final float pitch, final String id) {
+            runOnUiThread(() -> {
+                if (tts == null) { emit("ttsend", id); return; }
+                tts.setSpeechRate(rate); tts.setPitch(pitch);
+                lastUtterance = id;
+                if (tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, id) != TextToSpeech.SUCCESS) emit("ttsend", id);
+            });
+        }
+
+        @JavascriptInterface
+        public void stopSpeaking() { runOnUiThread(() -> { if (tts != null) tts.stop(); if (lastUtterance != null) emit("ttsend", lastUtterance); }); }
 
         @JavascriptInterface
         public void installUpdate(final String url) {
