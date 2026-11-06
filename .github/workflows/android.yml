@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths: ["native/**", ".github/workflows/android.yml"]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,6 +40,8 @@ jobs:
           KEBS_STORE_PASSWORD: ${{ secrets.KEBS_STORE_PASSWORD }}
           KEBS_KEY_ALIAS: ${{ secrets.KEBS_KEY_ALIAS }}
           KEBS_KEY_PASSWORD: ${{ secrets.KEBS_KEY_PASSWORD }}
+          KEBS_VERSION_CODE: ${{ github.run_number }}0
+          KEBS_VERSION_NAME: 1.2.${{ github.run_number }}
       - name: Collect
         run: |
           mkdir -p out
@@ -46,3 +51,9 @@ jobs:
         with:
           name: KEBS-android
           path: native/out/
+      - name: Publish release (the app checks this to offer in-app updates)
+        working-directory: native/out
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}0" KEBS.apk KEBS.aab             --repo "${{ github.repository }}"             --title "1.2.${{ github.run_number }}"             --notes "Android app build ${{ github.run_number }} from ${{ github.sha }}"             --latest

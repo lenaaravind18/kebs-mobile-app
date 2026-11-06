@@ -1589,3 +1589,9 @@ small, .small { letter-spacing: 0; }
 .km.ai { flex-direction: row !important; align-items: flex-start; gap: 10px !important; }
 .km.ai > .kname { flex: none; width: 26px; padding-top: 3px; }
 .km.ai > .kbody { flex: 1; min-width: 0; padding-left: 0 !important; }
+
+/* update prompts */
+.upd-toast { pointer-events: auto; }
+.upd-toast button { margin-left: auto; padding: 6px 12px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 600; font-size: 13px; }
+.upd { display: flex; align-items: center; gap: 14px; }
+.upd img { border-radius: 14px; flex: none; }

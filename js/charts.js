@@ -90,7 +90,7 @@ function curveRings(root = document) {
   root.querySelectorAll(".ring:not(.curved)").forEach((el) => {
     const st = el.getAttribute("style") || "", p = parseFloat((st.match(/--p:\s*([\d.]+)/) || [])[1]);
     if (isNaN(p)) return;
-    const col = (st.match(/--t:\s*([^;]+)/) || [])[1] || "var(--accent)";
+    const col = (st.match(/--t:\s*([^;]+)/) || [])[1] || "var(--t, var(--accent))";
     const size = 100, sw = el.classList.contains("lg") ? 11 : 10, R = (size - sw) / 2, C = 2 * Math.PI * R, len = Math.max(0.001, Math.min(100, p) / 100) * C;
     el.insertAdjacentHTML("afterbegin", `<svg class="ring-arc" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="50" cy="50" r="${R}" fill="none" stroke-width="${sw}" style="stroke:var(--panel-2)"/>${p > 0 ? `<circle cx="50" cy="50" r="${R}" fill="none" stroke-width="${sw}" stroke-linecap="round" style="stroke:${col}" stroke-dasharray="${len.toFixed(2)} ${C.toFixed(2)}" transform="rotate(-90 50 50)"/>` : ""}</svg>`);
     el.classList.add("curved");

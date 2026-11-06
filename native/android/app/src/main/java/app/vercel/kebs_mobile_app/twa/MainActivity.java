@@ -1,6 +1,15 @@
 package app.vercel.kebs_mobile_app.twa;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.Uri;
+import java.io.File;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewGroup;
@@ -66,7 +75,47 @@ public class MainActivity extends BridgeActivity {
         web.post(() -> web.evaluateJavascript(js, null));
     }
 
+    /** Downloads a newer signed APK into the app's own folder, then hands it to Android's installer. */
+    private void downloadAndInstall(String url) {
+        File dir = getExternalFilesDir("updates");
+        if (dir == null) return;
+        for (File old : dir.listFiles() == null ? new File[0] : dir.listFiles()) old.delete();
+        File apk = new File(dir, "KEBS-update.apk");
+        DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url))
+            .setTitle("KEBS update")
+            .setMimeType("application/vnd.android.package-archive")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+            .setDestinationUri(Uri.fromFile(apk));
+        final long id = dm.enqueue(req);
+        BroadcastReceiver done = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context ctx, Intent intent) {
+                if (intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) != id) return;
+                try { unregisterReceiver(this); } catch (Exception ignored) {}
+                Uri uri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", apk);
+                Intent install = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(uri, "application/vnd.android.package-archive")
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(install);
+            }
+        };
+        ContextCompat.registerReceiver(this, done, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), ContextCompat.RECEIVER_EXPORTED);
+    }
+
     private class Bars {
+        @JavascriptInterface
+        public int versionCode() {
+            try { return (int) androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(getPackageManager().getPackageInfo(getPackageName(), 0)); }
+            catch (Exception e) { return 0; }
+        }
+
+        @JavascriptInterface
+        public void installUpdate(final String url) {
+            if (url == null || !url.startsWith("https://github.com/lenaaravind18/kebs-mobile-app/releases/")) return;
+            runOnUiThread(() -> downloadAndInstall(url));
+        }
+
         @JavascriptInterface
         public String insets() { return "{\"t\":" + top + ",\"b\":" + bottom + "}"; }
 
