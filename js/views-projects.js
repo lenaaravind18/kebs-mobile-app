@@ -376,7 +376,7 @@ function tasksWidget() {
   const open = myTasks().filter((x) => x.t.status !== "done" && !pjLocked(x.p));
   const od = open.filter((x) => x.t.due && x.t.due < td), today = open.filter((x) => x.t.due === td), week = open.filter((x) => x.t.due > td && x.t.due <= wk);
   const next = open.slice().sort((a, b) => ((a.t.due || "9") < (b.t.due || "9") ? -1 : 1)).slice(0, 3);
-  const stat = (n, label, tone, f) => `<button class="w-tk-stat ${n && tone ? tone : ""}" data-go="#/projects?tab=tasks${f ? "&f=" + f : ""}"><b class="num">${n}</b><small>${label}</small></button>`;
+  const stat = (n, label, tone, f) => `<button class="w-tk-stat ${n && tone ? tone : ""}" data-go="#/projects?tab=tasks${f ? "&f=" + f : ""}"><span class="w-tk-h">${I({ Overdue: "alert", Today: "sun", "This week": "calendar" }[label] || "list")}<small>${label}</small></span><b class="num">${n}</b></button>`;
   return `<div class="sec"><h2>My tasks</h2><button class="link" data-go="#/projects?tab=tasks">See all</button></div>
     <div class="card w-tasks">
       <div class="w-tk-stats">${stat(od.length, "Overdue", "bad")}${stat(today.length, "Today", "warn")}${stat(week.length, "This week", "")}</div>
