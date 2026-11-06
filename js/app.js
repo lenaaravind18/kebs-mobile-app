@@ -204,6 +204,14 @@ function syncStatusBar() {
   }
   const hex = solidColor(c || getComputedStyle(sh).backgroundColor);
   if (barMeta.content !== hex) barMeta.content = hex;
+  // Android app (edge to edge): the page is drawn under the system bars, so only pick light or dark bar icons
+  if (window.KebsNative) {
+    const lum = (h) => { const n = parseInt(h.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.04 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const dock = document.getElementById("dock"), drawer = document.querySelector(".drawer");
+    const navBg = solidColor(getComputedStyle(drawer || (dock && !dock.hidden ? dock : sh)).backgroundColor);
+    const key = lum(hex) < 0.45 ? 1 : 0, nav = lum(navBg) < 0.45 ? 1 : 0;
+    if (syncStatusBar.k !== key + "" + nav) { syncStatusBar.k = key + "" + nav; try { KebsNative.setBars(!!key, !!nav); } catch {} }
+  }
 }
 let barQ = 0; const queueBar = () => { if (!barQ) barQ = requestAnimationFrame(() => { barQ = 0; syncStatusBar(); }); };
 new MutationObserver(queueBar).observe(document.getElementById("shell"), { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-theme"] });
@@ -211,6 +219,10 @@ new MutationObserver(queueBar).observe(document.documentElement, { attributes: t
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", queueBar);
 document.getElementById("shell").addEventListener("scroll", queueBar, { capture: true, passive: true });
 
+if (window.KebsNative) {
+  try { const n = JSON.parse(KebsNative.insets()); const r = document.documentElement; r.classList.add("native"); r.style.setProperty("--nat-t", n.t + "px"); r.style.setProperty("--nat-b", n.b + "px"); } catch {}
+  addEventListener("kebsinsets", () => { fitDevice(); queueBar(); });
+}
 if (!location.hash) location.replace(S.authed ? "#/home" : "#/login");
 render(false);
 // screens slide/fade in and themes cross-fade: re-check once motion settles

@@ -1,0 +1,14 @@
+{
+  "name": "kebs-native",
+  "private": true,
+  "version": "1.1.0",
+  "description": "Android shell for KEBS Workspace (Capacitor, edge to edge, loads the live site)",
+  "scripts": { "sync": "cap sync android" },
+  "dependencies": {
+    "@capacitor/android": "7.6.10",
+    "@capacitor/core": "7.6.10"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.6.10"
+  }
+}

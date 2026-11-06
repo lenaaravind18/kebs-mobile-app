@@ -9,4 +9,4 @@ Thumbs.db
 .vercel
 .env*
 promo/
-android/
+/android/

@@ -1,0 +1,49 @@
+name: Android app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["native/**", ".github/workflows/android.yml"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Restore signing key
+        run: echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/kebs.keystore"
+        env:
+          KEYSTORE_B64: ${{ secrets.KEBS_KEYSTORE_B64 }}
+      - name: Build signed APK and bundle
+        working-directory: native/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon
+        env:
+          KEBS_KEYSTORE: ${{ runner.temp }}/kebs.keystore
+          KEBS_STORE_PASSWORD: ${{ secrets.KEBS_STORE_PASSWORD }}
+          KEBS_KEY_ALIAS: ${{ secrets.KEBS_KEY_ALIAS }}
+          KEBS_KEY_PASSWORD: ${{ secrets.KEBS_KEY_PASSWORD }}
+      - name: Collect
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/release/*.apk out/KEBS.apk
+          cp android/app/build/outputs/bundle/release/*.aab out/KEBS.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KEBS-android
+          path: native/out/

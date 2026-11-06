@@ -1,0 +1,16 @@
+{
+  "appId": "app.vercel.kebs_mobile_app.twa",
+  "appName": "KEBS",
+  "webDir": "www",
+  "server": {
+    "url": "https://kebs-mobile-app.vercel.app",
+    "androidScheme": "https",
+    "allowNavigation": ["kebs-mobile-app.vercel.app"]
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "disable",
+    "backgroundColor": "#ffffff",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

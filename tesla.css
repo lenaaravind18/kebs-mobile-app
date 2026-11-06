@@ -1576,3 +1576,16 @@ small, .small { letter-spacing: 0; }
 .screen.kais.agent { --bar: color-mix(in srgb, var(--ag) 31%, var(--bg)) !important; }
 /* the soft wash behind Kais starts at the very top, under the status bar, so bar and header are one colour */
 .screen.kais { background-attachment: local; }
+
+/* Android app: the page is drawn behind the system bars; the shell reports their sizes as --nat-t / --nat-b */
+@media (max-width: 619px) {
+  :root.native { --sat: calc(max(env(safe-area-inset-top), var(--nat-t, 0px)) / var(--z, 1)); --sab: calc(max(env(safe-area-inset-bottom), var(--nat-b, 0px)) / var(--z, 1)); }
+  :root.native.kb-open { --sab: 0px !important; }
+}
+
+/* Kais replies: avatar only, no "Kais" name label */
+.km .kname > b { display: none; }
+/* Kais replies: the avatar sits beside the reply (no empty name row above it) */
+.km.ai { flex-direction: row !important; align-items: flex-start; gap: 10px !important; }
+.km.ai > .kname { flex: none; width: 26px; padding-top: 3px; }
+.km.ai > .kbody { flex: 1; min-width: 0; padding-left: 0 !important; }
