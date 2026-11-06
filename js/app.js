@@ -189,10 +189,14 @@ function solidColor(c) {
   barCtx.globalCompositeOperation = "source-over"; barCtx.fillStyle = "#000"; barCtx.fillStyle = c; barCtx.fillRect(0, 0, 1, 1);
   const [r, g, b] = barCtx.getImageData(0, 0, 1, 1).data; return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
 }
+const barProbe = document.createElement("i"); barProbe.hidden = true; document.body.appendChild(barProbe);
 const isClear = (c) => /^rgba\(0, 0, 0, 0\)$|^transparent$|\/ 0\)$/.test(c);
 function syncStatusBar() {
   const sh = document.getElementById("shell"); if (!sh) return;
   const r = sh.getBoundingClientRect(); let el = document.elementFromPoint(r.left + r.width / 2, r.top + 2), c = "";
+  // a header can say exactly which colour its top edge shows (gradients can't be sampled reliably)
+  const hint = el && getComputedStyle(el).getPropertyValue("--bar").trim();
+  if (hint) { barProbe.style.color = ""; barProbe.style.color = hint; c = getComputedStyle(barProbe).color; el = null; }
   for (; el && el !== document.body && !c; el = el.parentElement) {
     const cs = getComputedStyle(el);
     if (cs.backgroundImage !== "none") { const stops = (cs.backgroundImage.match(/(?:rgba?|color)\([^()]*\)|#[0-9a-f]{3,8}\b/gi) || []).filter((x) => !isClear(x)); if (stops.length) { c = stops[Math.floor(stops.length / 2)]; break; } } // top-centre of a diagonal gradient ≈ its middle stop

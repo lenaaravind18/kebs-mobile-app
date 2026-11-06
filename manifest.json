@@ -3,7 +3,13 @@
   "short_name": "KEBS",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f9fbff",
-  "theme_color": "#ff4013",
-  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+  "background_color": "#ffffff",
+  "theme_color": "#ff9470",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
 }

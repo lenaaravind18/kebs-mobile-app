@@ -1565,3 +1565,14 @@ small, .small { letter-spacing: 0; }
 :root[data-theme="dark"] .screen.kais.agent { background: radial-gradient(120% 60% at 50% -10%, color-mix(in srgb, var(--ag) 24%, transparent) 0%, transparent 70%), linear-gradient(180deg, color-mix(in srgb, var(--ag) 12%, var(--bg)) 0%, color-mix(in srgb, var(--ag) 4%, var(--bg)) 38%, var(--bg) 70%) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .screen.kais.agent { background: radial-gradient(120% 60% at 50% -10%, color-mix(in srgb, var(--ag) 24%, transparent) 0%, transparent 70%), linear-gradient(180deg, color-mix(in srgb, var(--ag) 12%, var(--bg)) 0%, color-mix(in srgb, var(--ag) 4%, var(--bg)) 38%, var(--bg) 70%) !important; } }
 .screen.kais.agent .ag-spark { color: var(--ag); }
+
+/* exact status-bar colours: what each header shows along its top edge (read by syncStatusBar) */
+.hero, .drawer-top, .ksb-top { --bar: #ff9670; }
+:root[data-theme="dark"] .hero, :root[data-theme="dark"] .drawer-top, :root[data-theme="dark"] .ksb-top { --bar: #82331a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero, :root:not([data-theme="light"]) .drawer-top, :root:not([data-theme="light"]) .ksb-top { --bar: #82331a; } }
+.screen.kais { --bar: #ffdccc; }
+:root[data-theme="dark"] .screen.kais { --bar: #4d291e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .screen.kais { --bar: #4d291e; } }
+.screen.kais.agent { --bar: color-mix(in srgb, var(--ag) 31%, var(--bg)) !important; }
+/* the soft wash behind Kais starts at the very top, under the status bar, so bar and header are one colour */
+.screen.kais { background-attachment: local; }
