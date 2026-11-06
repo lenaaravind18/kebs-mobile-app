@@ -2834,7 +2834,6 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
   border-radius: 16px !important; background: var(--panel) !important; border: 0 !important;
   box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(16, 24, 40, .04) !important; }
 .pj-hero, .crm-hero, .crm-dhero, .crm-phero { padding: 16px !important; }
-:root[data-theme="dark"] :is(.pj-hero, .crm-hero, .crm-dhero, .crm-phero, .pj-info-hd, .qa-card, .rw-card, .w-tile, .card.pc-card) { box-shadow: inset 0 0 0 1px var(--line) !important; }
 /* inner tiles and inputs */
 .w-tk-stat, .crm-quick > *, .dt-btn, .crm-sc, .crm-types button, .tp-s, .crm-ck-line, .role-bn, .pc-doc { border-radius: 12px !important; }
 .inp, .searchbox, .pc-box { border-radius: 12px; }
@@ -2882,8 +2881,6 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .crm-ck-list { background: var(--panel-2) !important; }
 .pc-doc { background: color-mix(in srgb, var(--ink) 5%, var(--panel)) !important; }
 /* Quick access: a full-width band at the top of Home */
-.home-scroll > .qa-card { margin: -18px -16px 0 !important; border-radius: 0 !important; padding: 20px 16px 18px !important; }
-:root[data-corners="sharp"] .home-scroll > .qa-card { border-radius: 0 !important; }
 /* list separators stay as hairlines inside cards */
 .crm-row + .crm-row, .crm-act + .crm-act, .list .li + .li { border-top-color: var(--hairline, var(--line)); }
 /* secondary buttons: soft fill instead of an outline */
@@ -2898,8 +2895,18 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .card, .kc, .attach, .pj-hero, .crm-hero, .crm-dhero, .crm-phero, .pj-info-hd, .rw-card, .w-tile, .card.pc-card,
 .crm-card, .crm-plist .crm-card, .crm-quick > *, .pc-doc, .crm-sc { box-shadow: var(--elev) !important; }
 .crm-sc.on { box-shadow: inset 0 0 0 1.5px var(--c), var(--elev) !important; }
-.home-scroll > .qa-card { box-shadow: 0 1px 0 rgba(16, 24, 40, .04) !important; }
 /* cards nested in cards stay flat */
 .card .card, .sheet .card, .card .crm-card { box-shadow: none !important; }
 /* stack spacing so cards read as separate items */
 .stack > .card + .card, .stack > .crm-card + .crm-card { margin-top: 2px; }
+/* last outlines: tasks list block, filter button */
+.w-tk-list { box-shadow: none !important; border: 0 !important; }
+.pj-fbtn { box-shadow: none !important; border: 0 !important; background: var(--panel) !important; }
+/* project header: no outline (overrides the older dark-mode ring) */
+.pj-hero, :root[data-theme="dark"] .pj-hero { box-shadow: var(--elev) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pj-hero { box-shadow: var(--elev) !important; } }
+:root[data-style="minimal"] :is(.paycard, .xc-hero, .cg-hero, .cd-hero, .pj-hero, .pj-sum > div, .wish-hero, .up-hero, .card.accent) { border: 0 !important; box-shadow: var(--elev) !important; }
+
+/* Quick access: a card like the rest of Home (same margins, corners, surface) */
+.home-scroll > .qa-card { margin: 0 !important; border-radius: 16px !important; padding: 16px 12px 14px !important; box-shadow: var(--elev) !important; }
+:root[data-corners="sharp"] .home-scroll > .qa-card { border-radius: 6px !important; }
