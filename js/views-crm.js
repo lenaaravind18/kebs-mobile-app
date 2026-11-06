@@ -175,7 +175,7 @@ function crmBoard(sel) {
   const groups = stage === "all" || CRM_OPEN.includes(stage)
     ? [["Past close date", ds.filter((d) => d.close < td)], ["Closing this week", ds.filter((d) => d.close >= td && d.close <= wk)], ["This month", ds.filter((d) => d.close > wk && d.close <= mo)], ["Later", ds.filter((d) => d.close > mo)]].filter(([, g]) => g.length)
     : [["", ds]];
-  const empty = { all: ["No open deals", "Create a deal or convert a lead to fill your pipeline."], won: ["No wins yet", "Deals you close as won land here 🎉"], lost: ["Nothing lost", "Deals marked lost show up here with the reason."] }[stage] || [`No deals in ${stageName(stage)}`, "Move a deal here when it reaches this stage."];
+  const empty = { all: ["No open deals", "Create a deal or convert a lead to fill your pipeline."], won: ["No wins yet", "Deals you close as won land here."], lost: ["Nothing lost", "Deals marked lost show up here with the reason."] }[stage] || [`No deals in ${stageName(stage)}`, "Move a deal here when it reaches this stage."];
   return `<div class="crm-strip" role="tablist" aria-label="Pipeline stages">${CRM_STRIP.map(chip).join("")}</div>
     <div class="crm-plist" data-stage="${stage}">
       ${ds.length ? groups.map(([h, g]) => `${h ? `<div class="crm-pg ${h === "Past close date" ? "bad" : ""}">${h}<span>${g.length} · ${crmAmt(g.reduce((a, d) => a + d.value, 0))}</span></div>` : ""}<div class="stack s8">${g.map((d) => crmCard(d, stage === "all")).join("")}</div>`).join("")
@@ -224,7 +224,7 @@ function crmLeadRow(l) {
   return `<button class="crm-row" data-go="#/crm/lead/${l.id}">${crmAv(l)}<span class="grow" style="min-width:0"><b class="ell">${esc(l.name)}</b><span class="small muted ell">${esc(l.company)} · ${esc(l.source)}</span></span>
     <span class="crm-row-r"><span class="crm-st" style="--c:${LEAD_ST[l.status][1]}">${LEAD_ST[l.status][0]}</span><span class="tiny muted">${crmScoreTxt(l.score)}</span></span></button>`;
 }
-const crmScoreTxt = (s) => `${s >= 70 ? "🔥 " : ""}Score ${s}`;
+const crmScoreTxt = (s) => `${s >= 70 ? `<span class="crm-hot">${I("flame")}Hot</span> · ` : ""}Score ${s}`;
 // timeline entries in the app's activity-feed style: person avatar + small type badge
 const ACT_TINT = { call: "t-green", meeting: "t-blue", email: "t-violet", note: "t-amber", task: "t-teal" };
 function crmFd({ who = "me", ic, tint, title, sub, open, check }) {
@@ -261,7 +261,7 @@ route("crm/deal/:id", ({ id }) => {
   const timeline = [...crmActsFor("deal", d.id).map((a) => ({ ts: a.done ? a.ts : Infinity, html: crmActFd(a) })),
     ...d.history.slice(1).map((h, i) => { const from = d.history[i].stage, back = CRM_OPEN.includes(h.stage) && CRM_OPEN.indexOf(h.stage) < CRM_OPEN.indexOf(from);
       return { ts: h.ts, html: crmFd({ ic: h.stage === "won" ? "award" : h.stage === "lost" ? "x" : back ? "arrowDown" : "arrowUp", tint: h.stage === "won" ? "t-green" : h.stage === "lost" ? "t-red" : back ? "t-slate" : "t-blue",
-        title: h.stage === "won" ? "Deal won 🎉" : h.stage === "lost" ? `Deal lost${d.lostReason ? ` — ${esc(d.lostReason)}` : ""}` : `${back ? "Moved back" : "Moved"} to ${stageName(h.stage)}`, sub: `You · from ${stageName(from)} · ${ago(h.ts)}` }) }; }),
+        title: h.stage === "won" ? "Deal won" : h.stage === "lost" ? `Deal lost${d.lostReason ? ` — ${esc(d.lostReason)}` : ""}` : `${back ? "Moved back" : "Moved"} to ${stageName(h.stage)}`, sub: `You · from ${stageName(from)} · ${ago(h.ts)}` }) }; }),
     { ts: d.created, html: crmFd({ ic: "sparkles", tint: "t-orange", title: "Deal created", sub: `You · ${D.short(D.iso(d.created))}` }) }].sort((a, b) => b.ts - a.ts);
   return `<div class="screen">${topbar("Deal", { sub: d.company, right: `<button class="ib pc-hbtn" data-go="#/crm/deal/${d.id}/chat" aria-label="Deal room${unread ? ` · ${unread} unread` : ""}">${I("msg")}${unread ? `<span class="pc-dot"></span>` : ""}</button>` })}
     <div class="scroll"><div class="stack">
@@ -433,7 +433,7 @@ function crmWonSheet(d) {
     onMount(el) { onS(el, { no() { closeSheet(s); }, ok() {
       closeSheet(s); crmSetStage(d, "won");
       const c = pcOf(d.id); c.msgs.push({ id: uid(), who: "me", ts: Date.now(), text: `🎉 We won ${d.name} — ${crmAmt(d.value)}! Thanks everyone.` }); save();
-      toast(`Won ${crmAmt(d.value)} 🎉`);
+      toast(`Deal won · ${crmAmt(d.value)}`);
     } }); } });
 }
 act("crmReopen", (b) => { const d = crmDeal(b.dataset.id), back = [...d.history].reverse().find((h) => CRM_OPEN.includes(h.stage))?.stage || "negotiation"; const undo = crmSetStage(d, back); undoToast(`Reopened in ${stageName(back)}`, undo); });

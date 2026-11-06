@@ -37,6 +37,7 @@ act("pickRole", pickRole);
 
 // small strip on Home when you're not the super user
 function roleBanner() {
+  return ""; // the role now shows under your name in the header; switch from the menu
   if (role() === "super") return "";
   const r = roleDef();
   return `<button class="role-bn" data-act="pickRole">${I(r.icon)}<span class="grow">Viewing as <b>${r.name}</b></span><span class="role-bn-s">Switch</span></button>`;
@@ -68,14 +69,14 @@ function salesWidget() {
     rwStat("target", "#3b82f6", "Open", crmAmt(v), "#/crm"),
     rwStat("chart", "#8b5cf6", "Weighted", crmAmt(w), "#/crm"),
     rwStat("alert", "var(--danger)", "At risk", late.length, "#/crm?tab=pipeline", late.length > 0),
-  ], [...late, ...next.filter((d) => !late.includes(d))].slice(0, 3).map((d) => rwRow(`<i class="crm-sdot" style="background:${STAGE_C[d.stage]};margin:0 6px"></i>`, esc(d.name), `${esc(d.company)} · ${stageName(d.stage)} · ${crmAmt(d.value)}`, d.close < D.today() ? `<span class="rw-flag">${D.diff(d.close, D.today())}d late</span>` : `<span class="tiny muted">${D.short(d.close)}</span>`, `#/crm/deal/${d.id}`)).concat(week.length ? [] : []));
+  ], [...late, ...next.filter((d) => !late.includes(d))].slice(0, 3).map((d) => rwRow(`<span class="ic tint" style="--t:${STAGE_C[d.stage]}">${I("target")}</span>`, esc(d.name), `${esc(d.company)} · ${stageName(d.stage)} · ${crmAmt(d.value)}`, d.close < D.today() ? `<span class="rw-flag">${D.diff(d.close, D.today())}d late</span>` : `<span class="tiny muted">${D.short(d.close)}</span>`, `#/crm/deal/${d.id}`)).concat(week.length ? [] : []));
 }
 function repWidget() {
   const mine = crmOpenDeals().filter((d) => d.owner === "me"), td = D.today();
   const due = S.crm.acts.filter((a) => !a.done && a.due && a.due <= td).sort((a, b) => (a.due + (a.time || "")).localeCompare(b.due + (b.time || "")));
   const fresh = S.crm.leads.filter((l) => l.status === "new");
-  const rows = [...due.slice(0, 3).map((a) => rwRow(`<span class="ic" style="color:${ACT_T[a.type][2]}">${I(ACT_T[a.type][1])}</span>`, esc(a.title), `${ACT_T[a.type][0]} · ${esc(crmRefName(a.ref).split(" · ")[0])}`, a.due < td ? `<span class="rw-flag">Overdue</span>` : `<span class="tiny muted">${a.time ? D.hm(a.time) : "Today"}</span>`, crmRefHref(a.ref))),
-    ...fresh.sort((a, b) => b.score - a.score).slice(0, Math.max(0, 4 - Math.min(3, due.length))).map((l) => rwRow(crmAv(l), esc(l.name), `New lead · ${esc(l.company)} · ${esc(l.source)}`, `<span class="tiny muted">${l.score >= 70 ? "🔥 " : ""}${l.score}</span>`, `#/crm/lead/${l.id}`))];
+  const rows = [...due.slice(0, 3).map((a) => rwRow(`<span class="ic tint ${ACT_TINT[a.type]}">${I(ACT_T[a.type][1])}</span>`, esc(a.title), `${ACT_T[a.type][0]} · ${esc(crmRefName(a.ref).split(" · ")[0])}`, a.due < td ? `<span class="rw-flag">Overdue</span>` : `<span class="tiny muted">${a.time ? D.hm(a.time) : "Today"}</span>`, crmRefHref(a.ref))),
+    ...fresh.sort((a, b) => b.score - a.score).slice(0, Math.max(0, 4 - Math.min(3, due.length))).map((l) => rwRow(crmAv(l), esc(l.name), `New lead · ${esc(l.company)} · ${esc(l.source)}`, `<span class="tiny muted">${l.score >= 70 ? `<span class="crm-hot">${I("flame")}</span>` : ""}${l.score}</span>`, `#/crm/lead/${l.id}`))];
   return rwCard("phone", "Your sales day", ["Open CRM", "#/crm"], [
     rwStat("target", "#3b82f6", "My pipeline", crmAmt(mine.reduce((a, d) => a + d.value, 0)), "#/crm"),
     rwStat("clock", due.some((a) => a.due < td) ? "var(--danger)" : "#d97706", "Follow-ups", due.length, "#/crm?tab=activities", due.some((a) => a.due < td)),
