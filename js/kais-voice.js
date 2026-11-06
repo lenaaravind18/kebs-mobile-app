@@ -25,13 +25,90 @@ function sysVoice(v) {
 }
 function sayAs(v, text, done) {
   if (!("speechSynthesis" in window)) { done?.(); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text.replace(/\*\*/g, "").replace(/^- /gm, "").replace(/\n+/g, ". "));
-  u.lang = "en-IN"; u.pitch = v.pitch; u.rate = v.rate;
-  const sv = sysVoice(v); if (sv) u.voice = sv;
-  u.onend = () => done?.(); u.onerror = () => done?.();
-  speechSynthesis.speak(u);
+  const go = () => {
+    const u = new SpeechSynthesisUtterance(text.replace(/\*\*/g, "").replace(/^- /gm, "").replace(/\n+/g, ". "));
+    u.lang = "en-IN"; u.pitch = v.pitch; u.rate = v.rate;
+    const sv = sysVoice(v); if (sv) u.voice = sv;
+    let fin = false; const end = () => { if (!fin) { fin = true; clearInterval(keep); done?.(); } };
+    u.onend = end; u.onerror = end;
+    // Chrome stops long utterances after ~15s unless nudged; also guard against a missed onend
+    const keep = setInterval(() => { if (!speechSynthesis.speaking) end(); else { speechSynthesis.pause(); speechSynthesis.resume(); } }, 10000);
+    speechSynthesis.speak(u);
+  };
+  // speaking straight after cancel() is silently dropped in Chrome, so give it a beat
+  if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 120); } else go();
 }
+// iOS only allows speech that starts from a tap: prime it with a silent utterance while the user's tap is still active
+function unlockSpeech() {
+  try { if (!("speechSynthesis" in window) || unlockSpeech.done) return; const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); unlockSpeech.done = true; } catch {}
+}
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+
+// ── listening, rebuilt: one microphone user at a time, clear errors, gentle retries ──
+vmListen = function () {
+  if (!VOICE.on || VOICE.muted) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { vmSet("error", isStandaloneIOS() ? "Voice needs Safari on iPhone: open KEBS in Safari (not from the Home Screen) to talk to Kais." : "Voice mode needs speech recognition. Try Chrome, Edge or Safari."); return; }
+  if (VOICE.rec) return;
+  const r = new SR(); VOICE.rec = r; r.lang = "en-IN"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+  let finalText = "", heard = false;
+  vmSet("listening", VOICE.captions ? `<span class="faint">Say something like “What’s my leave balance?”</span>` : "");
+  r.onaudiostart = () => { if (!VOICE.stream) fakeLevel(true); };
+  r.onspeechstart = () => { heard = true; };
+  r.onresult = (e) => { finalText = [...e.results].map((x) => x[0].transcript).join(""); if (VOICE.captions) vmSet("listening", `<b>${esc(finalText)}</b>`); };
+  r.onerror = (e) => {
+    VOICE.lastErr = e.error;
+    const msg = { "not-allowed": "Microphone access is blocked. Allow the microphone for this site, then tap the orb.", "service-not-allowed": "Microphone access is blocked. Allow the microphone for this site, then tap the orb.",
+      "audio-capture": "No microphone found, or another app is using it.", network: "Voice needs an internet connection. Check your network and tap the orb." }[e.error];
+    if (msg) { VOICE.fatal = true; vmSet("error", msg); }
+  };
+  r.onend = () => {
+    VOICE.rec = null; fakeLevel(false);
+    if (!VOICE.on || VOICE.muted) return;
+    if (VOICE.fatal) { VOICE.fatal = false; return; }
+    const q = finalText.trim();
+    if (!q) {
+      VOICE.empty = (VOICE.empty || 0) + 1;
+      if (VOICE.empty >= 3) { VOICE.empty = 0; vmSet("idle", `<span class="faint">I didn’t catch that. Tap the orb and ask again.</span>`); return; }
+      setTimeout(vmListen, 350); return;
+    }
+    VOICE.empty = 0;
+    vmSet("thinking", VOICE.captions ? `<b>${esc(q)}</b>` : "");
+    const c = kaisChat(), agent = c ? c.agent : KAIS.agent;
+    const ans = (agent && agentAnswer(agent, q)) || kaisAnswer(q);
+    try { kaisSend(q); } catch {} // the exchange also lands in the chat thread
+    setTimeout(() => {
+      if (!VOICE.on) return;
+      const say = voiceText(ans);
+      vmSet("speaking", VOICE.captions ? md(say) : "");
+      fakeLevel(true, true);
+      vmSpeak(say, () => { fakeLevel(false); if (VOICE.on && !VOICE.paused) setTimeout(vmListen, 400); });
+    }, 650);
+  };
+  try { r.start(); } catch { VOICE.rec = null; setTimeout(vmListen, 500); }
+};
+// spoken answers include what the chat shows in a card (numbers would otherwise be silent)
+function voiceText(ans) {
+  const c = ans.card; let extra = "";
+  if (c?.type === "balances") extra = leaveBalances().filter((b) => b.total).map((b) => `${b.name} ${b.available}`).join(", ") + ".";
+  else if (c?.type === "donut" && c.items) extra = c.items.map((i) => `${i.l || i.label || i.name} ${i.v ?? i.value ?? ""}`).join(", ") + (c.total ? `. Total ${c.total}.` : ".");
+  else if (c?.type === "holidays" && c.list?.length > 1) extra = "After that: " + c.list.slice(1, 3).map((h) => `${h.name} on ${D.nice(h.date)}`).join(", ") + ".";
+  return extra ? `${ans.text} ${extra}` : ans.text;
+}
+const isStandaloneIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) && (navigator.standalone || matchMedia("(display-mode: standalone)").matches);
+// a soft, synthetic level for the orb and pills when we don't hold a mic meter (phones: the recogniser needs the mic to itself)
+let FAKE = 0;
+function fakeLevel(on, speaking = false) {
+  cancelAnimationFrame(FAKE); FAKE = 0;
+  const el = $(".vmode"); if (!el) return;
+  if (!on) { if (!VOICE.stream) el.style.setProperty("--lvl", "0"); return; }
+  const t0 = performance.now();
+  const tick = (t) => { if (!VOICE.on) return; const k = (t - t0) / 1000; el.style.setProperty("--lvl", (Math.abs(Math.sin(k * (speaking ? 7 : 3.2))) * (speaking ? 0.7 : 0.35) + Math.random() * 0.12).toFixed(3)); FAKE = requestAnimationFrame(tick); };
+  FAKE = requestAnimationFrame(tick);
+}
+// desktop keeps the real mic meter; phones skip it so speech recognition can use the microphone
+const _vmMeter = vmMeter;
+vmMeter = function () { if (!TOUCH) return _vmMeter(); };
 // Kais speaks with the chosen voice everywhere voice mode talks
 vmSpeak = function (text, done) { sayAs(curVoice(), text, done); };
 
@@ -104,21 +181,19 @@ function openVoice() {
   VOICE.on = true; VOICE.muted = false; VOICE.paused = false;
   const s = openSheet({
     cls: "full vo-sheet",
-    raw: `<div class="vmode vo" data-state="idle" style="${orbVars(v)}">
-      <div class="vo-top">
-        <button class="vo-ib" data-s="end" aria-label="Close voice">${I("chevL")}</button>
-        <span class="vo-who"><img src="kais.svg" alt="">${agent ? esc(agent.name) : "Kais"}<em data-vname>· ${v.name}</em></span>
-        <span class="grow"></span>
-        <button class="vo-ib" data-s="cc" aria-label="Toggle captions" aria-pressed="true">${I("msg")}</button>
-        <button class="vo-ib" data-s="voice" aria-label="Change voice">${I("sliders")}</button>
+    raw: `<div class="vmode vo vo2" data-state="idle" style="${orbVars(v)}">
+      <div class="vo2-top">
+        <button class="vo2-ib" data-s="end" aria-label="Back">${I("chevL")}</button>
+        <h2>Speaking to ${agent ? esc(agent.name) : "Kais"}</h2>
+        <button class="vo2-ib" data-s="cc" aria-label="Toggle captions" aria-pressed="true">${I("msg")}</button>
       </div>
-      <div class="vo-stage"><button class="vo-orb" data-s="orb" aria-label="Talk to Kais"></button></div>
       <div class="vm-state" data-vm-state>Starting…</div>
+      <div class="vo2-stage"><button class="vo2-orb" data-s="orb" aria-label="Talk to Kais"><i></i><i></i><i></i><i></i><i></i></button></div>
       <div class="vm-cap kmd" data-vm-cap aria-live="polite"></div>
-      <div class="vo-bar">
-        <button class="vo-ib lg" data-s="pause" aria-label="Pause" aria-pressed="false">${I("pause")}</button>
-        <button class="vo-wave" data-s="mute" aria-label="Mute microphone" aria-pressed="false"><span class="vo-mic">${I("mic")}</span><i></i><i></i><i></i><i></i></button>
-        <button class="vo-ib lg end" data-s="end" aria-label="End voice">${I("x")}</button>
+      <div class="vo2-bar">
+        <button class="vo2-ib" data-s="voice" aria-label="Change voice">${I("sliders")}</button>
+        <button class="vo2-mic" data-s="mute" aria-label="Mute microphone" aria-pressed="false"><span>${I("mic")}</span></button>
+        <button class="vo2-ib" data-s="end" aria-label="End voice">${I("x")}</button>
       </div>
     </div>`,
     onClose() { vmStop(); },
@@ -138,10 +213,10 @@ function openVoice() {
           if (VOICE.paused) { VOICE.muted = true; try { VOICE.rec?.abort(); } catch {} if ("speechSynthesis" in window) speechSynthesis.cancel(); vmSet("muted"); root.dataset.state = "paused"; el.querySelector("[data-vm-state]").textContent = "Paused"; }
           else { VOICE.muted = false; vmListen(); }
         },
-        voice() { voiceChooser(() => { const nv = curVoice(); root.setAttribute("style", orbVars(nv)); el.querySelector("[data-vname]").textContent = "· " + nv.name; }); },
-        orb() { if (VOICE.state === "speaking") { speechSynthesis.cancel(); vmListen(); } else if (!VOICE.rec && !VOICE.paused) vmListen(); },
+        voice() { voiceChooser(() => { const nv = curVoice(); root.setAttribute("style", orbVars(nv)); const vn = el.querySelector("[data-vname]"); if (vn) vn.textContent = "· " + nv.name; }); },
+        orb() { unlockSpeech(); if (VOICE.state === "speaking") { speechSynthesis.cancel(); vmListen(); } else if (!VOICE.rec && !VOICE.paused) { VOICE.empty = 0; vmListen(); } },
       });
-      vmMeter(); setTimeout(vmListen, 400);
+      unlockSpeech(); VOICE.empty = 0; VOICE.fatal = false; vmMeter(); setTimeout(vmListen, 400);
     },
   });
 }

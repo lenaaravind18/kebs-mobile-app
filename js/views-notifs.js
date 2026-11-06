@@ -118,7 +118,7 @@ route("notifs", () => {
 function toastUndo(msg, undo) {
   const t = document.createElement("div");
   t.className = "toast";
-  t.innerHTML = `${I("checkCircle")}<span>${esc(msg)}</span><button style="pointer-events:auto;margin-left:6px;color:var(--accent);font-weight:800">Undo</button>`;
+  t.innerHTML = `${I("checkCircle")}<span>${esc(msg)}</span><button style="pointer-events:auto;margin-left:6px;color:var(--accent);font-weight:700">Undo</button>`;
   t.querySelector("button").onclick = () => { undo(); t.remove(); };
   $("#toasts").append(t);
   setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 260); }, 4000);

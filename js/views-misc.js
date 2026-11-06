@@ -125,7 +125,7 @@ route("expenses", (_, q) => {
     const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
     body = `<div class="card accent"><span class="eyebrow">Total claimed (last 30 days)</span><div class="timer" style="font-size:28px;margin-top:6px">${money(total)}</div>${top ? `<span class="small muted">Most spent on <b style="color:var(--ink)">${esc(top[0])}</b></span>` : ""}</div>
       <div class="sec"><h2>By category</h2></div>
-      <div class="card"><div class="chart-bars">${Object.entries(by).map(([c, v]) => `<div class="col"><span class="tiny b num">${(v / 1000).toFixed(1)}k</span><i style="height:${(v / max) * 100}%"></i><small>${esc(c.split(" ")[0])}</small></div>`).join("") || `<p class="muted small">No spend yet.</p>`}</div></div>`;
+      <div class="card ch-card">${Object.keys(by).length ? capsuleBars({ values: Object.values(by), labels: Object.keys(by).map((c) => c.split(" ")[0]), active: Object.values(by).indexOf(Math.max(...Object.values(by))), fmt: (v) => money(Math.round(v)), height: 132 }) : `<p class="muted small">No spend yet.</p>`}</div>`;
   }
   return `<div class="screen has-foot">${topbar("Expenses")}${seg([["claims", "Claims"], ["bills", "Saved bills"], ["insights", "Insights"]], tab, "expTab")}<div class="scroll">${body}</div>
     <div class="foot"><button class="btn primary block" data-go="#/expenses/new?scan=1">${I("scan")}Scan bill / new claim</button></div></div>`;

@@ -51,14 +51,28 @@ route("leave/balances", (_, q) => {
   const today = D.today(), tab = q.tab || "upcoming";
   const reqs = S.requests.filter((r) => r.type === "leave" && r.status !== "withdrawn");
   const list = (tab === "upcoming" ? reqs.filter((r) => r.to >= today).sort((x, y) => (x.from > y.from ? 1 : -1)) : reqs.filter((r) => r.to < today).sort((x, y) => (x.from < y.from ? 1 : -1)));
-  // donut made of one arc per leave type
+  // donut: continuous segments (hairline gaps, like the original) with rounded caps on the two outer ends
+  function donutSvg(list, tot) {
+    const R = 52, SW = 13, C = 2 * Math.PI * R, GAP = 1.6, items = list.filter((b) => b.available > 0);
+    const pt = (len) => { const a = (len / C) * Math.PI * 2; return [62 + R * Math.cos(a), 62 + R * Math.sin(a)]; };
+    let off = 0;
+    const segs = items.map((b, i) => {
+      const L = (b.available / tot) * C, len = Math.max(0.5, L - (i < items.length - 1 ? GAP : 0));
+      const seg = `<circle cx="62" cy="62" r="${R}" fill="none" stroke-width="${SW}" stroke-dasharray="${len.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" style="stroke:var(--c-${b.tint})"/>`;
+      off += L; return seg;
+    }).join("");
+    if (!items.length) return `<svg viewBox="0 0 124 124" aria-hidden="true"><circle cx="62" cy="62" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/></svg>`;
+    const [sx, sy] = pt(0), [ex, ey] = pt(off);
+    const caps = `<circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="${SW / 2}" style="fill:var(--c-${items[0].tint})"/><circle cx="${ex.toFixed(2)}" cy="${ey.toFixed(2)}" r="${SW / 2}" style="fill:var(--c-${items[items.length - 1].tint})"/>`;
+    return `<svg viewBox="0 0 124 124" aria-hidden="true"><circle cx="62" cy="62" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/>${segs}${caps}</svg>`;
+  }
   let acc = 0;
   const arcs = bal.map((b) => { const from = (acc / total) * 100; acc += b.available; return `${b.tint} ${from}% ${(acc / total) * 100}%`; });
   const grad = bal.map((b, i) => { const [t, f, to] = arcs[i].split(" "); return `var(--c-${t}) ${f} ${to}`; }).join(", ");
   const yearEnd = new Date().getFullYear() + "-12-31";
   return `<div class="screen">${topbar("Leave balances")}<div class="scroll"><div class="stack s16">
     <div class="card lb-hero">
-      <div class="lb-donut" style="background:conic-gradient(${grad}, var(--panel-2) ${(avail / total) * 100}% 100%)"><div><b>${avail}</b><small>days left</small></div></div>
+      <div class="lb-donut modern">${donutSvg(bal, total)}<div><b>${avail}</b><small>days left</small></div></div>
       <div class="grow stack s6" style="min-width:0">
         ${bal.map((b) => `<div class="lb-leg ${b.tint}"><i></i><span class="grow ell">${esc(b.name.replace(" Leave", "").replace(" Holiday", ""))}</span><b>${b.available}</b></div>`).join("")}
       </div>

@@ -3,8 +3,7 @@
 // ── Login ──
 route("login", () => `
   <div class="screen"><div class="login">
-    ${curtain(`<div class="bot"><span class="ear" style="left:20px"></span><span class="ear" style="right:20px"></span><div class="head"><div class="face"><span class="eye"></span><span class="eye"></span></div></div><div class="body">${I("power")}</div></div>
-      <span class="spark" style="left:18%;top:34%">${I("sparkles")}</span><span class="spark" style="right:20%;top:44%;animation-delay:.8s">${I("sparkles")}</span>`, "login-curtain")}
+    <div class="login-hero"><span class="login-mark" aria-hidden="true">${KEBS_MARK}</span><img class="login-ill ill-l" src="assets/ob/signin.svg" alt="A person standing next to a phone showing a sign-in screen" draggable="false"><img class="login-ill ill-d" src="assets/ob/dark/signin.svg" alt="" aria-hidden="true" draggable="false"></div>
     <h1>Welcome to KEBS!</h1>
     <p class="sub">Manage tasks, delegate jobs, business clutter-free!</p>
     <div class="stack">
@@ -101,9 +100,10 @@ route("home", () => {
   const t = S.att.today, late = t.inTs ? toMin(hhmm(t.inTs)) - toMin(SHIFT.start) > 10 : false;
   return `<div class="screen">
     <header class="hero" data-hero>
+      <span class="hero-pattern" aria-hidden="true"></span>
       <span class="hero-mark">${KEBS_MARK}</span>
-      <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button><div class="grow" style="min-width:0"><b class="ell">${T(greetingKey())}, ${esc(S.me.display)}</b><small>${esc(S.me.role)}</small></div></div>
-      <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button>
+      <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu"><img class="hero-photo" src="assets/avatars/me.jpg?v=3" alt=""><span class="hero-menu" aria-hidden="true">${I("menu")}</span></button><div class="grow" style="min-width:0"><b class="ell">${T(greetingKey())}, ${esc(S.me.display)}</b><small>${esc(S.me.role)}</small></div></div>
+      <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1"><img class="hero-photo" src="assets/avatars/me.jpg?v=3" alt=""><span class="hero-menu" aria-hidden="true">${I("menu")}</span></button>
         <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go mic" data-act="heroVoice" aria-label="Talk to Kais">${I("mic")}</button><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
@@ -112,8 +112,10 @@ route("home", () => {
       <div style="height:20px"></div>
       <div class="stack">
         ${todayCard(t, late)}</div>
+      ${typeof homeWidgets === "function" ? homeWidgets() : ""}
       ${off.length ? `<div class="sec"><h2>Off this week</h2><button class="link" data-act="offWeek">See all</button></div>
         <div class="hscroll">${off.map((o) => `<button class="person-mini" data-go="#/people/${o.id}">${avatar(o.id, "lg")}<span class="ell" style="max-width:68px">${esc(person(o.id).name.split(" ")[0])}</span><small>${D.short(o.date)}</small></button>`).join("")}</div>` : ""}
+      ${typeof celebWidget === "function" ? celebWidget() : ""}
       <div class="sec"><h2>Announcements</h2><button class="link" data-go="#/announcements">View all</button></div>
       <div class="hscroll">${S.posts.map((p) => `<button class="card ann" data-go="#/post/${p.id}"><div class="hrow">${avatar(p.by, "sm")}<span class="small muted grow ell">${esc(person(p.by).name)} · ${D.ago(p.ts)}</span></div><b class="ell">${esc(p.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.body)}</span>${p.ack ? `<span class="chip ok" style="align-self:flex-start">${I("check")}Acknowledged</span>` : `<span class="chip acc" style="align-self:flex-start">New</span>`}</button>`).join("")}</div>
       ${hol ? `<div class="sec"><h2>Upcoming holiday</h2><button class="link" data-go="#/holidays">All holidays</button></div>
@@ -161,44 +163,66 @@ route("clockin", () => `<div class="screen has-foot">
       <span class="me"></span>
       <div class="map-live" data-map></div>
       <span class="prec">${I("pin")}<span data-dist>Precise location: ON</span></span>
-      <button class="ib sm map-fit" data-act="mapFit" aria-label="Recenter map">${I("locate")}</button>
+      <div class="map-ctl"><button data-act="mapZoom" data-d="1" aria-label="Zoom in">${I("plus")}</button><button data-act="mapZoom" data-d="-1" aria-label="Zoom out">${I("minus")}</button></div>
+      <button class="map-fit" data-act="mapFit" aria-label="Show me and the office">${I("locate")}</button>
     </div>
     <div class="card hrow" style="margin-top:12px"><span class="li" style="padding:0;border:0"><span class="ic tint t-blue">${I("pin")}</span></span><span class="grow"><b style="display:block">${OFFICE.name}</b><span class="small muted">${OFFICE.addr}</span></span><span class="chip ok">In range</span></div>
     <p class="small muted" style="margin:14px 4px 0">${SHIFT.name} shift · ${D.hm(SHIFT.start)} – ${D.hm(SHIFT.end)}. Your clock-in will be recorded with this location.</p>
   </div>
   <div class="foot"><div class="hrow"><div class="grow"><div class="timer" style="font-size:22px" data-live="now">${new Date().toLocaleTimeString("en-US")}</div><div class="small muted">${D.f(D.today(), { weekday: "long", day: "numeric", month: "short", year: "numeric" })}</div></div><button class="btn primary" data-act="confirmClockIn">Continue</button></div></div>
 </div>`, { mount: clockMap });
-// ── Real map for clock-in: Leaflet + OpenStreetMap tiles (themed with a CSS filter in dark mode), loaded on first use ──
-let LEAFLET, CLOCK_MAP = null;
-function loadLeaflet() {
-  if (window.L) return Promise.resolve(window.L);
-  return (LEAFLET ||= new Promise((ok, no) => {
-    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.append(css);
-    const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
-    s.onload = () => ok(window.L); s.onerror = () => { LEAFLET = null; no(new Error("map unavailable")); }; document.head.append(s);
+// ── Clock-in map: MapLibre GL vector map (OpenFreeMap "Liberty" / "Dark"), Google/Apple Maps style, loaded on first use ──
+let MAPLIBRE, CLOCK_MAP = null;
+function loadMapLibre() {
+  if (window.maplibregl) return Promise.resolve(window.maplibregl);
+  return (MAPLIBRE ||= new Promise((ok, no) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"; document.head.append(css);
+    const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js";
+    s.onload = () => ok(window.maplibregl); s.onerror = () => { MAPLIBRE = null; no(new Error("map unavailable")); }; document.head.append(s);
   }));
 }
 const isDarkUI = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+// a circle of `r` metres around [lng, lat] as a GeoJSON polygon (the clock-in geofence)
+function geoCircle(lng, lat, r, n = 72) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI * 2; pts.push([lng + (r * Math.cos(a)) / (111320 * Math.cos((lat * Math.PI) / 180)), lat + (r * Math.sin(a)) / 110540]); }
+  return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [pts] } };
+}
+function metres(a, b) {
+  const R = 6371000, t = (x) => (x * Math.PI) / 180, dLat = t(b[1] - a[1]), dLng = t(b[0] - a[0]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(t(a[1])) * Math.cos(t(b[1])) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+}
 function clockMap() {
   const el = $("[data-map]"); if (!el) return;
-  loadLeaflet().then((L) => {
+  loadMapLibre().then((ml) => {
     if (!el.isConnected) return;
-    const office = [OFFICE.lat, OFFICE.lng], me = [OFFICE.lat - 0.00038, OFFICE.lng + 0.00042]; // demo: you, ~60 m from the office gate
-    const map = L.map(el, { zoomControl: false, scrollWheelZoom: false, attributionControl: true, tap: false });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
+    const office = [OFFICE.lng, OFFICE.lat], me = [OFFICE.lng + 0.00042, OFFICE.lat - 0.00038]; // demo: you, ~60 m from the office gate
+    const map = new ml.Map({ container: el, style: `https://tiles.openfreemap.org/styles/${isDarkUI() ? "dark" : "liberty"}`, center: me, zoom: 16.4,
+      attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, fadeDuration: 150 });
+    map.scrollZoom.disable(); map.touchZoomRotate.disableRotation(); map.keyboard.disable();
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#ff4013";
-    L.circle(office, { radius: OFFICE.radius, color: accent, weight: 1.5, opacity: 0.6, fillColor: accent, fillOpacity: 0.08 }).addTo(map);
-    L.marker(office, { icon: L.divIcon({ className: "map-pin", html: `<span>${KEBS_MARK}</span>`, iconSize: [36, 44], iconAnchor: [18, 44] }), title: OFFICE.name }).addTo(map);
-    L.marker(me, { icon: L.divIcon({ className: "map-me", html: "<i></i>", iconSize: [22, 22], iconAnchor: [11, 11] }), title: "You" }).addTo(map);
-    const fit = () => map.fitBounds([office, me], { padding: [56, 56], maxZoom: 17 });
-    fit(); setTimeout(() => { map.invalidateSize(); fit(); }, 320);
-    el.closest(".map").classList.add("live");
-    const d = Math.round(map.distance(office, me));
-    const lbl = el.closest(".map").querySelector("[data-dist]"); if (lbl) lbl.textContent = `${d} m from ${OFFICE.name.split(" – ")[0]} · in range`;
+    // frame the whole clock-in zone (geofence), with you and the office inside it
+    const dLat = (OFFICE.radius * 1.15) / 110540, dLng = (OFFICE.radius * 1.15) / (111320 * Math.cos((office[1] * Math.PI) / 180));
+    const fit = (duration = 600) => map.fitBounds([[office[0] - dLng, office[1] - dLat], [office[0] + dLng, office[1] + dLat]], { padding: { top: 24, bottom: 40, left: 24, right: 24 }, duration });
+    map.on("load", () => {
+      map.addSource("fence", { type: "geojson", data: geoCircle(office[0], office[1], OFFICE.radius) });
+      map.addLayer({ id: "fence-fill", type: "fill", source: "fence", paint: { "fill-color": accent, "fill-opacity": isDarkUI() ? 0.14 : 0.1 } });
+      map.addLayer({ id: "fence-line", type: "line", source: "fence", paint: { "line-color": accent, "line-width": 1.6, "line-opacity": 0.75, "line-dasharray": [2, 1.6] } });
+      map.resize(); fit(0);
+      el.closest(".map").classList.add("live");
+    });
+    // office: teardrop pin with the KEBS mark · you: blue dot with an accuracy halo
+    const pin = document.createElement("div"); pin.className = "map-pin"; pin.title = OFFICE.name; pin.innerHTML = `<span>${KEBS_MARK}</span>`;
+    new ml.Marker({ element: pin, anchor: "bottom" }).setLngLat(office).addTo(map);
+    const dot = document.createElement("div"); dot.className = "map-me"; dot.title = "You"; dot.innerHTML = "<b></b><i></i>";
+    new ml.Marker({ element: dot }).setLngLat(me).addTo(map);
+    const lbl = el.closest(".map").querySelector("[data-dist]"); if (lbl) lbl.textContent = `${metres(office, me)} m from ${OFFICE.name.split(" – ")[0]} · in range`;
     CLOCK_MAP = { map, fit };
   }).catch(() => {}); // offline: the drawn placeholder map stays
 }
 act("mapFit", () => CLOCK_MAP?.fit());
+act("mapZoom", (b) => { const m = CLOCK_MAP?.map; if (m) m.easeTo({ zoom: m.getZoom() + Number(b.dataset.d), duration: 260 }); });
 act("confirmClockIn", () => {
   S.att.today.inTs = Date.now(); S.att.today.outTs = null; save();
   toast(`Clocked in at ${D.time(S.att.today.inTs)}`);
@@ -331,7 +355,7 @@ act("drawer", () => {
   const el = document.createElement("aside"); el.className = "drawer";
   const lang = LANGS.find((l) => l.id === S.settings.lang);
   const row = (icon, t, s, attr) => `<button class="li" ${attr}><span class="ic">${I(icon)}</span><span class="grow"><span class="t" style="display:block">${t}</span><span class="s">${s}</span></span></button>`;
-  el.innerHTML = `<div style="padding:18px 14px 6px"><button class="li" data-go="#/profile" style="border:0">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
+  el.innerHTML = `<div class="drawer-top"><span class="hero-pattern" aria-hidden="true"></span><button class="li" data-go="#/profile" style="border:0">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
     <div class="list">
       ${row("building", esc(S.me.company), esc(S.me.domain), "")}
       ${row("globe", "Language", lang.name, `data-go="#/settings/lang"`)}

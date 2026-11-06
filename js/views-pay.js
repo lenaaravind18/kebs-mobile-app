@@ -89,7 +89,7 @@ route("pay", () => {
       <span class="link-row">View salary slip ${I("chevR")}</span>
     </button>
     <div class="sec"><h2>Take-home, last 6 months</h2></div>
-    <div class="card"><div class="chart-bars pay-chart">${slips.slice(-6).map((s, i, a) => `<div class="col ${i === a.length - 1 ? "today" : ""}"><span class="tiny b num">${S.settings.payHide ? "••" : (s.net / 1000).toFixed(0) + "k"}</span><i style="height:${(s.net / max) * 100}%"></i><small>${monthName(s.k, { month: "short" })}</small></div>`).join("")}</div></div>
+    <div class="card ch-card">${areaChart({ values: slips.slice(-6).map((s) => s.net), labels: slips.slice(-6).map((s) => monthName(s.k, { month: "short" })), fmt: (v) => (S.settings.payHide ? "INR ••••" : money(v)) })}</div>
     <div class="sec"><h2>This financial year</h2><span class="tiny muted">FY ${fyStart()}-${String(fyStart() + 1).slice(2)}</span></div>
     <div class="card">
       <div class="kv"><span>Gross earned</span><span>${m$(ytd((s) => s.gross))}</span></div>

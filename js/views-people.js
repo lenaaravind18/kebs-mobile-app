@@ -15,9 +15,38 @@ route("profile", (_, q) => {
   const chip = clockedIn() ? `<span class="chip ok">Clocked in</span>` : S.att.today.outTs ? `<span class="chip">Clocked out</span>` : `<span class="chip acc">Not in yet</span>`;
   let body = "";
   if (tab === "summary") {
-    body = `<div class="sec"><h2>Praises (${S.praises.me.length})</h2></div><div class="stack">${S.praises.me.map(praiseCard).join("") || emptyMini("award", "No praises received yet.")}</div>
+    me.about ||= ""; me.education ||= []; me.experience ||= [];
+    const prompt = (title, eyebrow, hint, filled, btn, act) => `<div class="pf-block">${eyebrow ? `<span class="eyebrow">${eyebrow}</span>` : ""}${hint ? `<p class="pf-hint">${hint}</p>` : ""}${filled || ""}<button class="pf-add" data-act="${act}">${I(filled ? "edit" : "plus")}${btn}</button></div>`;
+    const mgr = person(me.manager), mgr2 = person(mgr.manager || "vj");
+    const reports = ["al", "rb", "jh"].map(person).filter((x) => x.id);
+    const pr = S.praises.me;
+    body = `<div class="sec"><h2>Praises (${pr.length})</h2>${pr.length > 1 ? `<button class="link" data-act="praisesAll">View all</button>` : ""}</div><div class="stack">${pr.slice(0, 1).map(praiseCard).join("") || emptyMini("award", "No praises received yet.")}</div>
       <div class="sec"><h2>About</h2></div>
-      <div class="card stack"><span class="eyebrow">Intro</span>${me.intro ? `<p>${esc(me.intro)}</p>` : `<p class="muted">Not a single line about who you are. Impossible! Don’t be shy, let your teammates know you.</p>`}<button class="btn outline block" data-act="editIntro">${me.intro ? "Edit your response" : "Add your response"}</button></div>`;
+      <div class="card pf-card">
+        ${prompt("", "Intro", me.intro ? "" : "Not a single line about who you are. Impossible! Don’t be shy, let your teammates know you.", me.intro ? `<p class="pf-text">${esc(me.intro)}</p>` : "", me.intro ? "Edit your response" : "Add your response", "editIntro")}
+        <div class="pf-div"></div>
+        ${prompt("", "About yourself", me.about ? "" : "Your hobbies, what you love working on, a fun fact or two.", me.about ? `<p class="pf-text">${esc(me.about)}</p>` : "", me.about ? "Edit your response" : "Add your response", "editAbout")}
+      </div>
+      <div class="sec"><h2>Education</h2></div>
+      <div class="card pf-card">
+        ${me.education.length ? `<div class="pf-list">${me.education.map((e, i) => `<div class="pf-item"><span class="ic tint t-blue">${I("award")}</span><span class="grow"><b>${esc(e.degree)}</b><small>${esc(e.school)}${e.year ? ` · ${esc(e.year)}` : ""}</small></span><button class="ib sm" data-act="delEdu" data-i="${i}" aria-label="Remove">${I("trash")}</button></div>`).join("")}</div>` : `<p class="pf-hint">A good education is the foundation for a better future.</p>`}
+        <button class="pf-add" data-act="addEdu">${I("plus")}${me.education.length ? "Add another" : "Add your educational details"}</button>
+      </div>
+      <div class="sec"><h2>Experience</h2></div>
+      <div class="card pf-card">
+        ${me.experience.length ? `<div class="pf-list">${me.experience.map((e, i) => `<div class="pf-item"><span class="ic tint t-violet">${I("briefcase")}</span><span class="grow"><b>${esc(e.role)}</b><small>${esc(e.company)}${e.years ? ` · ${esc(e.years)}` : ""}</small></span><button class="ib sm" data-act="delExp" data-i="${i}" aria-label="Remove">${I("trash")}</button></div>`).join("")}</div>` : `<p class="pf-hint">Any past experience you want to share?</p>`}
+        <button class="pf-add" data-act="addExp">${I("plus")}${me.experience.length ? "Add another" : "Add past work experience"}</button>
+      </div>
+      <div class="sec"><h2>Team</h2></div>
+      <div class="card pf-team">
+        <button class="pf-node" data-go="#/people/${mgr2.id}">${avatar(mgr2.id)}<span class="grow"><span class="eyebrow">Next-level manager</span><b>${esc(mgr2.name)}</b><small>${esc(mgr2.role || "")}</small></span></button>
+        <span class="pf-link" aria-hidden="true">${I("arrowUp")}</span>
+        <button class="pf-node" data-go="#/people/${mgr.id}">${avatar(mgr.id)}<span class="grow"><span class="eyebrow">Reporting manager</span><b>${esc(mgr.name)}</b><small>${esc(mgr.role || "")}</small></span></button>
+        <span class="pf-link" aria-hidden="true">${I("arrowUp")}</span>
+        <div class="pf-node me">${avatar("me")}<span class="grow"><span class="eyebrow">You</span><b>${esc(fullName())}</b><small>${esc(me.role)}</small></span></div>
+      </div>
+      <div class="sec"><h2>Reporting team</h2><span class="tiny muted">${plural(reports.length, "person")}</span></div>
+      <div class="hscroll pf-reports">${reports.map((r) => `<button class="person-mini" data-go="#/people/${r.id}">${avatar(r.id, "lg")}<span class="ell" style="max-width:72px">${esc(r.name.split(" ")[0])}</span><small>${esc((r.role || "").split(" ")[0])}</small></button>`).join("")}</div>`;
   } else if (tab === "timeline") {
     const when = (ts) => new Date(ts).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
     const ev = [
@@ -49,6 +78,33 @@ act("editIntro", () => {
     foot: `<button class="btn primary block" data-s="ok">Save</button>`,
     onMount(el) { onS(el, { ok() { S.me.intro = el.querySelector("[data-t]").value.trim(); save(); closeSheet(s); rerender(); toast("Intro updated"); } }); } });
 });
+
+act("editAbout", () => {
+  const s = openSheet({ title: "About yourself", body: `<textarea class="inp" data-t maxlength="400" rows="5" placeholder="Your hobbies, what you love working on, a fun fact or two…" autofocus>${esc(S.me.about || "")}</textarea>`,
+    foot: `<button class="btn primary block" data-s="ok">Save</button>`,
+    onMount(el) { onS(el, { ok() { S.me.about = el.querySelector("[data-t]").value.trim(); save(); closeSheet(s); rerender(); toast("About yourself updated"); } }); } });
+});
+function addEntry(kind) {
+  const edu = kind === "edu";
+  const s = openSheet({ title: edu ? "Add education" : "Add work experience",
+    body: `<div class="stack s12">
+      <div class="field"><label for="pe-a">${edu ? "Degree or course" : "Role"}</label><input id="pe-a" class="inp" data-a placeholder="${edu ? "B.Des, Communication Design" : "UI Designer"}" autofocus></div>
+      <div class="field"><label for="pe-b">${edu ? "School or university" : "Company"}</label><input id="pe-b" class="inp" data-b placeholder="${edu ? "NID Ahmedabad" : "Zoho"}"></div>
+      <div class="field"><label for="pe-c">${edu ? "Year of completion" : "Duration"}</label><input id="pe-c" class="inp" data-c placeholder="${edu ? "2022" : "2021 – 2023"}"></div></div>`,
+    foot: `<button class="btn primary block" data-s="ok">Save</button>`,
+    onMount(el) { onS(el, { ok() {
+      const v = (k) => el.querySelector(`[data-${k}]`).value.trim();
+      if (!v("a") || !v("b")) return toast("Fill in the first two fields", "bad");
+      if (edu) (S.me.education ||= []).push({ degree: v("a"), school: v("b"), year: v("c") });
+      else (S.me.experience ||= []).push({ role: v("a"), company: v("b"), years: v("c") });
+      save(); closeSheet(s); rerender(); toast(edu ? "Education added" : "Experience added");
+    } }); } });
+}
+act("addEdu", () => addEntry("edu"));
+act("addExp", () => addEntry("exp"));
+act("delEdu", (b) => { S.me.education.splice(Number(b.dataset.i), 1); save(); rerender(); toast("Removed"); });
+act("delExp", (b) => { S.me.experience.splice(Number(b.dataset.i), 1); save(); rerender(); toast("Removed"); });
+act("praisesAll", () => go("#/profile?tab=timeline"));
 
 route("profile/edit", () => {
   const me = S.me;

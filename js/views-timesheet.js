@@ -38,7 +38,7 @@ route("ts", (_, q) => {
   }).join("");
   return `<div class="screen has-foot">
     <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button>
-      <div class="dateNav"><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, -1)}" aria-label="Previous day">${I("chevL")}</button><div style="text-align:center;min-width:0"><span class="eyebrow" style="display:block;font-size:10px">Timesheet</span><b>${D.nice(d)}</b></div><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, 1)}" aria-label="Next day">${I("chevR")}</button></div>
+      <div class="dateNav"><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, -1)}" aria-label="Previous day">${I("chevL")}</button><div style="text-align:center;min-width:0"><span class="eyebrow" style="display:block;font-size:11px">Timesheet</span><b>${D.nice(d)}</b></div><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, 1)}" aria-label="Next day">${I("chevR")}</button></div>
       ${locked ? `<button class="ib" data-go="#/ts/history" aria-label="History">${I("history")}</button>` : `<button class="ib acc" data-act="tsAddMenu" data-d="${d}" aria-label="Add or copy tasks">${I("plus")}</button>`}</div></header>
     <div class="scroll"><div class="stack">
       ${sum3(list)}
@@ -216,7 +216,7 @@ route("ts/week", (_, q) => {
   else foot = `<div class="banner ok">${I("checkCircle")}Approved by ${esc(person(S.me.manager).name)}</div>`;
   return `<div class="screen has-foot">
     <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button>
-      <div class="dateNav"><button class="ib sm acc" data-act="tsWeek" data-w="${D.add(w, -7)}" aria-label="Previous week">${I("chevL")}</button><div style="text-align:center;min-width:0"><span class="eyebrow" style="display:block;font-size:10px">Timesheet</span><b>${D.short(w)} – ${D.long(D.add(w, 6))}</b></div><button class="ib sm acc" data-act="tsWeek" data-w="${D.add(w, 7)}" aria-label="Next week">${I("chevR")}</button></div>
+      <div class="dateNav"><button class="ib sm acc" data-act="tsWeek" data-w="${D.add(w, -7)}" aria-label="Previous week">${I("chevL")}</button><div style="text-align:center;min-width:0"><span class="eyebrow" style="display:block;font-size:11px">Timesheet</span><b>${D.short(w)} – ${D.long(D.add(w, 6))}</b></div><button class="ib sm acc" data-act="tsWeek" data-w="${D.add(w, 7)}" aria-label="Next week">${I("chevR")}</button></div>
       <button class="ib" data-go="#/ts/history" aria-label="History">${I("history")}</button></div></header>
     <div class="scroll"><div class="stack">
       ${sum3(all)}
@@ -267,7 +267,7 @@ route("ts/history", (_, q) => {
   const chip = (r) => ({ pending: `<span class="chip warn">Pending</span>`, approved: `<span class="chip ok">Approved</span>`, rejected: `<span class="chip bad">${plural(r.rejected || 1, "task")} rejected</span>` }[r.status] || `<span class="chip">Not submitted</span>`);
   const list = weeks.filter((w) => f === "all" || weekRec(w).status === f);
   return `<div class="screen">
-    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><div class="dateNav"><button class="ib sm acc" data-act="tsYear" data-y="${y - 1}" aria-label="Previous year">${I("chevL")}</button><div style="text-align:center"><span class="eyebrow" style="display:block;font-size:10px">Timesheet</span><b>${y}</b></div><button class="ib sm acc" data-act="tsYear" data-y="${y + 1}" aria-label="Next year">${I("chevR")}</button></div><span class="spacer"></span></div></header>
+    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><div class="dateNav"><button class="ib sm acc" data-act="tsYear" data-y="${y - 1}" aria-label="Previous year">${I("chevL")}</button><div style="text-align:center"><span class="eyebrow" style="display:block;font-size:11px">Timesheet</span><b>${y}</b></div><button class="ib sm acc" data-act="tsYear" data-y="${y + 1}" aria-label="Next year">${I("chevR")}</button></div><span class="spacer"></span></div></header>
     ${seg([["all", "All"], ["pending", "Pending"], ["rejected", "Rejected"], ["approved", "Approved"]], f, "tsHistF")}
     <div class="scroll"><div class="card" style="padding-top:4px;padding-bottom:4px"><div class="list" data-lazy="8">${list.map((w) => `<button class="li" data-go="#/ts/week?w=${w}"><span class="grow"><b style="display:block">${D.range(w, D.add(w, 6))}</b><span class="small muted">${fmtH(weekMins(w))} • ${plural(weekTasks(w), "task")}</span></span>${chip(weekRec(w))}</button>`).join("") || emptyState(["clipboard", "history", "checkCircle"], "No timesheets here", "Weeks you submit will show up with their status.")}</div></div></div></div>`;
 });

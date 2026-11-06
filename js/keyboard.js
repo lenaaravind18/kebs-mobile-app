@@ -17,7 +17,8 @@
   el.setAttribute("aria-hidden", "true");
   shell.appendChild(el);
 
-  const typable = (t) => t && (t.matches?.("textarea, [contenteditable=''], [contenteditable=true], input:not([type]), input[type=text], input[type=search], input[type=email], input[type=tel], input[type=url], input[type=number], input[type=password]") ?? false) && !t.disabled && !t.readOnly && shell.contains(t);
+  // only the Kais chat box opens the mockup keyboard; every other field just takes the real keyboard
+  const typable = (t) => !!t && !t.disabled && !t.readOnly && shell.contains(t) && !!t.closest?.(".kcomposer") && t.matches("textarea, input");
   const returnLabel = () => {
     if (!field) return "return";
     if (field.closest(".kcomposer")) return "send";

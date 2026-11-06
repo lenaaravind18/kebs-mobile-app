@@ -199,7 +199,11 @@ function resetDemo() { try { localStorage.removeItem(STORE_KEY); } catch {} S = 
 const person = (id) => (id === "me" ? { ...S.me, name: fullName() } : S.people.find((p) => p.id === id)) || { id, name: "Unknown", tint: "t-slate" };
 const fullName = () => [S.me.first, S.me.middle].filter(Boolean).join(" ");
 const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-const avatar = (id, cls = "") => { const p = person(id); return `<span class="av ${cls} tint-dot ${p.tint || "t-blue"}" style="background:var(--t)" title="${esc(p.name)}">${esc(initials(p.name))}</span>`; };
+// photo avatars (assets/avatars/<id>.jpg); anyone without one falls back to coloured initials
+const AV_PHOTOS = new Set(["me", "jr", "jre", "sj", "vi", "vj", "pr", "ww", "jh", "as", "al", "pb", "sl", "dr", "rb"]);
+const avatar = (id, cls = "") => { const p = person(id); return AV_PHOTOS.has(id)
+  ? `<span class="av photo ${cls}" style="--av:url(assets/avatars/${id}.jpg?v=3)" title="${esc(p.name)}" role="img" aria-label="${esc(p.name)}"></span>`
+  : `<span class="av ${cls} tint-dot ${p.tint || "t-blue"}" style="background:var(--t)" title="${esc(p.name)}">${esc(initials(p.name))}</span>`; };
 
 function ensureToday() {
   const t = S.att.today, today = D.today();

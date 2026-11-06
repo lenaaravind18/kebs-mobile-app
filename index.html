@@ -16,18 +16,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=13">
-  <link rel="stylesheet" href="extra.css?v=6">
-  <link rel="stylesheet" href="tesla.css?v=84">
+  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="extra.css?v=7">
+  <link rel="stylesheet" href="tesla.css?v=122">
 </head>
 <body>
   <div class="device">
   <div class="shell" id="shell">
     <div class="island" aria-hidden="true"></div>
     <div class="statusbar" aria-hidden="true"><span data-live="sb">9:41</span><span class="sb-r">
-      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
-      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.4c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .6C5.2.6 2.7 1.7.8 3.5L2 4.8a8.6 8.6 0 0 1 6-2.4z"/><path d="M8 5.9c1.4 0 2.6.5 3.6 1.4l1.2-1.3A7 7 0 0 0 8 4.1a7 7 0 0 0-4.8 1.9l1.2 1.3c1-.9 2.2-1.4 3.6-1.4z"/><path d="M8 9.3c.5 0 1 .2 1.3.5L8 11.4 6.7 9.8c.3-.3.8-.5 1.3-.5z"/></svg>
-      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" fill="currentColor" opacity=".45"/></svg>
+      <!-- status icons from the design (signal · Wi-Fi · battery), drawn in currentColor -->
+      <svg class="sb-sig" width="18" height="12" viewBox="308.4 17.4 17.5 11.2" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M324.666 17.668H323.666C323.114 17.668 322.666 18.1157 322.666 18.668V27.3346C322.666 27.8869 323.114 28.3346 323.666 28.3346H324.666C325.218 28.3346 325.666 27.8869 325.666 27.3346V18.668C325.666 18.1157 325.218 17.668 324.666 17.668ZM319 20.0015H320C320.552 20.0015 321 20.4492 321 21.0015V27.3348C321 27.8871 320.552 28.3348 320 28.3348H319C318.447 28.3348 318 27.8871 318 27.3348V21.0015C318 20.4492 318.447 20.0015 319 20.0015ZM315.333 22.3345H314.333C313.78 22.3345 313.333 22.7822 313.333 23.3345V27.3345C313.333 27.8868 313.78 28.3345 314.333 28.3345H315.333C315.885 28.3345 316.333 27.8868 316.333 27.3345V23.3345C316.333 22.7822 315.885 22.3345 315.333 22.3345ZM310.666 24.3345H309.666C309.114 24.3345 308.666 24.7822 308.666 25.3345V27.3345C308.666 27.8868 309.114 28.3345 309.666 28.3345H310.666C311.218 28.3345 311.666 27.8868 311.666 27.3345V25.3345C311.666 24.7822 311.218 24.3345 310.666 24.3345Z"/></svg>
+      <svg class="sb-wifi" width="16" height="12" viewBox="330.5 17.2 15.6 11.3" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M338.33 19.6094C340.546 19.6095 342.677 20.4609 344.283 21.9877C344.404 22.1056 344.597 22.1041 344.716 21.9844L345.872 20.8177C345.933 20.757 345.966 20.6747 345.966 20.5891C345.965 20.5036 345.931 20.4217 345.87 20.3617C341.655 16.3221 335.005 16.3221 330.79 20.3617C330.729 20.4217 330.694 20.5035 330.693 20.5891C330.693 20.6746 330.726 20.7569 330.787 20.8177L331.943 21.9844C332.062 22.1043 332.255 22.1057 332.376 21.9877C333.982 20.4608 336.114 19.6094 338.33 19.6094ZM338.33 23.4049C339.547 23.4049 340.721 23.8574 341.624 24.6746C341.746 24.7906 341.938 24.7881 342.057 24.6689L343.212 23.5023C343.273 23.4411 343.306 23.3581 343.305 23.2718C343.305 23.1855 343.269 23.1032 343.207 23.0433C340.459 20.4869 336.203 20.4869 333.455 23.0433C333.393 23.1032 333.357 23.1856 333.356 23.2719C333.356 23.3581 333.39 23.4412 333.45 23.5023L334.605 24.6689C334.724 24.7881 334.916 24.7906 335.038 24.6746C335.94 23.8579 337.113 23.4054 338.33 23.4049ZM340.643 25.959C340.645 26.0455 340.611 26.1289 340.549 26.1895L338.552 28.2052C338.493 28.2644 338.413 28.2977 338.33 28.2977C338.247 28.2977 338.167 28.2644 338.108 28.2052L336.111 26.1895C336.049 26.1289 336.015 26.0454 336.017 25.9589C336.019 25.8724 336.056 25.7905 336.12 25.7325C337.396 24.6536 339.264 24.6536 340.54 25.7325C340.604 25.7905 340.641 25.8725 340.643 25.959Z"/></svg>
+      <svg class="sb-bat" width="25" height="12" viewBox="350.8 17.1 24.8 11.8" fill="currentColor"><path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M353.667 28.6689H370.333C371.714 28.6689 372.85 27.62 372.986 26.2754L373 26.0029V20.0029C373 18.5302 371.806 17.3359 370.333 17.3359H353.667L353.394 17.3496C352.049 17.4864 351 18.6224 351 20.0029V26.0029L351.014 26.2754C351.141 27.5302 352.139 28.5276 353.394 28.6553L353.667 28.6689ZM370.333 27.6689H353.667C352.747 27.6689 352 26.9233 352 26.0029V20.0029C352 19.0825 352.747 18.3359 353.667 18.3359H370.333C371.253 18.3359 372 19.0825 372 20.0029V26.0029C372 26.9233 371.253 27.6689 370.333 27.6689ZM375.328 23.0024C375.328 23.8756 374.805 24.6637 374 25.0024V21.0024C374.805 21.3412 375.328 22.1293 375.328 23.0024Z"/><rect x="353" y="19.3359" width="18" height="7.33333" rx="1.33333"/></svg>
     </span></div>
     <div class="home-ind" aria-hidden="true"></div>
     <div class="splash" aria-hidden="true"><div class="splash-in"><img class="splash-tile" src="icon.svg" alt=""><b class="splash-name">KEBS</b><p>Intelligent Business Automation</p><span class="orbit"><i></i><i></i><i></i></span></div></div>
@@ -45,6 +46,7 @@
   <script src="js/core.js"></script>
   <script src="js/store.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/charts.js"></script>
   <script src="js/views-home.js"></script>
   <script src="js/views-time.js"></script>
   <script src="js/views-timesheet.js"></script>
@@ -56,6 +58,7 @@
   <script src="js/kais-voice.js"></script>
   <script src="js/views-notifs.js"></script>
   <script src="js/views-pay.js"></script>
+  <script src="js/views-widgets.js"></script>
   <script src="js/app.js"></script>
   <script src="js/keyboard.js"></script>
 </body>
