@@ -108,13 +108,13 @@ route("projects", (_, q) => {
     if (st !== "all") list = list.filter((p) => p.status === st);
     if (qq) list = list.filter((p) => [pjName(p), p.client, p.code].join(" ").toLowerCase().includes(qq));
     body = `<div class="pj-sum">
-        <div><b class="num">${pjList().filter((p) => p.status === "active" && p.team.includes("me")).length}</b><small>Active projects</small></div>
-        <div><b class="num">${open.length}</b><small>Open tasks</small></div>
-        <div class="${overdue ? "bad" : ""}"><b class="num">${overdue}</b><small>Overdue</small></div>
+        <div><i class="pj-sum-ic tint t-blue">${I("briefcase")}</i><b class="num">${pjList().filter((p) => p.status === "active" && p.team.includes("me")).length}</b><small>Active</small></div>
+        <div><i class="pj-sum-ic tint t-violet">${I("checkCircle")}</i><b class="num">${open.length}</b><small>Open tasks</small></div>
+        <div class="${overdue ? "bad" : ""}"><i class="pj-sum-ic tint ${overdue ? "t-red" : "t-green"}">${I(overdue ? "alert" : "check")}</i><b class="num">${overdue}</b><small>Overdue</small></div>
       </div>
       <label class="searchbox" style="margin-top:12px">${I("search")}<input data-pq placeholder="Search projects" value="${esc(q.q || "")}" enterkeyhint="search"></label>
-      <div class="xs-tabs" role="tablist">${[["active", "Active"], ["hold", "On hold"], ["done", "Completed"], ["all", "All"]].map(([v, l]) => `<button role="tab" class="${st === v ? "on" : ""}" aria-selected="${st === v}" data-act="pjSt" data-v="${v}">${l}</button>`).join("")}</div>
-      ${list.length ? `<div class="stack" data-lazy="6" style="margin-top:12px">${list.map(pjCard).join("")}</div>`
+      ${filterHead(`${list.length} ${st === "all" ? "" : PJ_ST_LABEL[st].toLowerCase() + " "}${list.length === 1 ? "project" : "projects"}`, "pjSt", st, ["active", "hold", "done", "all"].map((v) => { const n = pjList().filter((p) => p.team.includes("me") && (v === "all" || p.status === v)).length; return [v, PJ_ST_LABEL[v], { active: "briefcase", hold: "pause", done: "checkCircle", all: "list" }[v], `${n} ${n === 1 ? "project" : "projects"}`]; }), "Show projects")}
+      ${list.length ? `<div class="stack" data-lazy="6" style="margin-top:10px">${list.map(pjCard).join("")}</div>`
         : emptyState(qq ? ["search", "briefcase"] : ["briefcase", "clipboard"], qq ? "No projects match" : `No ${st === "all" ? "" : PJ_STATUS[st].toLowerCase() + " "}projects`, qq ? "Try a different name, client or code." : "Projects you’re added to show up here.")}`;
   } else {
     const f = q.f || "open";
@@ -132,8 +132,8 @@ route("projects", (_, q) => {
     ];
     body = `${overdue ? `<div class="banner bad" style="margin-top:4px">${I("alert")}${plural(overdue, "task")} overdue${today ? ` · ${today} due today` : ""}</div>` : today ? `<div class="banner warn" style="margin-top:4px">${I("clock")}${plural(today, "task")} due today</div>` : ""}
       <label class="searchbox" style="margin-top:12px">${I("search")}<input data-pq placeholder="Search my tasks" value="${esc(q.q || "")}" enterkeyhint="search"></label>
-      <div class="xs-tabs" role="tablist">${[["open", "Open"], ["done", "Done"], ["all", "All"]].map(([v, l]) => `<button role="tab" class="${f === v ? "on" : ""}" aria-selected="${f === v}" data-act="tkF" data-v="${v}">${l}</button>`).join("")}</div>
-      ${rows.length ? groups.filter(([, g]) => g.length).map(([h, g]) => `<div class="sec"><h2 class="${h === "Overdue" ? "tk-h-bad" : ""}">${h} <span class="muted" style="font-weight:600">(${g.length})</span></h2></div><div class="tk-list" data-lazy="8">${g.sort((a, b) => (a.t.due || "9") < (b.t.due || "9") ? -1 : 1).map((x) => tkRow(x.p, x.t)).join("")}</div>`).join("")
+      ${filterHead(`${rows.length} ${f === "all" ? "" : f + " "}${rows.length === 1 ? "task" : "tasks"}`, "tkF", f, [["open", "Open", "clock", mine.filter((x) => x.t.status !== "done").length], ["done", "Done", "checkCircle", mine.filter((x) => x.t.status === "done").length], ["all", "All", "list", mine.length]].map(([v, l, ic, n]) => [v, l, ic, `${n} ${n === 1 ? "task" : "tasks"}`]), "Show tasks")}
+      ${rows.length ? groups.filter(([, g]) => g.length).map(([h, g]) => `<div class="sec"><h2 class="sec-ic tk-grp ${h === "Overdue" ? "tk-h-bad" : ""}" data-g="${h}">${I({ Overdue: "alert", Today: "sun", "This week": "calendar", Later: "clock", Done: "checkCircle" }[h] || "list")}${h} <span class="muted" style="font-weight:600">(${g.length})</span></h2></div><div class="tk-list" data-lazy="8">${g.sort((a, b) => (a.t.due || "9") < (b.t.due || "9") ? -1 : 1).map((x) => tkRow(x.p, x.t)).join("")}</div>`).join("")
         : emptyState(qq ? ["search"] : ["checkCircle", "clipboard"], qq ? "No tasks match" : f === "done" ? "Nothing done yet" : "You’re all caught up", qq ? "Try a different word." : f === "done" ? "Tasks you finish show up here." : "No open tasks assigned to you.")}`;
   }
   return `<div class="screen">${topbar("Projects")}${seg([["projects", "Projects"], ["tasks", `My tasks${open.length ? ` (${open.length})` : ""}`]], tab, "pjTab")}<div class="scroll">${body}</div></div>`;
@@ -156,8 +156,9 @@ function pjCard(p) {
   </button>`;
 }
 act("pjTab", (b) => swap(`#/projects?tab=${b.dataset.v}`));
-act("pjSt", (b) => swap(`#/projects?tab=projects&st=${b.dataset.v}`));
-act("tkF", (b) => swap(`#/projects?tab=tasks&f=${b.dataset.v}`));
+act("pjSt", (b) => { const q = parseHash().q; swap(`#/projects?tab=projects&st=${b.dataset.v}${q.q ? `&q=${encodeURIComponent(q.q)}` : ""}`); });
+const PJ_ST_LABEL = { active: "Active", hold: "On hold", done: "Completed", all: "All" };
+act("tkF", (b) => { const q = parseHash().q; swap(`#/projects?tab=tasks&f=${b.dataset.v}${q.q ? `&q=${encodeURIComponent(q.q)}` : ""}`); });
 act("tkToggle", (b) => {
   const p = pjOf(b.dataset.p), t = tkOf(p, b.dataset.t); if (!t) return;
   if (pjLocked(p)) return toast(p.status === "hold" ? "This project is on hold — tasks can’t be changed" : "This project is completed — tasks are read-only", "bad");
@@ -176,12 +177,13 @@ route("projects/:id", ({ id }, q) => {
   const usage = p.budget ? hrs / p.budget : 0;
   const hero = `<div class="pj-hero">
     <div class="hrow" style="align-items:flex-start"><span class="grow" style="min-width:0"><span class="tiny muted">${esc(p.client)} · ${esc(p.code)}</span><h1>${esc(pjName(p))}</h1></span>${pjBadge(p)}</div>
+    <button class="pj-team" data-act="pjTabD" data-v="team" aria-label="See the team"><span class="av-stack">${p.team.slice(0, 5).map((id) => avatar(id, "sm")).join("")}</span><span class="small muted">${esc(person(p.manager).name.split(" ")[0])} + ${plural(p.team.length - 1, "teammate")}</span>${I("chevR")}</button>
     <div class="pj-hero-row"><span class="ring" style="--p:${Math.round(prog * 100)};--t:${p.status === "done" ? "var(--ok)" : rangeColor(prog)}"><b>${Math.round(prog * 100)}%</b></span>
       <div class="pj-stats">
-        <span><small>Tasks</small><b>${pjDone(p)}/${p.tasks.length}</b></span>
-        <span><small>${p.budget ? "Budget used" : "Hours"}</small><b class="${usage > 1 ? "bad" : usage > 0.9 ? "warn" : ""}">${p.budget ? `${hrs}/${p.budget}h` : `${hrs}h`}</b></span>
-        <span><small>${p.status === "done" ? "Closed" : "Due"}</small><b class="${dl != null && dl < 0 && p.status !== "done" ? "bad" : ""}">${p.end ? D.short(p.end) : "Ongoing"}</b></span>
-        <span><small>Manager</small><b class="ell">${esc(person(p.manager).name.split(" ")[0])}</b></span>
+        <span class="pj-st"><i class="pj-st-ic tint t-green">${I("checkCircle")}</i><span><small>Tasks</small><b>${pjDone(p)}/${p.tasks.length}</b></span></span>
+        <span class="pj-st"><i class="pj-st-ic tint ${usage > 1 ? "t-red" : "t-amber"}">${I("clock")}</i><span><small>${p.budget ? "Budget used" : "Hours"}</small><b class="${usage > 1 ? "bad" : usage > 0.9 ? "warn" : ""}">${p.budget ? `${hrs}/${p.budget}h` : `${hrs}h`}</b></span></span>
+        <span class="pj-st"><i class="pj-st-ic tint t-blue">${I("calendar")}</i><span><small>${p.status === "done" ? "Closed" : "Due"}</small><b class="${dl != null && dl < 0 && p.status !== "done" ? "bad" : ""}">${p.end ? D.short(p.end) : "Ongoing"}</b></span></span>
+        <span class="pj-st"><i class="pj-st-ic tint t-slate">${I("user")}</i><span><small>Manager</small><b class="pj-mgr">${avatar(p.manager, "sm")}<span class="ell">${esc(person(p.manager).name.split(" ")[0])}</span></b></span></span>
       </div></div>
   </div>`;
   const alerts = [
@@ -194,20 +196,21 @@ route("projects/:id", ({ id }, q) => {
   let body = "";
   if (tab === "overview") {
     const mine = p.tasks.filter((t) => t.assignee === "me" && t.status !== "done").slice(0, 3);
-    body = `${p.desc ? `<p class="pj-desc">${esc(p.desc)}</p>` : ""}
-      <div class="sec"><h2>Your open tasks</h2>${myOpen(p) > 3 ? `<button class="link" data-act="pjTabD" data-v="tasks">See all</button>` : ""}</div>
+    body = `${p.desc ? `<div class="sec" style="margin-top:14px"><h2 class="sec-ic">${I("info")}About</h2></div><p class="pj-desc" style="margin-top:0">${esc(p.desc)}</p>` : ""}
+      <div class="sec"><h2 class="sec-ic">${I("checkCircle")}Your open tasks</h2>${myOpen(p) > 3 ? `<button class="link" data-act="pjTabD" data-v="tasks">See all</button>` : ""}</div>
       ${mine.length ? `<div class="tk-list">${mine.map((t) => tkRow(p, t, false)).join("")}</div>` : emptyMini("checkCircle", "Nothing open for you here.")}
-      ${p.budget ? `<div class="sec"><h2>Budget</h2><span class="tiny muted">${hrs}h of ${p.budget}h</span></div>
+      ${pjWeekChart(p)}
+      ${p.budget ? `<div class="sec"><h2 class="sec-ic">${I("wallet")}Budget</h2><span class="tiny muted">${hrs}h of ${p.budget}h</span></div>
         <div class="card pj-budget"><span class="pj-prog lg"><i style="width:${Math.min(100, usage * 100)}%;background:${rangeColor(usage, "low")}"></i></span>
           <div class="pj-foot"><span>${Math.round(usage * 100)}% used</span><span class="${usage > 1 ? "bad" : ""}">${usage > 1 ? `${hrs - p.budget}h over` : `${p.budget - hrs}h left`}</span><span>${Math.round(mins / 60 / Math.max(1, D.diff(p.start, D.today())) * 7)}h / week</span></div></div>` : ""}
-      ${p.milestones.length ? `<div class="sec"><h2>Milestones</h2></div><div class="card"><div class="pjm-tl">${p.milestones.map((m) => { const late = !m.done && m.date < D.today(); return `<div class="pjm ${m.done ? "done" : late ? "late" : ""}"><i>${m.done ? I("check") : ""}</i><span class="grow"><b>${esc(m.name)}</b><small>${m.done ? "Done · " : late ? "Late · " : ""}${D.long(m.date)}</small></span></div>`; }).join("")}</div></div>` : ""}`;
+      ${p.milestones.length ? `<div class="sec"><h2 class="sec-ic">${I("milestone")}Milestones</h2></div><div class="card"><div class="pjm-tl">${p.milestones.map((m) => { const late = !m.done && m.date < D.today(); return `<div class="pjm ${m.done ? "done" : late ? "late" : ""}"><i>${m.done ? I("check") : ""}</i><span class="grow"><b>${esc(m.name)}</b><small>${m.done ? "Done · " : late ? "Late · " : ""}${D.long(m.date)}</small></span></div>`; }).join("")}</div></div>` : ""}`;
   } else if (tab === "tasks") {
     const f = q.f || "mine";
     let list = p.tasks;
     if (f === "mine") list = list.filter((t) => t.assignee === "me");
     if (f === "open") list = list.filter((t) => t.status !== "done");
     const order = ["doing", "review", "todo", "done"];
-    body = `<div class="xs-tabs" role="tablist" style="margin-top:0">${[["mine", "Mine"], ["open", "Open"], ["all", "All"]].map(([v, l]) => `<button role="tab" class="${f === v ? "on" : ""}" aria-selected="${f === v}" data-act="pjTF" data-v="${v}">${l}</button>`).join("")}</div>
+    body = `${filterHead(`${list.length} ${{ mine: "of your ", open: "open ", all: "" }[f]}${list.length === 1 ? "task" : "tasks"}`, "pjTF", f, [["mine", "Assigned to me", "user", p.tasks.filter((t) => t.assignee === "me").length], ["open", "Open", "clock", p.tasks.filter((t) => t.status !== "done").length], ["all", "All tasks", "list", p.tasks.length]].map(([v, l, ic, n]) => [v, l, ic, `${n} ${n === 1 ? "task" : "tasks"}`]), "Show tasks")}
       ${list.length ? order.map((s) => { const g = list.filter((t) => t.status === s); return g.length ? `<div class="sec"><h2>${TK_STATUS[s][0]} <span class="muted" style="font-weight:600">(${g.length})</span></h2></div><div class="tk-list" data-lazy="8">${g.map((t) => tkRow(p, t, false)).join("")}</div>` : ""; }).join("")
         : emptyState(["clipboard", "checkCircle"], f === "mine" ? "Nothing assigned to you" : "No tasks yet", f === "mine" ? "Tasks assigned to you on this project show up here." : "Add the first task to get started.")}`;
   } else {
@@ -268,15 +271,15 @@ route("projects/:id/task/:tid", ({ id, tid }) => {
     <div class="tk-head"><h1>${esc(t.title)}</h1>${canEdit ? `<button class="ib sm" data-act="tkRename" data-p="${p.id}" data-t="${t.id}" aria-label="Rename task">${I("edit")}</button>` : ""}</div>
     <div class="field"><span class="lbl">Status</span><div class="tk-status">${Object.entries(TK_STATUS).map(([k, [l, tint]]) => `<button class="tint ${tint} ${t.status === k ? "on" : ""}" data-act="tkSet" data-k="status" data-v="${k}" data-p="${p.id}" data-t="${t.id}" ${canEdit ? "" : "disabled"}>${l}</button>`).join("")}</div></div>
     <div class="card tk-kv">
-      <button class="kv" data-act="tkPick" data-k="priority" data-p="${p.id}" data-t="${t.id}" ${canEdit ? "" : "disabled"}><span>Priority</span><span class="hrow" style="gap:6px">${prDot(t.priority)}${TK_PRI[t.priority][0]}${canEdit ? I("chevR") : ""}</span></button>
-      <button class="kv" data-act="tkDue" data-p="${p.id}" data-t="${t.id}" ${canEdit ? "" : "disabled"}><span>Due</span><span class="hrow ${due.tone}" style="gap:6px">${t.due ? D.long(t.due) : "None"}${due.tone ? ` · ${due.txt}` : ""}${canEdit ? I("chevR") : ""}</span></button>
-      <button class="kv" data-act="tkPick" data-k="assignee" data-p="${p.id}" data-t="${t.id}" ${!locked && p.manager === "me" ? "" : "disabled"}><span>Assignee</span><span class="hrow" style="gap:6px">${avatar(t.assignee, "xs")}${esc(t.assignee === "me" ? "You" : person(t.assignee).name)}${!locked && p.manager === "me" ? I("chevR") : ""}</span></button>
-      <div class="kv"><span>Time</span><span>${fmtH(mins)} of ${t.est}h</span></div>
+      <button class="kv" data-act="tkPick" data-k="priority" data-p="${p.id}" data-t="${t.id}" ${canEdit ? "" : "disabled"}><span class="kv-ic"><i class="tint t-red">${I("flame")}</i>Priority</span><span class="hrow" style="gap:6px">${prDot(t.priority)}${TK_PRI[t.priority][0]}${canEdit ? I("chevR") : ""}</span></button>
+      <button class="kv" data-act="tkDue" data-p="${p.id}" data-t="${t.id}" ${canEdit ? "" : "disabled"}><span class="kv-ic"><i class="tint t-blue">${I("calendar")}</i>Due</span><span class="hrow ${due.tone}" style="gap:6px">${t.due ? D.long(t.due) : "None"}${due.tone ? ` · ${due.txt}` : ""}${canEdit ? I("chevR") : ""}</span></button>
+      <button class="kv" data-act="tkPick" data-k="assignee" data-p="${p.id}" data-t="${t.id}" ${!locked && p.manager === "me" ? "" : "disabled"}><span class="kv-ic"><i class="tint t-violet">${I("user")}</i>Assignee</span><span class="hrow" style="gap:6px">${avatar(t.assignee, "xs")}${esc(t.assignee === "me" ? "You" : person(t.assignee).name)}${!locked && p.manager === "me" ? I("chevR") : ""}</span></button>
+      <div class="kv"><span class="kv-ic"><i class="tint t-amber">${I("clock")}</i>Time</span><span>${fmtH(mins)} of ${t.est}h</span></div>
       <span class="pj-prog"><i style="width:${Math.min(100, r * 100)}%;background:${r > 1 ? "var(--danger)" : rangeColor(Math.min(1, r) * 0.6 + 0.4)}"></i></span>
       ${r > 1 ? `<span class="small" style="color:var(--danger);font-weight:600;margin-top:6px;display:block">${fmtH(mins - t.est * 60)} over the estimate</span>` : ""}
     </div>
-    ${t.desc ? `<div class="cd-sec" style="border-top:0;padding-top:0;margin-top:0"><h2>Description</h2><p>${esc(t.desc)}</p></div>` : ""}
-    <div class="cd-sec"><div class="hrow"><h2 class="grow">Comments</h2>${!locked ? `<button class="link" data-act="tkComment" data-p="${p.id}" data-t="${t.id}">+ Add comment</button>` : ""}</div>
+    ${t.desc ? `<div class="cd-sec" style="border-top:0;padding-top:0;margin-top:0"><h2 class="sec-ic">${I("list")}Description</h2><p>${esc(t.desc)}</p></div>` : ""}
+    <div class="cd-sec"><div class="hrow"><h2 class="grow sec-ic">${I("msg")}Comments</h2>${!locked ? `<button class="link" data-act="tkComment" data-p="${p.id}" data-t="${t.id}">+ Add comment</button>` : ""}</div>
       ${t.comments.length ? t.comments.map((m) => `<div class="cd-cm">${avatar(m.who, "sm")}<div class="grow"><div class="hrow"><b class="grow">${esc(m.who === "me" ? "You" : person(m.who).name)}</b><span class="tiny faint">${D.ago(m.ts)}</span></div><p>${esc(m.text)}</p></div></div>`).join("") : `<p class="small muted">No comments yet.</p>`}</div>
   </div></div>
   <div class="foot"><div class="row-btns">
@@ -379,4 +382,21 @@ function tasksWidget() {
       <div class="w-tk-stats">${stat(od.length, "Overdue", "bad")}${stat(today.length, "Today", "warn")}${stat(week.length, "This week", "")}</div>
       ${next.length ? `<div class="w-tk-list">${next.map((x) => tkRow(x.p, x.t)).join("")}</div>` : emptyMini("checkCircle", "You’re all caught up — no open tasks.")}
     </div>`;
+}
+
+// team hours this week (demo base rate from the project's history + anything you logged), coloured by range
+function pjWeekChart(p) {
+  if (p.status !== "active") return "";
+  const mon = D.monday(D.today()), days = [0, 1, 2, 3, 4].map((i) => D.add(mon, i));
+  const weeks = Math.max(1, D.diff(p.start, D.today()) / 7), daily = p.base / 60 / weeks / 5;
+  let h = 0; for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const vals = days.map((d, i) => {
+    if (d > D.today()) return 0;
+    const mine = Object.entries(S.ts.entries).filter(([k]) => k === d).flatMap(([, l]) => l).filter((e) => e.pid === p.id).reduce((a, e) => a + (e.mins || 0), 0) / 60;
+    return Math.round((daily * (0.6 + ((h >> (i * 3)) % 7) / 10) + mine) * 10) / 10;
+  });
+  const fut = days.map((d, i) => (d > D.today() ? i : -1)).filter((i) => i >= 0), total = vals.reduce((a, v) => a + v, 0);
+  const today = days.indexOf(D.today());
+  return `<div class="sec"><h2 class="sec-ic">${I("chart")}This week</h2><span class="tiny muted">${Math.round(total)}h logged by the team</span></div>
+    <div class="card ch-card">${capsuleBars({ values: vals, labels: ["Mon", "Tue", "Wed", "Thu", "Fri"], goal: Math.max(1, Math.round(daily)), goalLabel: `${Math.round(daily)}h`, active: today >= 0 ? today : 4, future: fut, fmt: (v) => `${v}h`, height: 110 })}</div>`;
 }

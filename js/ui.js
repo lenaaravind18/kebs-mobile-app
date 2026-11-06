@@ -6,6 +6,18 @@ function route(pattern, render, opts = {}) {
   ROUTES.push({ re: new RegExp("^" + pattern.replace(/:(\w+)/g, "(?<$1>[^/]+)") + "$"), render, ...opts });
 }
 function act(name, fn) { ACTIONS[name] = fn; }
+// list heading with a status filter menu (used instead of a second row of tabs)
+// options: [[value, label, icon, count]]; picking runs the action `actName` with data-v = value
+const FH = {};
+function filterHead(title, actName, value, options, sheetTitle = "Show") {
+  FH[actName] = { value, options, sheetTitle };
+  const cur = options.find((o) => o[0] === value) || options[0];
+  return `<div class="pj-fh"><h2>${title}</h2><button class="pj-fbtn" data-act="fhPick" data-k="${actName}" aria-label="Filter: ${esc(cur[1])}">${I("filter")}${esc(cur[1])}${I("chevD")}</button></div>`;
+}
+act("fhPick", (b) => {
+  const f = FH[b.dataset.k]; if (!f) return;
+  pickOption({ title: f.sheetTitle, value: f.value, options: f.options.map(([v, label, icon, n]) => ({ v, label, icon, sub: n == null ? "" : String(n) })), onPick: (v) => ACTIONS[b.dataset.k]({ dataset: { v } }) });
+});
 function draft(key, defaults) { if (!DRAFT || DRAFT._k !== key) DRAFT = { _k: key, ...defaults }; return DRAFT; }
 
 function topbar(title, { back = true, sub = "", right = "", left = "" } = {}) {

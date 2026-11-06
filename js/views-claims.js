@@ -167,7 +167,7 @@ route("expenses", (_, q) => {
       <div class="pc-foot"><span class="pc-sub">${I("checkCircle")}<span>Approved in ${D.f(D.today(), { month: "short" })}</span><b>${rs(apr.reduce((a, c) => a + claimTotal(c), 0))}</b><em>· ${plural(apr.length, "claim")}</em></span></div>
     </div>
       <div class="hrow" style="margin-top:12px"><label class="searchbox grow">${I("search")}<input data-xq placeholder="Search claims" value="${esc(q.q || "")}" enterkeyhint="search"></label><button class="ib" data-act="xFilter" aria-label="Filters">${I("filter")}${xfCount() ? `<span class="dot"></span>` : ""}</button></div>
-      <div class="xs-tabs" role="tablist">${[["all", "All"], ["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["withdrawn", "Withdrawn"]].map(([v, l]) => `<button role="tab" class="${st === v ? "on" : ""}" aria-selected="${st === v}" data-act="xSt" data-v="${v}">${l}</button>`).join("")}</div>
+      ${filterHead(`${list.length} ${st === "all" ? "" : st + " "}${list.length === 1 ? "claim" : "claims"}`, "xSt", st, [["all", "All", "list"], ["pending", "Pending", "clock"], ["approved", "Approved", "checkCircle"], ["rejected", "Rejected", "x"], ["withdrawn", "Withdrawn", "archive"]].map(([v, l, ic]) => { const n = S.claims.filter((c) => c.status !== "saved" && (v === "all" || c.status === v)).length; return [v, l, ic, `${n} ${n === 1 ? "claim" : "claims"}`]; }), "Show claims")}
       ${xfCount() ? `<div class="hrow small muted" style="margin:2px 4px 0">${plural(xfCount(), "filter")} applied<span class="grow"></span><button class="link" data-act="xClear">Clear</button></div>` : ""}
       ${groups.length ? groups.map((g) => `<div class="sec"><h2>${dayLabel(g.k)} <span class="muted" style="font-weight:600">(${g.items.length})</span></h2></div><div class="stack" data-lazy="6">${g.items.map(claimCard).join("")}</div>`).join("")
         : emptyState(qq || xfCount() || st !== "all" ? ["search", "filter", "receipt"] : ["wallet", "receipt", "scan"], qq || xfCount() || st !== "all" ? "No claims match" : "No claims yet", qq || xfCount() || st !== "all" ? "Try a different search or filter." : "Upload a receipt to start your first claim.")}`;
@@ -444,7 +444,7 @@ route("expenses/claim/:id", ({ id }, q) => {
   </header>
   <div class="scroll"><div class="stack" style="padding-top:14px">
     ${warn.length ? `<div class="kais-tip"><img src="kais.svg" alt=""><span><b>${warn.length === 1 ? esc(warn[0].merchant) + " is" : plural(warn.length, "receipt") + " are"} over the policy limit.</b> Add a note in the description so your approver knows why, or split the claim.</span></div>` : ""}
-    <div class="sec"><h2>All expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2><button class="link" data-act="xGroup">${XG === "date" ? "By date" : "By category"} ${I("chevD")}</button></div>
+    <div class="sec"><h2 class="sec-ic">${I("receipt")}All expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2><button class="link" data-act="xGroup">${XG === "date" ? "By date" : "By category"} ${I("chevD")}</button></div>
     ${rcGroups(rs, c, true)}
     <button class="add-row" data-act="xAddBill" data-id="${c.id}">${I("plus")}Add another receipt</button>
   </div></div>
@@ -473,13 +473,13 @@ function claimDetail(c, rs, total, q) {
   <div class="scroll"><div class="stack">
     ${q.new && c.status === "pending" ? `<div class="cd-done">${successTick()}<b>Claim submitted</b><span class="small muted">Sent to ${esc(approverName(c.approver))} for approval. You’ll be notified when it’s reviewed.</span></div>` : ""}
     <div class="stack s8" style="margin-top:14px">${rs.map((r) => `<button class="card cd-file" data-act="xRcView" data-id="${r.id}">${r.file?.img ? rcThumb(r) : fileIcon(r.file?.name || "receipt.pdf")}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.file?.name || r.merchant)}</b><span class="tiny muted">${esc(r.file?.size || r.merchant)}${rs.length > 1 ? ` · ${fmtCur(r.inr, c.cur)}` : ""}</span></span>${I("chevR")}</button>`).join("")}</div>
-    <div class="sec"><h2>Expense details</h2></div>
-    <div class="cd-kv">${kv.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>
-    ${rs.length > 1 ? `<div class="sec"><h2>Expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2></div>${rcGroups(rs, c, false)}` : ""}
-    ${c.desc ? `<div class="cd-sec"><h2>Notes</h2><p>${esc(c.desc)}</p></div>` : ""}
-    <div class="cd-sec"><div class="hrow"><h2 class="grow">Comments</h2>${c.status === "pending" ? `<button class="link" data-act="xComment" data-id="${c.id}">+ Add comment</button>` : ""}</div>
+    <div class="sec"><h2 class="sec-ic">${I("list")}Expense details</h2></div>
+    <div class="cd-kv">${kv.map(([k, v]) => `<div><span class="kv-ic"><i class="tint ${({ "Claim ID": "t-slate", Amount: "t-green", Category: "t-violet", "Expense date": "t-blue", "Cost centre ID": "t-amber", "Cost centre name": "t-amber", Approver: "t-pink", "Billing type": "t-teal", "Submitted on": "t-blue" })[k] || "t-slate"}">${I(({ "Claim ID": "tag", Amount: "wallet", Category: "grid", "Expense date": "calendar", "Cost centre ID": "building", "Cost centre name": "building", Approver: "user", "Billing type": "receipt", "Submitted on": "send" })[k] || "info")}</i>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>
+    ${rs.length > 1 ? `<div class="sec"><h2 class="sec-ic">${I("receipt")}Expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2></div>${rcGroups(rs, c, false)}` : ""}
+    ${c.desc ? `<div class="cd-sec"><h2 class="sec-ic">${I("edit")}Notes</h2><p>${esc(c.desc)}</p></div>` : ""}
+    <div class="cd-sec"><div class="hrow"><h2 class="grow sec-ic">${I("msg")}Comments</h2>${c.status === "pending" ? `<button class="link" data-act="xComment" data-id="${c.id}">+ Add comment</button>` : ""}</div>
       ${comments.length ? comments.map((m) => `<div class="cd-cm">${m.who ? avatar(m.who, "sm") : `<span class="av sm" style="background:var(--panel-2);color:var(--ink-3)">${I("users")}</span>`}<div class="grow"><div class="hrow"><b class="grow">${esc(m.who ? (m.who === "me" ? "You" : person(m.who).name) : m.name || "Approver")}</b><span class="tiny faint">${D.ago(m.ts)}</span></div><p>${esc(m.text)}</p></div></div>`).join("") : `<p class="small muted">No comments yet.</p>`}</div>
-    <div class="sec"><h2>Activity</h2></div>
+    <div class="sec"><h2 class="sec-ic">${I("history")}Activity</h2></div>
     ${activityFeed(claimActivity(c, comments))}
   </div></div>
   <div class="foot">${c.status === "pending" ? `<button class="btn primary block" data-act="xWithdraw" data-id="${c.id}">Withdraw claim</button>`

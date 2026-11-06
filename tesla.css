@@ -2351,3 +2351,52 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .top { background-image: linear-gradient(var(--hairline), var(--hairline)) !important; background-size: calc(100% - 32px) .5px !important; }
 .screen.kais .top { background-image: none !important; }
 .ksb-row + .ksb-row::before, .ksb-chat + .ksb-chat::before { height: .5px; background: var(--hairline); }
+
+/* project detail: stat icons, team faces, section icons */
+.pj-st { display: flex !important; flex-direction: row !important; align-items: center; gap: 10px; min-width: 0; }
+.pj-st > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pj-st-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; flex: none; font-style: normal; }
+.pj-st-ic .i { width: 16px; height: 16px; }
+.pj-st-av { flex: none; font-style: normal; display: grid; }
+.pj-stats { gap: 12px 10px !important; }
+.pj-hero-row { align-items: center; }
+.pj-team { display: flex; align-items: center; gap: 10px; text-align: left; margin-top: -2px; }
+.pj-team > .i { width: 15px; height: 15px; color: var(--ink-3); margin-left: auto; }
+.pj-team:active { opacity: .7; }
+.sec-ic { display: flex; align-items: center; gap: 8px; }
+.sec-ic > .i { width: 18px; height: 18px; color: var(--accent); flex: none; }
+:root[data-corners="sharp"] .pj-st-ic { border-radius: 6px !important; }
+
+/* less plain: tinted icons on tiles, detail rows and group headings */
+.pj-sum-ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; margin-bottom: 6px; font-style: normal; }
+.pj-sum-ic .i { width: 15px; height: 15px; }
+.kv-ic { display: inline-flex; align-items: center; gap: 10px; }
+.kv-ic > i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; flex: none; font-style: normal; }
+.kv-ic > i .i { width: 15px; height: 15px; }
+.cd-kv > div { align-items: center !important; padding: 8px 0 !important; }
+.tk-grp > .i { color: var(--ink-3); }
+.tk-grp[data-g="Overdue"] > .i { color: var(--danger); } .tk-grp[data-g="Today"] > .i { color: #f5a524; } .tk-grp[data-g="This week"] > .i { color: #3b82f6; } .tk-grp[data-g="Done"] > .i { color: var(--ok); }
+:root[data-corners="sharp"] :is(.pj-sum-ic, .kv-ic > i) { border-radius: 6px !important; }
+
+/* icons only: no tinted chip behind the detail icons */
+:is(.pj-sum-ic, .kv-ic > i, .pj-st-ic).tint, :is(.pj-sum-ic, .kv-ic > i, .pj-st-ic) { background: none !important; box-shadow: none !important; width: auto !important; height: auto !important; color: var(--t, var(--ink-2)); }
+.pj-st-ic .i, .pj-sum-ic .i, .kv-ic > i .i { width: 18px !important; height: 18px !important; }
+.kv-ic { gap: 8px; }
+.pj-mgr { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.pj-mgr .av { width: 20px !important; height: 20px !important; font-size: 9px; flex: none; }
+.pj-st { align-items: flex-start !important; }
+.pj-st > .pj-st-ic { margin-top: 1px; }
+/* project summary tiles: icon + label on top, value below */
+.pj-sum > div { display: grid !important; grid-template-columns: auto 1fr; align-items: center; justify-items: start; column-gap: 6px; row-gap: 6px; text-align: left !important; }
+.pj-sum > div > .pj-sum-ic { grid-column: 1; grid-row: 1; margin: 0 !important; }
+.pj-sum > div > small { grid-column: 2; grid-row: 1; margin: 0 !important; }
+.pj-sum > div > b { grid-column: 1 / -1; grid-row: 2; }
+.pj-sum > div > small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+/* projects list: heading + status filter menu (replaces the status tabs) */
+.pj-fh { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 4px 0; }
+.pj-fh h2 { font-size: 16px; font-weight: 700; margin: 0; }
+.pj-fbtn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px 7px 12px; border-radius: 999px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.pj-fbtn .i { width: 15px; height: 15px; color: var(--ink-3); }
+.pj-fbtn:active { opacity: .7; }
+:root[data-corners="sharp"] .pj-fbtn { border-radius: 6px; }
