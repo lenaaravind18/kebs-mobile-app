@@ -35,11 +35,11 @@ route("apps", (_, q) => {
         ${tileBtn("briefcase", "t-blue", "My projects", `${pjList().filter((p) => p.status === "active" && p.team.includes("me")).length} active · progress, budget and team.`, `data-go="#/projects"`)}
         ${tileBtn("checkCircle", "t-violet", "My tasks", (() => { const o = myTasks().filter((x) => x.t.status !== "done"), od = o.filter((x) => x.t.due && x.t.due < D.today()).length; return `${o.length} open${od ? ` · ${od} overdue` : ""}.`; })(), `data-go="#/projects?tab=tasks"`)}
       </div>
-      <div class="sec"><h2>Sales</h2></div>
+      ${can("crm") ? `<div class="sec"><h2>Sales</h2></div>
       <div class="grid2">
         ${tileBtn("target", "t-blue", "CRM pipeline", (() => { const o = S.crm ? S.crm.deals.filter((d) => ["qualify", "discovery", "proposal", "negotiation"].includes(d.stage)) : []; return `${o.length} open deals · ${typeof crmAmt === "function" ? crmAmt(o.reduce((x, d) => x + d.value, 0)) : ""} in pipeline.`; })(), `data-go="#/crm"`)}
         ${tileBtn("users", "t-violet", "Leads & contacts", (() => { const n = S.crm ? S.crm.leads.filter((l) => l.status === "new").length : 0; return `${n} new lead${n === 1 ? "" : "s"} to follow up.`; })(), `data-go="#/crm?tab=leads"`)}
-      </div>
+      </div>` : ""}
       <div class="sec"><h2>Timesheet</h2></div>
       <div class="grid2">
         ${tileBtn("clipboard", "t-green", "Submit timesheet", "Add daily tasks, submit and view past timesheets.", `data-go="#/ts"`)}

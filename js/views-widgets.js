@@ -10,7 +10,7 @@ function attentionItems() {
   const missing = weekDays(w).slice(0, 5).filter((d) => d < today && sumMins(tsList(d)) === 0);
   if (missing.length) out.push({ ic: "clipboard", tint: "t-teal", t: missing.length === 1 ? `${DAY_NAMES[D.parse(missing[0]).getDay()]} has no hours logged` : `${missing.length} days this week have no hours`, s: "Log time before you submit the week", go: `#/ts?d=${missing[0]}` });
   // approvals waiting on you
-  if (S.inbox?.length) out.push({ ic: "inbox", tint: "t-blue", t: `${plural(S.inbox.length, "request")} waiting on you`, s: "Kais lined up the routine ones for bulk approve", go: "#/inbox" });
+  if (inboxList().length) out.push({ ic: "inbox", tint: "t-blue", t: `${plural(inboxList().length, "request")} waiting on you`, s: "Kais lined up the routine ones for bulk approve", go: "#/inbox" });
   // tax proofs due
   const due = typeof DECL !== "undefined" ? DECL.filter((d) => S.tax?.decl?.[d.id]?.proof === "pending") : [];
   if (due.length) out.push({ ic: "percent", tint: "t-violet", t: `${due.map((d) => d.name.replace("Section ", "")).join(", ")} proof due 15 Jan`, s: "Upload it so your TDS stays right", go: "#/tax" });

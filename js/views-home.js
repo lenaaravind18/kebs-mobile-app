@@ -112,8 +112,10 @@ route("home", () => {
         <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go mic" data-act="heroVoice" aria-label="Talk to Kais">${I("mic")}</button><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
+      ${typeof roleBanner === "function" ? roleBanner() : ""}
       <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2></div>
       <div class="qa">${quick.map(quickTile).join("")}<button class="qa-btn" data-act="editQuick"><span class="ico more">${msIcon("more")}</span>More actions</button></div></section>
+      ${typeof roleLead === "function" ? roleLead() : ""}
       <div style="height:20px"></div>
       <div class="stack">
         ${todayCard(t, late)}</div>
@@ -363,6 +365,7 @@ act("drawer", () => {
   el.innerHTML = `<div class="drawer-top"><span class="hero-pattern" aria-hidden="true"></span><button class="li" data-go="#/profile" style="border:0">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
     <div class="list">
       ${row("building", esc(S.me.company), esc(S.me.domain), "")}
+      ${typeof roleDef === "function" ? row(roleDef().icon, "View as", roleDef().name, `data-act="pickRole"`) : ""}
       ${row("globe", "Language", lang.name, `data-go="#/settings/lang"`)}
       ${row("lock", "Secure your KEBS app", S.settings.secure ? "Enabled" : "Disabled", `data-go="#/settings/secure"`)}
       ${row("msg", "Send feedback", "Give your valuable feedback", `data-go="#/feedback"`)}

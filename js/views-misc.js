@@ -55,12 +55,12 @@ function ixMeta(x) {
 }
 route("inbox", (_, q) => {
   const tab = q.tab || "all", qs = (q.q || "").toLowerCase();
-  const count = (k) => S.inbox.filter((x) => k === "all" || x.kind === k).length;
-  let list = S.inbox.filter((x) => (tab === "all" || x.kind === tab) && (!qs || (person(x.who).name + " KEBS India " + (x.cat || x.proj || x.ltype)).toLowerCase().includes(qs)));
+  const count = (k) => inboxList().filter((x) => k === "all" || x.kind === k).length;
+  let list = inboxList().filter((x) => (tab === "all" || x.kind === tab) && (!qs || (person(x.who).name + " KEBS India " + (x.cat || x.proj || x.ltype)).toLowerCase().includes(qs)));
   list.sort(INBOX_SORT === "amount" ? (a, b) => (b.amount || b.hours * 1000 || b.days * 1e4) - (a.amount || a.hours * 1000 || a.days * 1e4) : (a, b) => (a.date < b.date ? 1 : -1));
   const routine = list.filter((x) => x.routine);
   return `<div class="screen">
-    <div class="big-title"><h1>My inbox</h1><p>${S.inbox.length ? `${plural(S.inbox.length, "request")} waiting on you` : "Nothing waiting on you"}</p></div>
+    <div class="big-title"><h1>My inbox</h1><p>${inboxList().length ? `${plural(inboxList().length, "request")} waiting on you` : "Nothing waiting on you"}</p></div>
     ${seg([["all", `All (${count("all")})`], ["expense", `Expense (${count("expense")})`], ["timesheet", `Timesheet (${count("timesheet")})`], ["leave", `Leave (${count("leave")})`]], tab, "ixTab")}
     <div class="scroll">
       <div class="hrow" style="margin-bottom:12px"><label class="searchbox grow">${I("search")}<input data-ixq value="${esc(q.q || "")}" placeholder="Search name / cost center"></label><button class="ib" data-act="ixSort" aria-label="Sort">${I("filter")}${INBOX_SORT !== "date" ? `<span class="dot"></span>` : ""}</button></div>

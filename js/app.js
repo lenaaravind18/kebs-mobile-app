@@ -43,7 +43,7 @@ function applyTheme() {
 }
 function dockHtml(on) {
   const b = (id, icon, href, label, badge) => `<button class="dock-btn ${on === id ? "on" : ""}" data-go="${href}" aria-label="${label}"${on === id ? ' aria-current="page"' : ""}>${I(on === id && FLUENT[icon + "F"] ? icon + "F" : icon)}<span>${label}</span>${badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
-  return b("home", "home", "#/home", T("home")) + b("inbox", "inbox", "#/inbox", T("inbox"), S.inbox.length)
+  return b("home", "home", "#/home", T("home")) + b("inbox", "inbox", "#/inbox", T("inbox"), (typeof inboxList === "function" ? inboxList() : S.inbox).length)
     + `<button class="dock-kais" data-act="kais" aria-label="Ask Kais Assistant"><img src="kais.svg" alt=""></button>`
     + b("notifs", "bell", "#/notifs", T("alerts"), unreadCount()) + b("apps", "grid", "#/apps", T("apps"));
 }

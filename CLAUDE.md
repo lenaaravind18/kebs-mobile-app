@@ -13,6 +13,7 @@ Live: https://kebs-mobile-app.vercel.app · Repo: github.com/lenaaravind18/kebs-
 - Icons: `I(name)` (Fluent, fallback `js/icons.js`), tiles `msIcon(id)` (`js/icons-ms.js`).
 - Charts: `js/charts.js` (capsuleBars, areaChart, activityRings, progressRing, curveRings — `.ring` gets `--t` colour).
 - Kais: `js/views-kais.js`, voice screen `js/kais-voice.js`, per-agent tint uses `MS_STYLE["ag-"+id]`.
+- Personas: `js/roles.js` (`ROLES`, `role()`, `can(mod)`, `inboxList()`), switched via "View as" in the drawer (`S.settings.role`, default `super` = every feature). Role widgets lead Home (`roleLead()`); CRM routes show a lock for roles without `crm`.
 - `js/updates.js`: auto-refresh when a newer site is live; Android in-app update from latest GitHub release.
 - `js/native-speech.js`: maps Android native speech (KebsNative bridge) to SpeechRecognition / speechSynthesis.
 - Local preview: `node server.mjs` (port 5270).
