@@ -2746,3 +2746,64 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .crm-as-sheet .row-btns .btn, .crm-as-sheet .btn.block { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 :root[data-corners="sharp"] :is(.crm-act > .crm-act-ic, .crm-as-hd .crm-act-ic.lg) { border-radius: 6px !important; }
 .crm-as .bad, .pj-kv-v .bad { color: var(--danger) !important; font-weight: 600; }
+
+/* CRM: activity timelines use the app feed; list icons without a tinted background */
+.crm-feed { margin-top: 4px; padding: 0 2px; }
+.crm-fd { align-items: flex-start; }
+.crm-fd-b { min-width: 0; text-align: left; }
+.crm-fd .crm-act-ck { margin-top: 6px !important; }
+.crm-fd.done .tk-check { background: var(--ok); color: #fff; }
+.crm-fd .small .bad { color: var(--danger); font-weight: 600; }
+.crm-act > .crm-act-ic { background: none !important; width: 24px !important; height: 24px !important; margin-top: 4px; }
+.crm-act > .crm-act-ic .i { width: 20px !important; height: 20px !important; }
+
+/* CRM pipeline: sticky stage strip + full-width list per stage */
+.crm-strip { position: sticky; top: 0; z-index: 4; display: flex; gap: 8px; overflow-x: auto; margin: 14px -16px 0; padding: 8px 16px 10px; background: var(--bg); scrollbar-width: none; }
+.crm-strip::-webkit-scrollbar { display: none; }
+.crm-sc { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 104px; padding: 9px 12px; border-radius: 14px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: box-shadow .15s, background .15s, transform .12s; }
+.crm-sc:active { transform: scale(.97); }
+.crm-sc-t { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.crm-sc-v { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.crm-sc.on { background: color-mix(in srgb, var(--c) 9%, var(--panel)); box-shadow: inset 0 0 0 1.5px var(--c); }
+.crm-sc.on .crm-sc-v { color: var(--ink-2); }
+.crm-plist { touch-action: pan-y; padding-top: 4px; animation: pcIn .2s ease both; transition: transform .14s ease, opacity .14s ease; }
+.crm-plist.out-l { transform: translateX(-24px); opacity: 0; }
+.crm-plist.out-r { transform: translateX(24px); opacity: 0; }
+.crm-pg { display: flex; align-items: center; justify-content: space-between; margin: 14px 4px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.crm-pg span { font-weight: 500; color: var(--ink-3); font-size: 12.5px; }
+.crm-pg.bad { color: var(--danger); }
+.crm-plist .stack.s8 { display: flex; flex-direction: column; gap: 8px; }
+.crm-plist .crm-card { padding: 14px; border-radius: 16px; }
+.crm-plist .crm-card-t b { font-size: 15px; }
+.crm-card-st { font-weight: 600; }
+.crm-hint { margin: 16px 0 4px; text-align: center; font-size: 12px; color: var(--ink-3); }
+:root[data-corners="sharp"] :is(.crm-sc, .crm-plist .crm-card) { border-radius: 6px !important; }
+@media (prefers-reduced-motion: reduce) { .crm-plist { animation: none; transition: none; } }
+
+/* deal stage bar as chevron arrows (sales path) */
+.crm-steps { display: flex !important; gap: 0; }
+.crm-step { flex: 1 1 0; min-width: 0; position: relative; display: flex !important; flex-direction: row !important; align-items: center; justify-content: center; gap: 4px; height: 36px; padding: 0 8px 0 16px !important; margin-left: -7px; background: var(--panel-2); color: var(--ink-3);
+  clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 50%, calc(100% - 11px) 100%, 0 100%, 11px 50%); transition: background .2s, color .2s; }
+.crm-step:first-child { margin-left: 0; padding-left: 10px !important; border-radius: 10px 0 0 10px; clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 50%, calc(100% - 11px) 100%, 0 100%); }
+.crm-step:last-child { padding-right: 10px !important; border-radius: 0 10px 10px 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 11px 50%); }
+.crm-step > i { display: none !important; }
+.crm-step span { font-size: 11.5px !important; font-weight: 600; color: inherit !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crm-step.past { background: color-mix(in srgb, var(--c) 16%, var(--panel)); color: var(--c); }
+.crm-step.past span::before { content: "✓ "; font-weight: 700; }
+.crm-step.on { background: var(--c); color: #fff; }
+.crm-step:not(:disabled):active { opacity: .75; }
+:root[data-corners="sharp"] .crm-step:first-child { border-radius: 4px 0 0 4px !important; }
+:root[data-corners="sharp"] .crm-step:last-child { border-radius: 0 4px 4px 0 !important; }
+
+/* deal hero: stage beside company, title on one line */
+.crm-dh-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; margin-bottom: -8px; }
+.crm-dhero h1.crm-dh-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap; margin-top: 0; }
+
+/* pipeline summary: one stacked bar by stage value */
+.crm-stack { display: flex; gap: 3px; height: 10px; margin: 14px 0 8px; }
+.crm-seg { min-width: 6px; height: 100%; border-radius: 5px; opacity: .9; transition: opacity .15s, transform .15s; }
+.crm-seg:active { transform: scaleY(1.4); }
+.crm-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-3); }
+.crm-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.crm-legend .crm-sdot { width: 7px; height: 7px; }
+:root[data-corners="sharp"] .crm-seg { border-radius: 2px !important; }

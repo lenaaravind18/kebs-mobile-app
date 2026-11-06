@@ -112,7 +112,8 @@ route("crm", (_, q) => {
   const due = crmDueTasks().filter((a) => a.due <= D.today()).length;
   const hero = `<div class="crm-hero">
       <div class="crm-hero-top"><span><small>Open pipeline</small><b class="num">${crmAmt(pipe)}</b><span class="tiny muted">${plural(open.length, "deal")} · ${crmAmt(weighted)} weighted</span></span></div>
-      <div class="crm-funnel">${CRM_OPEN.map((s) => { const ds = open.filter((d) => d.stage === s), v = ds.reduce((a, d) => a + d.value, 0); return `<button class="crm-fn" data-act="crmStage" data-v="${s}"><span class="crm-fn-bar"><i style="width:${pipe ? Math.max(6, v / pipe * 100) : 0}%;background:${STAGE_C[s]}"></i></span><span class="crm-fn-l">${stageName(s)}</span><span class="crm-fn-v">${ds.length} · ${crmAmt(v)}</span></button>`; }).join("")}</div>
+      <div class="crm-stack" role="group" aria-label="Pipeline by stage">${CRM_OPEN.map((s) => { const v = open.filter((d) => d.stage === s).reduce((a, d) => a + d.value, 0); return v ? `<button class="crm-seg" data-act="crmStage" data-v="${s}" style="flex:${v};background:${STAGE_C[s]}" aria-label="${stageName(s)}: ${crmAmt(v)}" title="${stageName(s)} · ${crmAmt(v)}"></button>` : ""; }).join("")}</div>
+      <div class="crm-legend">${CRM_OPEN.filter((s) => open.some((d) => d.stage === s)).map((s) => `<span>${stageDot(s)}${stageName(s)}</span>`).join("")}</div>
       <div class="crm-kpis"><span><i style="color:var(--ok)">${I("award")}</i><span><small>Won this month</small><b>${crmAmt(won.reduce((a, d) => a + d.value, 0))}</b></span></span><span><i style="color:#3b82f6">${I("target")}</i><span><small>Win rate</small><b>${winRate}%</b></span></span><span><i style="color:${due ? "var(--danger)" : "#d97706"}">${I("clock")}</i><span><small>Due today</small><b class="${due ? "bad" : ""}">${due}</b></span></span></div>
     </div>`;
   let body = "";
@@ -149,36 +150,64 @@ route("crm", (_, q) => {
     <div class="scroll">${tab === "pipeline" ? hero : ""}${body}</div></div>`;
 }, { mount: crmMount });
 act("crmTab", (b) => swap(`#/crm?tab=${b.dataset.v}`));
-act("crmStage", (b) => { swap(`#/crm?tab=pipeline&stage=${b.dataset.v}`); setTimeout(() => $(`.crm-col[data-s="${b.dataset.v}"]`)?.scrollIntoView({ inline: "start", block: "nearest", behavior: "smooth" }), 60); });
+let CRM_KEEP = null; // keep the scroll position when switching pipeline stages
+const crmGoStage = (v) => { CRM_KEEP = $(".screen .scroll")?.scrollTop ?? null; swap(`#/crm?tab=pipeline&stage=${v}`); };
+act("crmStage", (b) => crmGoStage(b.dataset.v));
 act("crmLF", (b) => { const q = parseHash().q; swap(`#/crm?tab=leads&f=${b.dataset.v}${q.q ? `&q=${encodeURIComponent(q.q)}` : ""}`); });
 act("crmAF", (b) => swap(`#/crm?tab=activities&f=${b.dataset.v}`));
 function crmMount() {
   const inp = $("[data-cq]");
   if (inp) { let t; inp.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => { const { q } = parseHash(); const pos = inp.selectionStart; q.q = inp.value; if (!inp.value) delete q.q; swap(`#/crm?${new URLSearchParams(q)}`); requestAnimationFrame(() => { const n = $("[data-cq]"); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }); }, 250); }); }
-  const board = $(".crm-board"); if (board) crmBoardHold(board);
+  const list = $(".crm-plist"); if (list) { crmBoardHold(list); crmSwipeStages(list); }
+  const strip = $(".crm-strip"); if (strip) { const on = strip.querySelector(".on"); if (on) strip.scrollLeft = on.offsetLeft - strip.clientWidth / 2 + on.offsetWidth / 2; }
+  if (CRM_KEEP != null) { const sc = $(".screen .scroll"); if (sc) sc.scrollTop = CRM_KEEP; CRM_KEEP = null; }
 }
 
-// pipeline board: one column per stage, scroll sideways; hold a card to move it
-function crmBoard(focus) {
-  const cols = [...CRM_OPEN, "won", "lost"];
-  return `<div class="pj-fh"><h2>Pipeline</h2><span class="tiny muted">Hold a deal to move it</span></div>
-    <div class="crm-board" data-focus="${focus || ""}">${cols.map((s) => {
-      const ds = S.crm.deals.filter((d) => d.stage === s).sort((a, b) => b.value - a.value), v = ds.reduce((a, d) => a + d.value, 0);
-      return `<section class="crm-col" data-s="${s}"><header>${stageDot(s)}<b>${stageName(s)}</b><span class="tiny muted">${ds.length}</span><span class="grow"></span><span class="small muted">${crmAmt(v)}</span></header>
-        <div class="crm-col-b">${ds.length ? ds.map(crmCard).join("") : `<p class="crm-col-e">${s === "won" ? "Wins land here 🎉" : s === "lost" ? "Nothing lost — nice." : "No deals in this stage"}</p>`}</div></section>`;
-    }).join("")}</div>`;
+// pipeline: a stage strip (sticks while you scroll) and one full-width list per stage; swipe to change stage
+const CRM_STRIP = ["all", ...CRM_OPEN, "won", "lost"];
+function crmBoard(sel) {
+  const stage = CRM_STRIP.includes(sel) ? sel : "all", open = crmOpenDeals();
+  const chip = (s) => { const ds = s === "all" ? open : S.crm.deals.filter((d) => d.stage === s), v = ds.reduce((a, d) => a + d.value, 0);
+    return `<button class="crm-sc ${s === stage ? "on" : ""}" data-act="crmStage" data-v="${s}" style="--c:${s === "all" ? "var(--accent)" : STAGE_C[s]}" aria-pressed="${s === stage}"><span class="crm-sc-t">${s === "all" ? "" : stageDot(s)}${s === "all" ? "All open" : stageName(s)}</span><span class="crm-sc-v">${ds.length} · ${crmAmt(v)}</span></button>`; };
+  let ds = stage === "all" ? open : S.crm.deals.filter((d) => d.stage === stage);
+  ds = [...ds].sort((a, b) => (CRM_OPEN.includes(a.stage) ? a.close.localeCompare(b.close) : (b.history.at(-1)?.ts || 0) - (a.history.at(-1)?.ts || 0)));
+  const td = D.today(), wk = D.add(td, 7), mo = D.add(td, 30);
+  const groups = stage === "all" || CRM_OPEN.includes(stage)
+    ? [["Past close date", ds.filter((d) => d.close < td)], ["Closing this week", ds.filter((d) => d.close >= td && d.close <= wk)], ["This month", ds.filter((d) => d.close > wk && d.close <= mo)], ["Later", ds.filter((d) => d.close > mo)]].filter(([, g]) => g.length)
+    : [["", ds]];
+  const empty = { all: ["No open deals", "Create a deal or convert a lead to fill your pipeline."], won: ["No wins yet", "Deals you close as won land here 🎉"], lost: ["Nothing lost", "Deals marked lost show up here with the reason."] }[stage] || [`No deals in ${stageName(stage)}`, "Move a deal here when it reaches this stage."];
+  return `<div class="crm-strip" role="tablist" aria-label="Pipeline stages">${CRM_STRIP.map(chip).join("")}</div>
+    <div class="crm-plist" data-stage="${stage}">
+      ${ds.length ? groups.map(([h, g]) => `${h ? `<div class="crm-pg ${h === "Past close date" ? "bad" : ""}">${h}<span>${g.length} · ${crmAmt(g.reduce((a, d) => a + d.value, 0))}</span></div>` : ""}<div class="stack s8">${g.map((d) => crmCard(d, stage === "all")).join("")}</div>`).join("")
+        : emptyState(["target"], empty[0], empty[1], stage === "all" ? `<button class="btn primary" data-act="crmNewDeal">${I("plus")}New deal</button>` : "")}
+      ${ds.length ? `<p class="crm-hint">Hold a deal to move it · swipe sideways to change stage</p>` : ""}
+    </div>`;
 }
-function crmCard(d) {
+// swipe left / right on the list to go to the next / previous stage
+function crmSwipeStages(list) {
+  let st = null;
+  list.addEventListener("pointerdown", (e) => { st = { x: e.clientX, y: e.clientY }; });
+  list.addEventListener("pointerup", (e) => {
+    if (!st) return; const dx = e.clientX - st.x, dy = e.clientY - st.y; st = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    const i = CRM_STRIP.indexOf(list.dataset.stage), j = i + (dx < 0 ? 1 : -1);
+    if (j < 0 || j >= CRM_STRIP.length) return;
+    list.dataset.swiped = "1"; list.classList.add(dx < 0 ? "out-l" : "out-r");
+    setTimeout(() => crmGoStage(CRM_STRIP[j]), 140);
+  });
+  list.addEventListener("pointercancel", () => { st = null; });
+  list.addEventListener("click", (e) => { if (list.dataset.swiped) { e.preventDefault(); e.stopPropagation(); } }, true);
+}
+function crmCard(d, showStage) {
   const late = CRM_OPEN.includes(d.stage) && d.close < D.today(), tasks = crmActsFor("deal", d.id).filter((a) => !a.done).length, unread = typeof pcUnread === "function" ? pcUnread(d.id) : 0;
   return `<button class="crm-card" data-go="#/crm/deal/${d.id}" data-d="${d.id}">
     <span class="crm-card-t"><b class="ell">${esc(d.name)}</b>${unread ? `<i class="pc-dot crm-udot"></i>` : ""}</span>
-    <span class="small muted ell">${esc(d.company)}</span>
+    <span class="small muted ell">${esc(d.company)}${showStage ? ` · <span class="crm-card-st" style="color:${STAGE_C[d.stage]}">${stageName(d.stage)}</span>` : ""}</span>
     <span class="crm-card-f"><b>${crmAmt(d.value)}</b><span class="${late ? "bad" : ""}">${d.stage === "won" ? "Won" : d.stage === "lost" ? "Lost" : late ? `${D.diff(d.close, D.today())}d late` : `Close ${D.short(d.close)}`}</span></span>
     <span class="crm-card-m"><span class="av-stack">${d.team.slice(0, 3).map((x) => avatar(x, "xs")).join("")}</span><span class="grow"></span>${tasks ? `<span class="tiny muted">${I("checkCircle")}${tasks}</span>` : ""}${CRM_OPEN.includes(d.stage) ? `<span class="tiny muted">${crmDaysIn(d)}d in stage</span>` : ""}</span>
   </button>`;
 }
 function crmBoardHold(board) {
-  const f = board.dataset.focus; if (f) requestAnimationFrame(() => board.querySelector(`.crm-col[data-s="${f}"]`)?.scrollIntoView({ inline: "start", block: "nearest" }));
   let st = null;
   board.addEventListener("pointerdown", (e) => {
     const c = e.target.closest(".crm-card"); if (!c) return;
@@ -196,6 +225,20 @@ function crmLeadRow(l) {
     <span class="crm-row-r"><span class="crm-st" style="--c:${LEAD_ST[l.status][1]}">${LEAD_ST[l.status][0]}</span><span class="tiny muted">${crmScoreTxt(l.score)}</span></span></button>`;
 }
 const crmScoreTxt = (s) => `${s >= 70 ? "🔥 " : ""}Score ${s}`;
+// timeline entries in the app's activity-feed style: person avatar + small type badge
+const ACT_TINT = { call: "t-green", meeting: "t-blue", email: "t-violet", note: "t-amber", task: "t-teal" };
+function crmFd({ who = "me", ic, tint, title, sub, open, check }) {
+  return `<div class="fd crm-fd">
+    <div class="fd-av">${avatar(who)}<span class="fd-badge ${tint}">${I(ic)}</span></div>
+    ${open ? `<button class="grow crm-fd-b" data-act="crmActOpen" data-id="${open}">` : `<div class="grow crm-fd-b">`}<b class="fd-t">${title}</b><span class="small muted" style="display:block">${sub}</span>${open ? "</button>" : "</div>"}
+    ${check ? `<button class="tk-check crm-act-ck" data-act="crmDone" data-id="${check}" aria-label="Mark done">${I("check")}</button>` : ""}
+  </div>`;
+}
+function crmActFd(a, showRef) {
+  const [label, ic] = ACT_T[a.type], overdue = !a.done && a.due && a.due < D.today();
+  const sub = `${a.who && a.who !== "me" ? esc(person(a.who).name) : "You"} · ${label}${a.outcome ? ` · ${esc(a.outcome)}` : ""}${a.dur ? ` · ${a.dur} min` : ""}${showRef ? ` · ${esc(crmRefName(a.ref).split(" · ")[0])}` : ""} · <span class="${overdue ? "bad" : ""}">${crmWhen(a)}</span>`;
+  return crmFd({ who: a.who || "me", ic, tint: ACT_TINT[a.type], title: esc(a.title), sub, open: a.id, check: !a.done && a.due ? a.id : null });
+}
 function crmActRow(a, showRef) {
   const [label, ic, c] = ACT_T[a.type], overdue = !a.done && a.due && a.due < D.today();
   return `<div class="crm-act ${a.done ? "logged" : ""}">
@@ -214,13 +257,16 @@ route("crm/deal/:id", ({ id }) => {
   if (!d) return `<div class="screen">${topbar("Deal")}${emptyState(["target"], "Deal not found", "It may have been deleted.", `<button class="btn primary" data-go="#/crm">Back to CRM</button>`)}</div>`;
   const c = crmContact(d.contact), isOpen = CRM_OPEN.includes(d.stage), late = isOpen && d.close < D.today(), unread = typeof pcUnread === "function" ? pcUnread(d.id) : 0;
   const si = CRM_OPEN.indexOf(d.stage);
-  const timeline = [...crmActsFor("deal", d.id).map((a) => ({ ts: a.done ? a.ts : Infinity, html: crmActRow(a) })),
-    ...d.history.slice(1).map((h, i) => ({ ts: h.ts, html: `<div class="crm-act"><span class="crm-act-ic" style="--c:${STAGE_C[h.stage]}">${I(h.stage === "won" ? "award" : h.stage === "lost" ? "x" : "arrowUp")}</span><span class="grow crm-act-b"><b>${h.stage === "won" ? "Deal won 🎉" : h.stage === "lost" ? `Deal lost${d.lostReason ? ` — ${esc(d.lostReason)}` : ""}` : `Moved to ${stageName(h.stage)}`}</b><span class="small muted">from ${stageName(d.history[i].stage)}</span><span class="tiny muted">${D.ago(h.ts) === "now" ? "Just now" : D.ago(h.ts) + " ago"}</span></span></div>` })),
-    { ts: d.created, html: `<div class="crm-act"><span class="crm-act-ic" style="--c:#64748b">${I("sparkles")}</span><span class="grow crm-act-b"><b>Deal created</b><span class="tiny muted">${D.short(D.iso(d.created))}</span></span></div>` }].sort((a, b) => b.ts - a.ts);
+  const ago = (ts) => (D.ago(ts) === "now" ? "Just now" : D.ago(ts) + " ago");
+  const timeline = [...crmActsFor("deal", d.id).map((a) => ({ ts: a.done ? a.ts : Infinity, html: crmActFd(a) })),
+    ...d.history.slice(1).map((h, i) => { const from = d.history[i].stage, back = CRM_OPEN.includes(h.stage) && CRM_OPEN.indexOf(h.stage) < CRM_OPEN.indexOf(from);
+      return { ts: h.ts, html: crmFd({ ic: h.stage === "won" ? "award" : h.stage === "lost" ? "x" : back ? "arrowDown" : "arrowUp", tint: h.stage === "won" ? "t-green" : h.stage === "lost" ? "t-red" : back ? "t-slate" : "t-blue",
+        title: h.stage === "won" ? "Deal won 🎉" : h.stage === "lost" ? `Deal lost${d.lostReason ? ` — ${esc(d.lostReason)}` : ""}` : `${back ? "Moved back" : "Moved"} to ${stageName(h.stage)}`, sub: `You · from ${stageName(from)} · ${ago(h.ts)}` }) }; }),
+    { ts: d.created, html: crmFd({ ic: "sparkles", tint: "t-orange", title: "Deal created", sub: `You · ${D.short(D.iso(d.created))}` }) }].sort((a, b) => b.ts - a.ts);
   return `<div class="screen">${topbar("Deal", { sub: d.company, right: `<button class="ib pc-hbtn" data-go="#/crm/deal/${d.id}/chat" aria-label="Deal room${unread ? ` · ${unread} unread` : ""}">${I("msg")}${unread ? `<span class="pc-dot"></span>` : ""}</button>` })}
     <div class="scroll"><div class="stack">
       <div class="crm-dhero">
-        <div class="hrow" style="align-items:flex-start"><span class="grow" style="min-width:0"><span class="tiny muted">${esc(d.company)}</span><h1>${esc(d.name)}</h1></span><span class="crm-st" style="--c:${STAGE_C[d.stage]}">${stageName(d.stage)}</span></div>
+        <div class="crm-dh-top"><span class="tiny muted ell">${esc(d.company)}</span><span class="crm-st" style="--c:${STAGE_C[d.stage]}">${stageName(d.stage)}</span></div><h1 class="crm-dh-t" title="${esc(d.name)}">${esc(d.name)}</h1>
         <div class="crm-dval"><b class="num">${crmAmt(d.value)}</b><span class="small muted">${d.prob}% likely · ${crmAmt(d.value * d.prob / 100)} weighted</span></div>
         ${isOpen || d.stage === "won" || d.stage === "lost" ? `<div class="crm-steps" role="group" aria-label="Deal stage">${CRM_OPEN.map((s, i) => `<button class="crm-step ${d.stage === "won" || i < si ? "past" : i === si ? "on" : ""}" style="--c:${STAGE_C[s]}" data-act="crmMove" data-id="${d.id}" data-v="${s}" ${!isOpen ? "disabled" : ""} aria-label="Move to ${stageName(s)}"${i === si ? ' aria-current="step"' : ""}><i></i><span>${stageName(s)}</span></button>`).join("")}</div>` : ""}
         ${isOpen ? (() => { const nx = crmNextStage(d), ck = crmChecks(d), n = ck.filter(Boolean).length, tot = (CRM_CHECK[d.stage] || []).length;
@@ -241,7 +287,7 @@ route("crm/deal/:id", ({ id }) => {
       <div class="sec"><h2 class="sec-ic">${I("users")}Deal team</h2><button class="link" data-go="#/crm/deal/${d.id}/chat">Open deal room</button></div>
       <button class="card pc-card" data-go="#/crm/deal/${d.id}/chat"><span class="av-stack">${d.team.slice(0, 5).map((x) => avatar(x, "sm")).join("")}</span><span class="grow" style="min-width:0"><b style="display:block">${d.team.map((x) => (x === "me" ? "You" : person(x).name.split(" ")[0])).join(", ")}</b><span class="small ${unread ? "" : "muted"} ell" style="display:block">${(() => { const m = pcOf(d.id).msgs.at(-1); return m ? emoText(esc(pcSnippet(m))) : "Chat, share files and @mention the team"; })()}</span></span>${unread ? `<span class="pc-new">${unread} new</span>` : I("chevR")}</button>
       <div class="sec"><h2 class="sec-ic">${I("history")}Activity</h2><button class="link" data-act="crmLog" data-k="deal" data-id="${d.id}">${I("plus")}Log</button></div>
-      <div class="card crm-list">${timeline.map((x) => x.html).join("")}</div>
+      <div class="feed crm-feed">${timeline.map((x) => x.html).join("")}</div>
     </div></div></div>`;
 }, { parent: "#/crm?tab=pipeline" });
 route("crm/deal/:id/chat", ({ id }) => pcScreen(id), pcRoute);
@@ -286,7 +332,7 @@ route("crm/lead/:id", ({ id }) => {
         <div><span class="kv-ic"><i class="tint t-blue">${I("calendar")}</i>Added</span><b>${D.long(D.iso(l.created))}</b></div>
       </div></div>
       <div class="sec"><h2 class="sec-ic">${I("history")}Activity</h2><button class="link" data-act="crmLog" data-k="lead" data-id="${l.id}">${I("plus")}Log</button></div>
-      ${acts.length ? `<div class="card crm-list">${acts.map((a) => crmActRow(a)).join("")}</div>` : emptyMini("history", "No calls or notes yet. Log your first touch.")}
+      ${acts.length ? `<div class="feed crm-feed">${acts.map((a) => crmActFd(a)).join("")}</div>` : emptyMini("history", "No calls or notes yet. Log your first touch.")}
     </div></div>
     ${l.status !== "converted" ? `<div class="foot"><button class="btn primary block" data-act="crmConvert" data-id="${l.id}" ${l.status === "unqualified" ? "disabled" : ""}>${I("arrowUp")}Convert to deal</button>${l.status === "unqualified" ? `<p class="tiny muted" style="text-align:center;margin-top:6px">Unqualified leads can’t be converted — change the status first.</p>` : ""}</div>` : ""}</div>`;
 }, { parent: "#/crm?tab=leads" });
@@ -315,7 +361,7 @@ route("crm/contact/:id", ({ id }) => {
       <div class="sec"><h2 class="sec-ic">${I("target")}Deals</h2><button class="link" data-act="crmNewDeal" data-c="${c.id}">${I("plus")}New deal</button></div>
       ${deals.length ? `<div class="card crm-list">${deals.map((d) => `<button class="crm-row" data-go="#/crm/deal/${d.id}">${stageDot(d.stage)}<span class="grow" style="min-width:0"><b class="ell">${esc(d.name)}</b><span class="small muted">${stageName(d.stage)} · ${crmAmt(d.value)}</span></span>${I("chevR")}</button>`).join("")}</div>` : emptyMini("target", "No deals with this contact yet.")}
       <div class="sec"><h2 class="sec-ic">${I("history")}Activity</h2><button class="link" data-act="crmLog" data-k="contact" data-id="${c.id}">${I("plus")}Log</button></div>
-      ${acts.length ? `<div class="card crm-list">${acts.map((a) => crmActRow(a, a.ref.k !== "contact")).join("")}</div>` : emptyMini("history", "No calls, emails or notes yet.")}
+      ${acts.length ? `<div class="feed crm-feed">${acts.map((a) => crmActFd(a, a.ref.k !== "contact")).join("")}</div>` : emptyMini("history", "No calls, emails or notes yet.")}
     </div></div></div>`;
 }, { parent: "#/crm?tab=contacts" });
 
@@ -396,7 +442,7 @@ act("crmReopen", (b) => { const d = crmDeal(b.dataset.id), back = [...d.history]
 act("crmDone", (b) => {
   const a = S.crm.acts.find((x) => x.id === b.dataset.id); if (!a) return;
   a.done = true; a.doneTs = Date.now(); const prevTs = a.ts; a.ts = Date.now(); save();
-  b.closest(".crm-act")?.classList.add("done");
+  b.closest(".crm-act, .fd")?.classList.add("done");
   setTimeout(rerender, 360); try { navigator.vibrate?.(12); } catch {}
   undoToast(`“${a.title}” done`, () => { a.done = false; a.ts = prevTs; save(); rerender(); });
 });
