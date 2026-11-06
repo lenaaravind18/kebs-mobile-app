@@ -2298,3 +2298,21 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .pj-sum small { color: var(--ink-3) !important; }
 /* project card icon: neutral, like the plain cards */
 .pj-ic, .pj-ic.tint { background: var(--panel-2) !important; color: var(--ink-2) !important; box-shadow: inset 0 0 0 1px var(--line); }
+
+/* ── light mode: page background follows the theme colour (dark mode unchanged) ── */
+:root:not([data-accent])[data-theme="light"] { --bg: #fbf9f8; --canvas: #f3eeeb; --panel-2: #f5f1ee; }
+@media (prefers-color-scheme: light) { :root:not([data-accent]):not([data-theme="dark"]) { --bg: #fbf9f8; --canvas: #f3eeeb; --panel-2: #f5f1ee; } }
+:root[data-accent="blue"][data-theme="light"] { --bg: #f8faff; --canvas: #edf1fa; --panel-2: #f0f3fa; }
+@media (prefers-color-scheme: light) { :root[data-accent="blue"]:not([data-theme="dark"]) { --bg: #f8faff; --canvas: #edf1fa; --panel-2: #f0f3fa; } }
+:root[data-accent="navy"][data-theme="light"] { --bg: #f7f8fc; --canvas: #eceff7; --panel-2: #eef1f8; }
+@media (prefers-color-scheme: light) { :root[data-accent="navy"]:not([data-theme="dark"]) { --bg: #f7f8fc; --canvas: #eceff7; --panel-2: #eef1f8; } }
+:root[data-accent="green"][data-theme="light"] { --bg: #f8fbf9; --canvas: #ecf3ee; --panel-2: #eff4f1; }
+@media (prefers-color-scheme: light) { :root[data-accent="green"]:not([data-theme="dark"]) { --bg: #f8fbf9; --canvas: #ecf3ee; --panel-2: #eff4f1; } }
+:root[data-accent="purple"][data-theme="light"] { --bg: #faf9ff; --canvas: #f0eef9; --panel-2: #f3f1fa; }
+@media (prefers-color-scheme: light) { :root[data-accent="purple"]:not([data-theme="dark"]) { --bg: #faf9ff; --canvas: #f0eef9; --panel-2: #f3f1fa; } }
+:root[data-accent="teal"][data-theme="light"] { --bg: #f7fbfb; --canvas: #eaf3f2; --panel-2: #edf4f4; }
+@media (prefers-color-scheme: light) { :root[data-accent="teal"]:not([data-theme="dark"]) { --bg: #f7fbfb; --canvas: #eaf3f2; --panel-2: #edf4f4; } }
+:root[data-accent="rose"][data-theme="light"] { --bg: #fdf9fa; --canvas: #f5ecef; --panel-2: #f7eff2; }
+@media (prefers-color-scheme: light) { :root[data-accent="rose"]:not([data-theme="dark"]) { --bg: #fdf9fa; --canvas: #f5ecef; --panel-2: #f7eff2; } }
+:root[data-accent="graphite"][data-theme="light"] { --bg: #f8f9fa; --canvas: #eef0f3; --panel-2: #f0f2f5; }
+@media (prefers-color-scheme: light) { :root[data-accent="graphite"]:not([data-theme="dark"]) { --bg: #f8f9fa; --canvas: #eef0f3; --panel-2: #f0f2f5; } }
