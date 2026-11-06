@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.kebs_mobile_app.twa",
+        "sha256_cert_fingerprints": ["99:84:B9:D8:57:1A:0A:CC:D4:2E:70:6F:1A:AC:A3:05:54:42:03:9A:21:E3:8C:53:FE:98:90:D2:15:41:FF:A6"]
+      }
+    }]
