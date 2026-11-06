@@ -114,7 +114,7 @@ const settingsPage = (title, body) => `<div class="screen">${topbar(title, { lef
 route("settings/lang", () => settingsPage("Language selection", `<b style="display:block;margin:8px 4px 2px">Choose your language</b><p class="small muted" style="margin:0 4px 8px">Navigation and greetings switch right away.</p>
   <div class="list">${LANGS.map((l) => `<button class="opt-row" data-act="setLang" data-v="${l.id}"><span class="grow"><b style="display:block">${l.native}</b><span class="small faint">${l.name}</span></span>${S.settings.lang === l.id ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`));
 act("setLang", (b) => { S.settings.lang = b.dataset.v; save(); rerender(); toast(`Language: ${LANGS.find((l) => l.id === b.dataset.v).name}`); });
-const THEME_COLORS = [["orange", "Orange", "#ff9a6b", "#ff4013"], ["blue", "Blue", "#60a5fa", "#2563eb"], ["green", "Green", "#4ade80", "#16a34a"], ["purple", "Purple", "#a78bfa", "#7c4dff"],
+const THEME_COLORS = [["orange", "Orange", "#ff9a6b", "#ff4013"], ["blue", "Blue", "#60a5fa", "#2563eb"], ["navy", "Navy", "#4466d6", "#172a6e"], ["green", "Green", "#4ade80", "#16a34a"], ["purple", "Purple", "#a78bfa", "#7c4dff"],
   ["teal", "Teal", "#2dd4bf", "#0d9488"], ["rose", "Rose", "#fb7199", "#e11d58"], ["graphite", "Graphite", "#94a3b8", "#334155"]];
 route("settings/theme", () => {
   const t = S.settings.theme, ac = S.settings.accent || "orange", st = S.settings.style || "classic";
@@ -131,13 +131,18 @@ route("settings/theme", () => {
       <button class="th-style ${st === "classic" ? "on" : ""}" data-act="setStyle" data-v="classic" aria-pressed="${st === "classic"}"><span class="th-mini classic"><i></i><i></i><i style="width:70%"></i></span><b>Classic</b><small>Soft gradients, depth and colour</small></button>
       <button class="th-style ${st === "minimal" ? "on" : ""}" data-act="setStyle" data-v="minimal" aria-pressed="${st === "minimal"}"><span class="th-mini minimal"><i></i><i></i><i style="width:70%"></i></span><b>Minimal</b><small>Flat and quiet — no gradients or shadows</small></button>
     </div></div>
-    ${ac !== "orange" || st !== "classic" ? `<button class="link" style="align-self:center" data-act="themeReset">Reset to KEBS default</button>` : ""}
+    <div class="field"><span class="lbl">Corners</span><div class="th-styles">
+      <button class="th-style ${(S.settings.corners || "round") === "round" ? "on" : ""}" data-act="setCorners" data-v="round" aria-pressed="${(S.settings.corners || "round") === "round"}"><span class="th-corner round"><i></i><i></i></span><b>Rounded</b><small>Soft, friendly curves</small></button>
+      <button class="th-style ${S.settings.corners === "sharp" ? "on" : ""}" data-act="setCorners" data-v="sharp" aria-pressed="${S.settings.corners === "sharp"}"><span class="th-corner sharp"><i></i><i></i></span><b>Sharp</b><small>Crisp 6px edges, square header</small></button>
+    </div></div>
+    ${ac !== "orange" || st !== "classic" || S.settings.corners === "sharp" ? `<button class="link" style="align-self:center" data-act="themeReset">Reset to KEBS default</button>` : ""}
   </div>`);
 });
 act("setTheme", (b) => { S.settings.theme = b.dataset.v; save(); rerender(); });
 act("setAccent", (b) => { S.settings.accent = b.dataset.v; save(); rerender(); toast(`${THEME_COLORS.find((c) => c[0] === b.dataset.v)[1]} theme on`); });
 act("setStyle", (b) => { S.settings.style = b.dataset.v; save(); rerender(); });
-act("themeReset", () => { S.settings.accent = "orange"; S.settings.style = "classic"; save(); rerender(); toast("Back to the KEBS default"); });
+act("setCorners", (b) => { S.settings.corners = b.dataset.v; save(); rerender(); });
+act("themeReset", () => { S.settings.accent = "orange"; S.settings.style = "classic"; S.settings.corners = "round"; save(); rerender(); toast("Back to the KEBS default"); });
 // Device-lock illustration in the Design System's illustration style: dashed blue-grey rings,
 // soft grey objects, one coral gradient accent (#FF8960 → #FF62A5), tiny sparkles
 function secureArt(on) {

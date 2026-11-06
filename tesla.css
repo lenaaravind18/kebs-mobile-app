@@ -2249,3 +2249,28 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .hero-ask input { font: 500 15px var(--font) !important; }
 .hero-ask input::placeholder { color: rgba(255,255,255,.78); font-weight: 500; }
 .hero-ask .go { width: 36px !important; height: 36px !important; }
+
+/* Navy: deep dark blue */
+:root[data-accent="navy"] { --accent: #1f3a93; --accent-deep: #172a6e; --accent-soft: #e3e8f7; --accent-2: #4466d6; --soft-1: #f1f4fc; --soft-2: #e6ebf8; --soft-3: #e9e8f8; --hero-1: #2b4aa8; --hero-2: #1f3a93; --hero-3: #16297a; --c-a: #9fb2e8; --c-b: #3a56b8; --c-c: #1f3a93; --btn-grad: linear-gradient(135deg, #3352b5 0%, #243f9c 55%, #172a6e 100%); }
+:root[data-theme="dark"][data-accent="navy"] { --accent: #7d95ee; --accent-soft: #151d3d; --soft-1: #161a2b; --soft-2: #191f35; --soft-3: #1b1d3a; --softd-1: #161a2b; --softd-2: #191f35; --softd-3: #1b1d3a; --herod-1: #16214f; --herod-2: #1b2a63; --herod-3: #213375; --cd-a: #26357a; --cd-b: #34479c; --cd-c: #4058b8; --btn-grad: linear-gradient(135deg, #5470dd 0%, #4560cc 55%, #3851b5 100%); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"])[data-accent="navy"] { --accent: #7d95ee; --accent-soft: #151d3d; --soft-1: #161a2b; --soft-2: #191f35; --soft-3: #1b1d3a; --softd-1: #161a2b; --softd-2: #191f35; --softd-3: #1b1d3a; --herod-1: #16214f; --herod-2: #1b2a63; --herod-3: #213375; --cd-a: #26357a; --cd-b: #34479c; --cd-c: #4058b8; --btn-grad: linear-gradient(135deg, #5470dd 0%, #4560cc 55%, #3851b5 100%); } }
+
+/* ── Corners: Sharp (6px everywhere, square Home header); round things stay round ── */
+:root[data-corners="sharp"] :is(.card, .btn, .inp, .searchbox, .seg, .seg button, .choice, .choice-card, .chip, .banner, .toast, .attach, .attach .ic, .kbox, .kbub, .kc, .kc-ic, .kfollow button, .kstarters button, .kx-mode, .kup-file, .kup-img, .kfile, .kais-tip, .kthink-sum, .nt-bub, .nt-ctx, .nt-ctx .kc-ic, .nt-reply .inp, .paycard, .pc-chip, .pc-ic, .pj-hero, .pj-sum > div, .pj-badge, .pj-ic, .pj-prog, .pj-prog i, .tk-list, .tk-status button, .tk-log-t, .qa-card, .qa-pill, .range-box, .range-box .mid, .rc-thumb, .rv-amt, .rv-cur, .rv-manual, .rv-manual .kc-ic, .rv-prev, .up-hero, .up-alt, .x-err, .xc-hero, .cg-cur, .cdh .cg-meta, .cdh-badge, .cdh > .ib, .wish-hero, .wish-card, .wish-thx, .wish-reply, .add-row, .empty-mini, .empty-mini .em-ic, .lb-card, .ksb-row, .ksb-chat, .pi-sort, .pi-sort button, .pi-anchors button, .w-tk-stat, .th-prev, .th-prev-bar, .th-prev-row, .th-sw, .th-style, .th-mini, .th-mode, .ag-hero, .ag-chips button, .fc, .oc, .msg, .daycell, .li .ic, .tile, .tico, .sw, .sw-fg, .sw-bg, .opt-row, .sp-sum, .sp-g, .rc-row.sp-drag, .rc-row.dragging, .xs-tabs button, .cd-file, .up-drop, .sg-art, .sg-card, .sg-chip, .sg-claim, .sg-sel, .bar, .ch-card, .kd-wrap, .ch-tip, .pc-go, .top .pill > .ib, .top .pill > .ttl, .top .pill > .dateNav, .top .pill > .searchbox, .dock) { border-radius: 6px !important; }
+:root[data-corners="sharp"] .hero, :root[data-corners="sharp"] .hero.collapsed { border-radius: 0 !important; }
+:root[data-corners="sharp"] .hero-ask { border-radius: 6px !important; }
+:root[data-corners="sharp"] .hero-ask .go { border-radius: 6px !important; }
+:root[data-corners="sharp"] .sheet { border-radius: 8px 8px 0 0 !important; }
+:root[data-corners="sharp"] .ch-track, :root[data-corners="sharp"] .ch-track i, :root[data-corners="sharp"] .kchart .col i { border-radius: 2px !important; }
+:root[data-corners="sharp"] .cdh { border-radius: 0 !important; }
+:root[data-corners="sharp"] :is(.av, .hero-av, .hero-photo, .ring, .tk-check, .sp-n, .th-dot, .dock-kais, .udot, .pr-dot, .dotsep, .x-prob-ic, .wh-ic, .s-tick, .badge, .dock-btn .badge, .lock-art, .kx-ok, .sg-tick, .sg-n, .pjm > i) { border-radius: 50% !important; }
+
+.th-corner { height: 64px; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); }
+.th-corner i { display: block; height: 16px; background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+.th-corner i:first-child { background: var(--accent); box-shadow: none; width: 60%; }
+.th-corner.round i { border-radius: 999px; } .th-corner.sharp, .th-corner.sharp i { border-radius: 3px !important; }
+/* Ask Kais bar: quieter on every theme */
+.hero-ask { background: rgba(255,255,255,.10) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18) !important; }
+.hero-ask input { font: 400 15px var(--font) !important; }
+.hero-ask input::placeholder { color: rgba(255,255,255,.72) !important; font-weight: 400 !important; }
+.hero-ask .i { opacity: .85; }

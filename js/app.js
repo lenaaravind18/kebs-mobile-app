@@ -39,6 +39,7 @@ function applyTheme() {
   const ac = S.settings.accent || "orange", st = S.settings.style || "classic";
   if (ac === "orange") delete root.dataset.accent; else root.dataset.accent = ac;
   if (st === "classic") delete root.dataset.style; else root.dataset.style = st;
+  if ((S.settings.corners || "round") === "round") delete root.dataset.corners; else root.dataset.corners = S.settings.corners;
 }
 function dockHtml(on) {
   const b = (id, icon, href, label, badge) => `<button class="dock-btn ${on === id ? "on" : ""}" data-go="${href}" aria-label="${label}"${on === id ? ' aria-current="page"' : ""}>${I(on === id && FLUENT[icon + "F"] ? icon + "F" : icon)}<span>${label}</span>${badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
