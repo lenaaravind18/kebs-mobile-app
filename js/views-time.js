@@ -30,6 +30,11 @@ route("apps", (_, q) => {
         ${tileBtn("coffee", "t-amber", "Comp off", "Request comp off, view comp-off history.", `data-go="#/compoff"`)}
         ${tileBtn("calendar", "t-orange", "Holidays", `Next: ${esc(nextHoliday()?.name || "—")}`, `data-go="#/holidays"`)}
       </div>
+      <div class="sec"><h2>Projects</h2></div>
+      <div class="grid2">
+        ${tileBtn("briefcase", "t-blue", "My projects", `${pjList().filter((p) => p.status === "active" && p.team.includes("me")).length} active · progress, budget and team.`, `data-go="#/projects"`)}
+        ${tileBtn("checkCircle", "t-violet", "My tasks", (() => { const o = myTasks().filter((x) => x.t.status !== "done"), od = o.filter((x) => x.t.due && x.t.due < D.today()).length; return `${o.length} open${od ? ` · ${od} overdue` : ""}.`; })(), `data-go="#/projects?tab=tasks"`)}
+      </div>
       <div class="sec"><h2>Timesheet</h2></div>
       <div class="grid2">
         ${tileBtn("clipboard", "t-green", "Submit timesheet", "Add daily tasks, submit and view past timesheets.", `data-go="#/ts"`)}

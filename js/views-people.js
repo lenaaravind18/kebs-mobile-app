@@ -134,13 +134,13 @@ route("people/:id", ({ id }, q) => {
   const tab = q.tab || "summary", praises = S.praises.others[id] || [];
   const off = S.offThisWeek.list.find((o) => o.id === id && o.date === D.today());
   const chip = off ? `<span class="chip vio">On leave</span>` : `<span class="chip ok">Available</span>`;
-  const body = tab === "summary"
+  const body = tab === "wishes" ? wishesWall(id) : tab === "summary"
     ? `<div class="sec"><h2>Praises (${praises.length})</h2></div><div class="stack">${praises.map(praiseCard).join("") || emptyState(["award", "sparkles", "thumb"], "No praises yet", `Be the first to recognise ${esc(p.name.split(" ")[0])}’s work.`)}</div>
        <button class="btn outline block" style="margin-top:10px" data-act="givePraise" data-id="${id}">Give a praise</button>`
     : `<div class="card" style="margin-top:12px">${[["Designation", p.role], ["Department", p.dept], ["Location", p.loc], ["Email", `${p.name.split(" ")[0].toLowerCase()}@prima.com`]].map(([k, v]) => `<div class="kv"><span>${k}</span><span>${esc(v)}</span></div>`).join("")}</div>`;
   return `<div class="screen">${topbar("Profile")}<div class="scroll">${profileHead(id, chip)}
     <div class="hrow" style="justify-content:center;margin-top:14px"><button class="ib contact-btn" data-act="contact" data-id="${id}" data-k="mail" aria-label="Email">${I("mail")}</button><button class="ib contact-btn" data-act="contact" data-id="${id}" data-k="chat" aria-label="Message">${I("msg")}</button><button class="btn primary sm" data-act="givePraise" data-id="${id}">${I("award")}Give praise</button></div>
-    <div style="margin:16px -16px 0">${seg([["summary", "Summary"], ["job", "Job"]], tab, "pplTab")}</div>${body}</div></div>`;
+    <div style="margin:16px -16px 0">${seg([["summary", "Summary"], ["wishes", celebFor(id) ? "Wishes 🎉" : "Wishes"], ["job", "Job"]], tab, "pplTab")}</div>${body}</div></div>`;
 }, { mount({ id }, q) { if (q.praise) setTimeout(() => ACTIONS.givePraise({ dataset: { id } }), 150); } });
 act("pplTab", (b) => swap(location.hash.split("?")[0] + `?tab=${b.dataset.v}`));
 act("contact", (b) => { const p = person(b.dataset.id); navigator.clipboard?.writeText(`${p.name.split(" ")[0].toLowerCase()}@prima.com`).catch(() => {}); toast(b.dataset.k === "mail" ? `Copied ${p.name.split(" ")[0]}’s email` : `Chat with ${p.name.split(" ")[0]} opens in KEBS Chat`, "info"); });

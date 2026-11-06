@@ -134,9 +134,9 @@ act("piOpen", (b, e) => {
   if (b.dataset.justSwiped) { delete b.dataset.justSwiped; return; }
   if (e.target.closest("button")) return;
   const n = S.notifs.find((x) => x.id === b.dataset.id); n.read = true; save();
-  if (n.go) go(n.go); else rerender();
+  go(n.go || `#/alert/${n.id}`);
 });
-act("ntResolve", (b) => { const n = S.notifs.find((x) => x.id === b.dataset.id); n.resolved = b.dataset.v; n.read = true; save(); rerender(); toast(`Invite ${b.dataset.v}`); });
+act("ntResolve", (b) => (b.dataset.v === "accepted" ? ACTIONS.ntAccept(b) : ACTIONS.ntDecline(b)));
 act("piSort", (b) => { PI_SORT = b.dataset.v; rerender(); });
 act("piJump", (b) => { const el = document.getElementById("pi-" + b.dataset.c); const sc = $("[data-pi]"); if (el && sc) sc.scrollTo({ top: el.offsetTop - sc.offsetTop - 4, behavior: "smooth" }); });
 act("piMenu", (b) => {

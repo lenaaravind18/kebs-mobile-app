@@ -108,7 +108,7 @@ act("celebWish", (b) => {
         send() {
           const msg = t.value.trim(); if (msg.length < 2) { t.focus(); return toast("Write a short note", "bad"); }
           (S.wishes ||= {})[wishKey(c)] = msg; save(); closeSheet(s); rerender();
-          toast(c.kind === "birthday" ? `Birthday wishes sent to ${first} 🎂` : `Congratulations sent to ${first} 🎉`);
+          actionToast(c.kind === "birthday" ? `Birthday wishes sent to ${first} 🎂` : `Congratulations sent to ${first} 🎉`, "View", () => go(`#/people/${c.id}?tab=wishes`));
         },
       });
       // typing your own note clears the selected suggestion
