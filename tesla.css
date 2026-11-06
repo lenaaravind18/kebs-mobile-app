@@ -2235,3 +2235,17 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .th-mode .i { width: 20px; height: 20px; }
 .th-mode.on { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 2px var(--accent); }
 .th-mode:active { transform: scale(.95); }
+/* Home header: glow, avatar shadow and menu-badge ring follow the theme colour */
+.hero { box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 25%, transparent) !important; }
+.hero-av { box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-deep, var(--accent)) 28%, transparent) !important; }
+.hero-menu { box-shadow: 0 0 0 2.5px var(--hero-2) !important; }
+:root[data-theme="dark"] .hero-menu { box-shadow: 0 0 0 2.5px var(--herod-2) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-menu { box-shadow: 0 0 0 2.5px var(--herod-2) !important; } }
+:root[data-style="minimal"] .hero { box-shadow: none !important; }
+:root[data-style="minimal"] .hero-menu { box-shadow: 0 0 0 2.5px var(--accent) !important; }
+/* Ask Kais bar: lighter and slimmer */
+.hero-ask { height: 44px !important; gap: 8px !important; padding: 0 4px 0 14px !important; background: rgba(255,255,255,.16) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.28) !important; }
+.hero-ask .i { width: 17px; height: 17px; }
+.hero-ask input { font: 500 15px var(--font) !important; }
+.hero-ask input::placeholder { color: rgba(255,255,255,.78); font-weight: 500; }
+.hero-ask .go { width: 36px !important; height: 36px !important; }
