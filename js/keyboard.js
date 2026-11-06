@@ -18,10 +18,10 @@
   shell.appendChild(el);
 
   // only the Kais chat box opens the mockup keyboard; every other field just takes the real keyboard
-  const typable = (t) => !!t && !t.disabled && !t.readOnly && shell.contains(t) && !!t.closest?.(".kcomposer") && t.matches("textarea, input");
+  const typable = (t) => !!t && !t.disabled && !t.readOnly && shell.contains(t) && !!t.closest?.(".kcomposer, .pc-compose") && t.matches("textarea, input");
   const returnLabel = () => {
     if (!field) return "return";
-    if (field.closest(".kcomposer")) return "send";
+    if (field.closest(".kcomposer, .pc-compose")) return "send";
     if (field.type === "search" || field.enterKeyHint === "search" || field.matches("[data-search]")) return "search";
     if (field.tagName === "TEXTAREA") return "return";
     return field.enterKeyHint === "send" ? "send" : field.form ? "go" : "done";

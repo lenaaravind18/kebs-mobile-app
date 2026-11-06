@@ -199,6 +199,7 @@ route("projects/:id", ({ id }, q) => {
     body = `${p.desc ? `<div class="sec" style="margin-top:14px"><h2 class="sec-ic">${I("info")}About</h2></div><p class="pj-desc" style="margin-top:0">${esc(p.desc)}</p>` : ""}
       <div class="sec"><h2 class="sec-ic">${I("checkCircle")}Your open tasks</h2>${myOpen(p) > 3 ? `<button class="link" data-act="pjTabD" data-v="tasks">See all</button>` : ""}</div>
       ${mine.length ? `<div class="tk-list">${mine.map((t) => tkRow(p, t, false)).join("")}</div>` : emptyMini("checkCircle", "Nothing open for you here.")}
+      ${typeof pcCard === "function" ? pcCard(p) : ""}
       ${pjWeekChart(p)}
       ${p.budget ? `<div class="sec"><h2 class="sec-ic">${I("wallet")}Budget</h2><span class="tiny muted">${hrs}h of ${p.budget}h</span></div>
         <div class="card pj-budget"><span class="pj-prog lg"><i style="width:${Math.min(100, usage * 100)}%;background:${rangeColor(usage, "low")}"></i></span>
@@ -218,7 +219,8 @@ route("projects/:id", ({ id }, q) => {
       return `<button class="li" data-go="#/people/${id === "me" ? "me" : id}">${avatar(id)}<span class="grow" style="min-width:0"><span class="t ell" style="display:block">${esc(id === "me" ? `${pp.name} (you)` : pp.name)}</span><span class="s">${id === p.manager ? "Project manager" : esc(pp.role || "Team member")}</span></span><span class="pj-team-n"><b>${h}h</b><small>${open ? `${open} open` : "—"}</small></span></button>`; }).join("")}</div>`;
   }
   const canAdd = p.status === "active" && inTimesheet(p);
-  return `<div class="screen ${tab === "tasks" && canAdd ? "has-foot" : ""}">${topbar("Project", { sub: p.code })}
+  const nChat = typeof pcUnread === "function" ? pcUnread(p.id) : 0;
+  return `<div class="screen ${tab === "tasks" && canAdd ? "has-foot" : ""}">${topbar("Project", { sub: p.code, right: `<button class="ib pc-hbtn" data-go="#/projects/${p.id}/chat" aria-label="Team chat${nChat ? ` · ${nChat} unread` : ""}">${I("msg")}${nChat ? `<span class="pc-dot"></span>` : ""}</button>` })}
     <div class="scroll"><div class="stack">${hero}${alerts}</div>
     ${seg([["overview", "Overview"], ["tasks", `Tasks (${p.tasks.length})`], ["team", `Team (${p.team.length})`]], tab, "pjTabD")}
     <div class="stack">${body}</div></div>
