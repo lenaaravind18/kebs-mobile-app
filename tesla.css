@@ -2296,3 +2296,5 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .pj-sum > div, :root[data-theme="dark"] .pj-sum > div { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pj-sum > div { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; } }
 .pj-sum small { color: var(--ink-3) !important; }
+/* project card icon: neutral, like the plain cards */
+.pj-ic, .pj-ic.tint { background: var(--panel-2) !important; color: var(--ink-2) !important; box-shadow: inset 0 0 0 1px var(--line); }
