@@ -2825,3 +2825,6 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 :root[data-corners="sharp"] .role-bn { border-radius: 6px !important; }
 .role-lead { margin-top: 6px; }
 .role-lead > .sec:first-child { margin-top: 14px; }
+/* space between Quick access and the role block */
+.qa-card + .role-lead { margin-top: 34px !important; }
+.role-lead > .sec:first-child { margin-top: 0 !important; }
