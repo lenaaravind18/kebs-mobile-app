@@ -161,9 +161,20 @@ route("settings/secure", () => {
     <p class="small muted" style="text-align:center;max-width:300px;margin:0 auto">${on ? "KEBS is secured. You’ll unlock it with your device each time you open the app." : "Your KEBS app is not secured. Anyone with access to your phone can open it."}</p>`);
 });
 act("toggleSecure", () => {
-  if (S.settings.secure) { S.settings.secure = false; save(); rerender(); return toast("Device authentication turned off", "info"); }
-  const s = openSheet({ title: "Confirm it’s you", body: `<div class="empty" style="padding:16px"><div class="lock-art on scanning">${I("fingerprint")}</div><p>Touch the sensor to verify…</p></div>` });
-  setTimeout(() => { closeSheet(s); S.settings.secure = true; unlocked = true; save(); rerender(); toast("KEBS is now secured"); }, 1100);
+  // both turning the lock on and turning it off need a real fingerprint / screen-lock check
+  const off = S.settings.secure;
+  const s = openSheet({ title: "Confirm it’s you", body: `<div class="empty" style="padding:16px"><div class="lock-art on scanning">${I("fingerprint")}</div><p data-amsg>Use your fingerprint or screen lock…</p></div>` });
+  (off ? DeviceAuth.verify() : DeviceAuth.enroll()).then((r) => {
+    if (!r.ok) {
+      const m = s.el.querySelector("[data-amsg]"), art = s.el.querySelector(".lock-art");
+      art?.classList.remove("scanning"); art?.classList.add("err");
+      if (m) m.textContent = r.error === "cancelled" ? "Cancelled. Nothing was changed." : DeviceAuth.message(r.error);
+      return;
+    }
+    closeSheet(s);
+    if (off) { S.settings.secure = false; delete S.settings.secureCred; save(); rerender(); return toast("Device authentication turned off", "info"); }
+    S.settings.secure = true; unlocked = true; save(); rerender(); toast("KEBS is now secured");
+  });
 });
 route("feedback", () => {
   const F = draft("fb", { type: "", text: "" });

@@ -24,7 +24,9 @@ Live: https://kebs-mobile-app.vercel.app · Repo: github.com/lenaaravind18/kebs-
 ## Android app (`native/`)
 - Capacitor 7 shell, package `app.vercel.kebs_mobile_app.twa`, loads the live site, edge to edge.
 - `MainActivity.java` bridge `window.KebsNative`: insets(), setBars(), versionCode(), installUpdate(url),
-  speech (startListening/stopListening/abortListening/speak/stopSpeaking), back gesture → `window.kebsBack()`.
+  speech (startListening/stopListening/abortListening/speak/stopSpeaking), back gesture → `window.kebsBack()`,
+  app lock biometricStatus() / authenticate(title, subtitle, id) → `kebsauth` event (BiometricPrompt, PIN fallback).
+- Web app lock: `js/device-auth.js` (`DeviceAuth`) uses the native prompt in the app, WebAuthn in browsers.
 - Built by GitHub Actions (`.github/workflows/android.yml`) on any push touching `native/**`; signed with repo
   secrets `KEBS_KEYSTORE_B64`, `KEBS_STORE_PASSWORD`, `KEBS_KEY_ALIAS`, `KEBS_KEY_PASSWORD`; publishes a release
   `build-<run>0` (versionCode = run number × 10) that installed apps offer as an in-app update.

@@ -29,6 +29,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -205,7 +207,50 @@ public class MainActivity extends BridgeActivity {
         ContextCompat.registerReceiver(this, done, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), ContextCompat.RECEIVER_EXPORTED);
     }
 
+    /** App lock: the system fingerprint / face prompt, with the phone's PIN, pattern or password as a fallback. */
+    private static final int AUTHS = BiometricManager.Authenticators.BIOMETRIC_WEAK | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+
+    private String biometricStatus() {
+        int r = BiometricManager.from(this).canAuthenticate(AUTHS);
+        if (r == BiometricManager.BIOMETRIC_SUCCESS) return "ok";
+        if (r == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) return "none-enrolled";
+        if (r == BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE || r == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) return "no-hardware";
+        return "unavailable";
+    }
+
+    private void authEmit(String id, boolean ok, String err) {
+        if (webRef == null) return;
+        final String js = "window.dispatchEvent(new CustomEvent('kebsauth',{detail:{id:" + JSONObject.quote(id) + ",ok:" + ok + ",error:" + JSONObject.quote(err == null ? "" : err) + "}}))";
+        webRef.post(() -> webRef.evaluateJavascript(js, null));
+    }
+
+    private void authenticate(String title, String subtitle, String id) {
+        String st = biometricStatus();
+        if (!"ok".equals(st)) { authEmit(id, false, st); return; }
+        BiometricPrompt prompt = new BiometricPrompt(this, ContextCompat.getMainExecutor(this), new BiometricPrompt.AuthenticationCallback() {
+            @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult r) { authEmit(id, true, ""); }
+            @Override public void onAuthenticationError(int code, CharSequence msg) {
+                boolean cancel = code == BiometricPrompt.ERROR_USER_CANCELED || code == BiometricPrompt.ERROR_NEGATIVE_BUTTON || code == BiometricPrompt.ERROR_CANCELED;
+                boolean lock = code == BiometricPrompt.ERROR_LOCKOUT || code == BiometricPrompt.ERROR_LOCKOUT_PERMANENT;
+                authEmit(id, false, cancel ? "cancelled" : lock ? "lockout" : String.valueOf(msg));
+            }
+            @Override public void onAuthenticationFailed() { /* wrong finger: the prompt stays open for a retry */ }
+        });
+        BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
+            .setTitle(title == null || title.isEmpty() ? "Unlock KEBS" : title)
+            .setSubtitle(subtitle == null ? "" : subtitle)
+            .setAllowedAuthenticators(AUTHS)
+            .build();
+        prompt.authenticate(info);
+    }
+
     private class Bars {
+        @JavascriptInterface
+        public String biometricStatus() { return MainActivity.this.biometricStatus(); }
+
+        @JavascriptInterface
+        public void authenticate(final String title, final String subtitle, final String id) { runOnUiThread(() -> MainActivity.this.authenticate(title, subtitle, id)); }
+
         @JavascriptInterface
         public int versionCode() {
             try { return (int) androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(getPackageManager().getPackageInfo(getPackageName(), 0)); }

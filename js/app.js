@@ -24,11 +24,30 @@ function dockHtml(on) {
 }
 function lockView() {
   return `<div class="screen"><div class="scroll" style="display:flex;flex-direction:column;justify-content:center;text-align:center">
-    <div class="lock-art on" data-lock>${I("fingerprint")}</div><h2 style="font:800 24px var(--font);letter-spacing:-.8px">KEBS is locked</h2>
-    <p class="muted" style="margin:6px 0 22px">Use your device authentication to continue.</p>
-    <button class="btn primary" style="align-self:center" data-act="unlock">${I("unlock")}Unlock</button></div></div>`;
+    <button class="lock-art on" data-lock data-act="unlock" aria-label="Unlock with fingerprint">${I("fingerprint")}</button><h2 style="font:800 24px var(--font);letter-spacing:-.8px">KEBS is locked</h2>
+    <p class="muted" data-lmsg style="margin:6px 24px 22px">Use your fingerprint or screen lock to continue.</p>
+    <button class="btn primary" style="align-self:center" data-act="unlock">${I("fingerprint")}Unlock</button>
+    <button class="link" style="align-self:center;margin-top:18px" data-act="lockSignOut">Sign in again instead</button></div></div>`;
 }
-act("unlock", () => { $("[data-lock]")?.classList.add("scanning"); setTimeout(() => { unlocked = true; render(false); }, 700); });
+let unlocking = false, lockAuto = true;
+async function tryUnlock() {
+  if (unlocking) return; unlocking = true;
+  const art = $("[data-lock]"), msg = $("[data-lmsg]");
+  art?.classList.add("scanning"); art?.classList.remove("err");
+  const r = await DeviceAuth.verify();
+  unlocking = false; art?.classList.remove("scanning");
+  if (r.ok) { unlocked = true; try { navigator.vibrate?.(15); } catch {} return render(false); }
+  art?.classList.add("err");
+  if (msg) msg.textContent = r.error === "cancelled" ? "Tap the fingerprint to try again." : r.error === "lockout" ? "Too many attempts. Try again in a moment, or use your screen lock." : DeviceAuth.message(r.error);
+}
+act("unlock", () => tryUnlock());
+act("lockSignOut", () => confirmSheet({ eyebrow: "Sign in again", text: "Sign out and sign back in with your KEBS account? App lock stays on.", ok: "Sign out", onOk() { S.authed = false; save(); unlocked = false; location.replace("#/login"); render(false); } }));
+// lock again when KEBS comes back after a minute in the background
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (S.authed && S.settings.secure && unlocked && hiddenAt && Date.now() - hiddenAt > 60000) { unlocked = false; lockAuto = true; closeAllSheets(); render(false); }
+});
 
 // first visit to a screen in this session shows a skeleton while it "loads"
 const SEEN = new Set();
@@ -85,7 +104,12 @@ function render(keep) {
   if (!S.authed && path !== "login" && path !== "welcome") return location.replace(S.onboarded ? "#/login" : "#/welcome");
   if (S.authed && path === "login") return location.replace("#/home");
   FORM_CHECK = null;
-  if (S.authed && S.settings.secure && !unlocked) { view.className = "view"; view.innerHTML = lockView(); dock.hidden = true; return; }
+  if (S.authed && S.settings.secure && !unlocked) {
+    view.className = "view"; view.innerHTML = lockView(); dock.hidden = true;
+    // in the Android app, show the system fingerprint prompt straight away (browsers need a tap first)
+    if (lockAuto && DeviceAuth.isNative()) { lockAuto = false; setTimeout(tryUnlock, 250); }
+    return;
+  }
   let r = null, m = null;
   for (const x of ROUTES) { m = path.match(x.re); if (m) { r = x; break; } }
   if (!r) return location.replace("#/home");

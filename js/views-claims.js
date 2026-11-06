@@ -141,7 +141,13 @@ route("expenses", (_, q) => {
     if (XF.month) list = list.filter((c) => claimDate(c).startsWith(XF.month));
     list.sort((a, b) => (claimDate(a) < claimDate(b) ? 1 : -1));
     const groups = []; list.forEach((c) => { const k = claimDate(c); const g = groups.find((x) => x.k === k); g ? g.items.push(c) : groups.push({ k, items: [c] }); });
-    body = `<div class="xc-hero card accent"><span class="eyebrow">Yet to receive</span><b class="timer">${money(yet)}</b><span class="small muted">${nPending ? `${plural(nPending, "claim")} waiting for approval` : "Nothing waiting for approval"}</span></div>
+    const mon = D.today().slice(0, 7), apr = S.claims.filter((c) => c.status === "approved" && claimDate(c).startsWith(mon));
+    const rs = (n) => `<span class="pc-cur">₹</span>${Math.round(n).toLocaleString("en-IN")}`;
+    body = `<div class="paycard xc-pay">
+      <div class="pc-top"><span class="pc-ic">${I("wallet")}</span><span class="pc-lbl">Yet to receive</span><span class="xc-pn">${nPending ? `${nPending} waiting` : "All clear"}</span></div>
+      <div class="pc-amt">${rs(yet)}</div>
+      <div class="pc-foot"><span class="pc-sub">${I("checkCircle")}<span>Approved in ${D.f(D.today(), { month: "short" })}</span><b>${rs(apr.reduce((a, c) => a + claimTotal(c), 0))}</b><em>· ${plural(apr.length, "claim")}</em></span></div>
+    </div>
       <div class="hrow" style="margin-top:12px"><label class="searchbox grow">${I("search")}<input data-xq placeholder="Search claims" value="${esc(q.q || "")}" enterkeyhint="search"></label><button class="ib" data-act="xFilter" aria-label="Filters">${I("filter")}${xfCount() ? `<span class="dot"></span>` : ""}</button></div>
       <div class="xs-tabs" role="tablist">${[["all", "All"], ["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["withdrawn", "Withdrawn"]].map(([v, l]) => `<button role="tab" class="${st === v ? "on" : ""}" aria-selected="${st === v}" data-act="xSt" data-v="${v}">${l}</button>`).join("")}</div>
       ${xfCount() ? `<div class="hrow small muted" style="margin:2px 4px 0">${plural(xfCount(), "filter")} applied<span class="grow"></span><button class="link" data-act="xClear">Clear</button></div>` : ""}
@@ -388,34 +394,55 @@ route("expenses/claim/:id", ({ id }, q) => {
   <div class="foot"><div class="row-btns"><button class="btn outline" data-go="#/expenses/claim/${c.id}/split" ${rs.length < 2 ? "disabled" : ""}>Split</button><button class="btn primary" style="flex:1" data-act="xSubmit" data-id="${c.id}">Submit claim</button></div></div></div>`;
 });
 function claimDetail(c, rs, total, q) {
-  const banner = { pending: `<div class="banner warn">${I("clock")}Waiting for approval · ${esc(approverName(c.approver))}</div>`, approved: `<div class="banner ok">${I("checkCircle")}Approved${c.paid >= total ? " and paid" : ""}</div>`, rejected: `<div class="banner bad">${I("x")}Rejected${c.note ? ` · ${esc(c.note)}` : ""}</div>`, withdrawn: `<div class="banner info">${I("info")}Withdrawn by you</div>` }[c.status] || "";
-  const act2 = [["Created", c.created, ""], c.submitted && ["Submitted to " + approverName(c.approver), c.submitted, ""], c.status === "approved" && ["Approved", c.submitted + 864e5, "ok"], c.status === "rejected" && ["Rejected", c.submitted + 864e5, "bad"], c.status === "withdrawn" && ["Withdrawn by you", c.withdrawn || Date.now(), "bad"]].filter(Boolean);
-  return `<div class="screen has-foot">${topbar(esc(c.code), { sub: "Claim" })}
-  <div class="scroll"><div class="stack">
-    ${q.new && c.status === "pending" ? `<div class="cd-done">${successTick()}<b>Claim submitted</b><span class="cd-amt num">${fmtCur(total, c.cur)}</span><span class="small muted">Sent to ${esc(approverName(c.approver))} for approval. You’ll be notified when it’s reviewed.</span></div>` : banner}
-    <div class="card accent cd-hero"><b class="cd-t">${esc(claimTitle(c))}</b><span class="small muted ell">${esc(c.entity)}</span>
-      <div class="grid2" style="margin-top:12px"><span><small>Amount requested</small><b class="num">${fmtCur(total, c.cur)}</b></span><span><small>Amount paid</small><b class="num">${fmtCur(c.paid || 0, c.cur)}</b></span></div></div>
-    <div class="sec"><h2>Claim details</h2></div>
-    <div class="card">
-      <div class="kv"><span>Claim ID</span><span>${esc(c.code)}</span></div>
-      <div class="kv"><span>Cost centre</span><span>${esc(ccName(c.cc))}</span></div>
-      <div class="kv"><span>Cost centre ID</span><span>${esc(c.cc || "—")}</span></div>
-      <div class="kv"><span>Approver</span><span>${esc(approverName(c.approver))}</span></div>
-      <div class="kv"><span>Billing type</span><span>${esc(c.billing)}</span></div>
-      ${c.submitted ? `<div class="kv"><span>Submitted on</span><span>${D.long(D.iso(c.submitted))}</span></div>` : ""}
+  const badge = { pending: "Submitted", approved: "Approved", rejected: "Rejected", withdrawn: "Withdrawn" }[c.status] || c.status;
+  const cats = [...new Set(rs.map((r) => r.cat))], dates = rs.map((r) => r.date).sort();
+  const people = [...new Set([c.approver === "pr" ? "pr" : null, ...rs.flatMap((r) => r.people || [])].filter(Boolean))];
+  const comments = [...(c.comments || [])];
+  if (c.status === "rejected" && c.note && !comments.some((x) => x.text === c.note)) comments.push({ who: c.approver === "pr" ? "pr" : null, name: approverName(c.approver), text: c.note, ts: (c.submitted || c.created) + 864e5 });
+  const kv = [["Claim ID", c.code], ["Amount", fmtCur(total, c.cur)], ["Category", cats.length === 1 ? cats[0] : `Multiple (${cats.length})`],
+    ["Expense date", dates.length ? (dates[0] === dates[dates.length - 1] ? D.long(dates[0]) : `${D.short(dates[0])} – ${D.long(dates[dates.length - 1])}`) : "—"],
+    ["Cost centre ID", c.cc || "—"], ["Cost centre name", ccName(c.cc)], ["Approver", approverName(c.approver)], ["Billing type", c.billing],
+    c.submitted && ["Submitted on", D.long(D.iso(c.submitted))]].filter(Boolean);
+  return `<div class="screen has-foot">
+  <header class="cdh s-${c.status}">
+    <button class="ib" data-act="back" aria-label="Back">${I("back")}</button>
+    <div class="cdh-b">
+      <div class="cdh-id"><span>#${esc(c.code)}</span><span class="cdh-badge">${badge}</span></div>
+      <h1>${esc(claimTitle(c))}</h1>
+      <div class="cdh-m"><span class="ell">${I("building")}${esc(c.entity)}</span>${people.length ? `<span class="av-stack">${people.slice(0, 3).map((p) => avatar(p, "sm")).join("")}</span>` : ""}</div>
+      <div class="cdh-amt"><span><small>Amount requested</small><b>${fmtCur(total, c.cur)}</b></span><span><small>Amount paid</small><b>${fmtCur(c.paid || 0, c.cur)}</b></span></div>
     </div>
-    ${c.desc ? `<div class="stack s6" style="margin:6px 4px 0"><b class="small">Notes</b><span>${esc(c.desc)}</span></div>` : ""}
-    <div class="sec"><h2>Expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2></div>
-    ${rcGroups(rs, c, false)}
-    <div class="sec"><h2>Attachments</h2></div>
-    <div class="stack s8">${attachList(rs.map((r) => ({ name: r.file?.name || "receipt", size: r.file?.size || "" })))}</div>
+  </header>
+  <div class="scroll"><div class="stack">
+    ${q.new && c.status === "pending" ? `<div class="cd-done">${successTick()}<b>Claim submitted</b><span class="small muted">Sent to ${esc(approverName(c.approver))} for approval. You’ll be notified when it’s reviewed.</span></div>` : ""}
+    <div class="stack s8" style="margin-top:14px">${rs.map((r) => `<button class="card cd-file" data-act="xRcView" data-id="${r.id}">${r.file?.img ? rcThumb(r) : fileIcon(r.file?.name || "receipt.pdf")}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.file?.name || r.merchant)}</b><span class="tiny muted">${esc(r.file?.size || r.merchant)}${rs.length > 1 ? ` · ${fmtCur(r.inr, c.cur)}` : ""}</span></span>${I("chevR")}</button>`).join("")}</div>
+    <div class="sec"><h2>Expense details</h2></div>
+    <div class="cd-kv">${kv.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>
+    ${rs.length > 1 ? `<div class="sec"><h2>Expenses <span class="muted" style="font-weight:600">(${rs.length})</span></h2></div>${rcGroups(rs, c, false)}` : ""}
+    ${c.desc ? `<div class="cd-sec"><h2>Notes</h2><p>${esc(c.desc)}</p></div>` : ""}
+    <div class="cd-sec"><div class="hrow"><h2 class="grow">Comments</h2>${c.status === "pending" ? `<button class="link" data-act="xComment" data-id="${c.id}">+ Add comment</button>` : ""}</div>
+      ${comments.length ? comments.map((m) => `<div class="cd-cm">${m.who ? avatar(m.who, "sm") : `<span class="av sm" style="background:var(--panel-2);color:var(--ink-3)">${I("users")}</span>`}<div class="grow"><div class="hrow"><b class="grow">${esc(m.who ? (m.who === "me" ? "You" : person(m.who).name) : m.name || "Approver")}</b><span class="tiny faint">${D.ago(m.ts)}</span></div><p>${esc(m.text)}</p></div></div>`).join("") : `<p class="small muted">No comments yet.</p>`}</div>
     <div class="sec"><h2>Activity</h2></div>
-    <div class="card"><div class="xtl">${act2.map(([t, ts, k]) => `<div class="xtl-i ${k}"><i></i><span class="grow">${esc(t)}</span><span class="tiny faint">${D.short(D.iso(ts))}</span></div>`).join("")}</div></div>
+    ${activityFeed(claimActivity(c, comments))}
   </div></div>
-  <div class="foot">${c.status === "pending" ? `<button class="btn danger block" data-act="xWithdraw" data-id="${c.id}">Withdraw claim</button>`
+  <div class="foot">${c.status === "pending" ? `<button class="btn primary block" data-act="xWithdraw" data-id="${c.id}">Withdraw claim</button>`
     : c.status === "withdrawn" || c.status === "rejected" ? `<button class="btn primary block" data-act="xReopen" data-id="${c.id}">Edit and resubmit</button>`
     : `<button class="btn ghost block" data-go="#/expenses">All claims</button>`}</div></div>`;
 }
+// events for the app's activity feed (same icons as request details)
+function claimActivity(c, comments) {
+  const ap = approverName(c.approver), t0 = c.submitted || c.created, ev = [{ text: "Claim created", ts: c.created, kind: "" }];
+  if (c.submitted) ev.push({ text: `Submitted to ${ap}`, ts: c.submitted, kind: "" });
+  comments.filter((m) => m.who === "me").forEach((m) => ev.push({ text: "Comment added", ts: m.ts, kind: "" }));
+  if (c.status === "approved") ev.push({ text: `Approved by ${ap}`, ts: t0 + 864e5, kind: "ok" });
+  if (c.status === "rejected") ev.push({ text: `Rejected by ${ap}`, ts: t0 + 864e5, kind: "bad" });
+  if (c.status === "withdrawn") ev.push({ text: "Withdrawn by you", ts: c.withdrawn || Date.now(), kind: "bad" });
+  return { status: c.status, activity: ev.sort((a, b) => a.ts - b.ts) };
+}
+act("xComment", (b) => {
+  const s = openSheet({ title: "Add comment", body: `<textarea class="inp" data-t rows="3" placeholder="Add context for your approver"></textarea>`, foot: `<button class="btn primary block" data-s="ok">Add comment</button>`,
+    onMount(el) { onS(el, { ok() { const v = el.querySelector("[data-t]").value.trim(); if (!v) return toast("Write a comment first", "bad"); const c = claimOf(b.dataset.id); (c.comments ||= []).push({ who: "me", text: v, ts: Date.now() }); save(); closeSheet(s); rerender(); toast("Comment added"); } }); } });
+});
 act("xGroup", () => pickOption({ title: "Group expenses", value: XG, options: [{ v: "date", label: "By date", icon: "calendar" }, { v: "cat", label: "By category", icon: "tag" }], onPick(v) { XG = v; rerender(); } }));
 act("xCur", (b) => { const c = claimOf(b.dataset.id); pickOption({ title: "Show amounts in", value: c.cur, options: Object.keys(CUR).map((k) => ({ v: k, label: k, sub: fmtCur(claimTotal(c), k) })), onPick(v) { c.cur = v; save(); rerender(); } }); });
 act("xRename", (b) => {
