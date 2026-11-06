@@ -132,6 +132,7 @@ function celebWidget() {
 // what Home renders between the Today card and the rest
 function homeWidgets() {
   return `${attentionWidget()}
+    ${typeof tasksWidget === "function" ? tasksWidget() : ""}
     <div class="sec"><h2>At a glance</h2></div>
     <div class="grid2 w-grid">${leaveWidget()}${paydayWidget()}</div>
     ${hoursWidget()}`;

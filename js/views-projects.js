@@ -199,7 +199,7 @@ route("projects/:id", ({ id }, q) => {
       ${p.budget ? `<div class="sec"><h2>Budget</h2><span class="tiny muted">${hrs}h of ${p.budget}h</span></div>
         <div class="card pj-budget"><span class="pj-prog lg"><i style="width:${Math.min(100, usage * 100)}%;background:${rangeColor(usage, "low")}"></i></span>
           <div class="pj-foot"><span>${Math.round(usage * 100)}% used</span><span class="${usage > 1 ? "bad" : ""}">${usage > 1 ? `${hrs - p.budget}h over` : `${p.budget - hrs}h left`}</span><span>${Math.round(mins / 60 / Math.max(1, D.diff(p.start, D.today())) * 7)}h / week</span></div></div>` : ""}
-      ${p.milestones.length ? `<div class="sec"><h2>Milestones</h2></div><div class="card"><div class="ms-tl">${p.milestones.map((m) => { const late = !m.done && m.date < D.today(); return `<div class="ms ${m.done ? "done" : late ? "late" : ""}"><i>${m.done ? I("check") : ""}</i><span class="grow"><b>${esc(m.name)}</b><small>${m.done ? "Done · " : late ? "Late · " : ""}${D.long(m.date)}</small></span></div>`; }).join("")}</div></div>` : ""}`;
+      ${p.milestones.length ? `<div class="sec"><h2>Milestones</h2></div><div class="card"><div class="pjm-tl">${p.milestones.map((m) => { const late = !m.done && m.date < D.today(); return `<div class="pjm ${m.done ? "done" : late ? "late" : ""}"><i>${m.done ? I("check") : ""}</i><span class="grow"><b>${esc(m.name)}</b><small>${m.done ? "Done · " : late ? "Late · " : ""}${D.long(m.date)}</small></span></div>`; }).join("")}</div></div>` : ""}`;
   } else if (tab === "tasks") {
     const f = q.f || "mine";
     let list = p.tasks;
@@ -365,3 +365,17 @@ act("tkLog", (b) => {
   }
   return base(q);
 }; }
+
+// ── Home widget: My tasks ──
+function tasksWidget() {
+  const td = D.today(), wk = D.add(td, 6);
+  const open = myTasks().filter((x) => x.t.status !== "done" && !pjLocked(x.p));
+  const od = open.filter((x) => x.t.due && x.t.due < td), today = open.filter((x) => x.t.due === td), week = open.filter((x) => x.t.due > td && x.t.due <= wk);
+  const next = open.slice().sort((a, b) => ((a.t.due || "9") < (b.t.due || "9") ? -1 : 1)).slice(0, 3);
+  const stat = (n, label, tone, f) => `<button class="w-tk-stat ${n && tone ? tone : ""}" data-go="#/projects?tab=tasks${f ? "&f=" + f : ""}"><b class="num">${n}</b><small>${label}</small></button>`;
+  return `<div class="sec"><h2>My tasks</h2><button class="link" data-go="#/projects?tab=tasks">See all</button></div>
+    <div class="card w-tasks">
+      <div class="w-tk-stats">${stat(od.length, "Overdue", "bad")}${stat(today.length, "Today", "warn")}${stat(week.length, "This week", "")}</div>
+      ${next.length ? `<div class="w-tk-list">${next.map((x) => tkRow(x.p, x.t)).join("")}</div>` : emptyMini("checkCircle", "You’re all caught up — no open tasks.")}
+    </div>`;
+}
