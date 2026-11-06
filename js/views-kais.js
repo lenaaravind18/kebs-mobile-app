@@ -177,7 +177,7 @@ route("kais", () => {
   const hello = `<div class="khello"><img class="kais-orb" src="kais.svg" alt=""><h1>${T(greetingKey())}, ${esc(S.me.display)}</h1><p>How can I help with your workday?</p>
     <div class="kstarters">${KAIS_STARTERS.map(([ic, q, s]) => `<button data-act="kaisAsk" data-q="${esc(q)}"><span class="i">${I(ic)}</span><b>${esc(q)}</b><small>${s}</small></button>`).join("")}</div></div>`;
   return `<div class="screen kais">
-    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><button class="ttl kais-ttl" data-act="kaisHistory" aria-label="Open Kais sidebar"><span class="hrow" style="gap:6px;justify-content:center">${ag ? `<span class="ag-logo xs">${msIcon("ag-" + ag.id)}</span>${esc(ag.name)}` : `Kais <span class="chip acc" style="height:20px;font-size:9.5px">Assistant</span>`}${I("chevD")}</span></button><button class="ib" data-act="kaisNew" aria-label="New chat">${I("edit")}</button></div></header>
+    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><button class="ttl kais-ttl" data-act="kaisHistory" aria-label="Open Kais sidebar"><span class="hrow" style="gap:6px;justify-content:center">${ag ? `<span class="ag-logo xs">${msIcon("ag-" + ag.id)}</span>${esc(ag.name)}` : `Kais <span class="k-assist">Assistant</span>`}${I("chevD")}</span></button><button class="ib" data-act="kaisNew" aria-label="New chat">${I("edit")}</button></div></header>
     <div class="scroll kthread" data-thread>${msgs.length ? msgs.map((m, i) => kaisMsgHtml(m, i, i === msgs.length - 1)).join("") : ag ? agentHello(ag) : hello}</div>
     <form class="kcomposer" data-form="kais">
 
@@ -368,7 +368,7 @@ act("kaisHistory", () => {
   const layer = $("#layer");
   const scrim = document.createElement("div"); scrim.className = "scrim";
   const el = document.createElement("aside"); el.className = "drawer ksb";
-  el.innerHTML = `<div class="ksb-title"><img src="kais.svg" alt=""><b>Kais</b><span class="chip acc">Assistant</span><span class="grow"></span><button class="ib" data-k="close" aria-label="Close sidebar">${I("x")}</button></div><div class="ksb-head"><label class="searchbox grow">${I("search")}<input data-ksq placeholder="Search chats & agents" aria-label="Search chats and agents"></label><button class="ib" data-k="new" aria-label="New chat">${I("edit")}</button></div><div class="ksb-body" data-ksb></div>`;
+  el.innerHTML = `<div class="ksb-title"><img src="kais.svg" alt=""><b>Kais</b><span class="k-assist">Assistant</span><span class="grow"></span><button class="ib" data-k="close" aria-label="Close sidebar">${I("x")}</button></div><div class="ksb-head"><label class="searchbox grow">${I("search")}<input data-ksq placeholder="Search chats & agents" aria-label="Search chats and agents"></label><button class="ib" data-k="new" aria-label="New chat">${I("edit")}</button></div><div class="ksb-body" data-ksb></div>`;
   layer.append(scrim, el); drawerEl = { el, scrim }; scrim.addEventListener("click", closeDrawer);
   let q = "";
   const draw = () => {

@@ -1182,3 +1182,5 @@ body { letter-spacing: 0 !important; }
 .vo-orb { background: radial-gradient(circle at 50% 120%, var(--c3) 0%, var(--c2) 52%, color-mix(in srgb, var(--c2) 40%, var(--c1)) 88%) !important; }
 .vo-orb::before { filter: blur(9px) !important; background: radial-gradient(36% 20% at 28% 46%, rgba(255,255,255,.95), transparent 72%), radial-gradient(32% 18% at 62% 36%, rgba(255,255,255,.92), transparent 72%), radial-gradient(48% 16% at 46% 64%, rgba(255,255,255,.75), transparent 72%), radial-gradient(24% 14% at 76% 58%, rgba(255,255,255,.85), transparent 72%) !important; }
 .vo-orb::after { filter: blur(12px) !important; background: radial-gradient(42% 20% at 36% 26%, rgba(255,255,255,.7), transparent 72%), radial-gradient(30% 16% at 70% 76%, rgba(255,255,255,.45), transparent 72%) !important; }
+/* "Kais Assistant": plain text, no chip */
+.k-assist { font-weight: 500; color: var(--ink-3); margin-left: 4px; }
