@@ -2,7 +2,7 @@
 const STORE_KEY = "kebs.app.v1";
 
 const SHIFT = { name: "General", start: "09:30", end: "18:30" };
-const OFFICE = { name: "India HO – Chennai", addr: "KEBS, Ambattur Estate, Chennai 600096" };
+const OFFICE = { name: "India HO – Chennai", addr: "KEBS, Ambattur Estate, Chennai 600096", lat: 13.0982, lng: 80.1618, radius: 150 };
 
 const LEAVE_TYPES = [
   { id: "casual", name: "Casual Leave", total: 12, tint: "t-blue" },
@@ -54,6 +54,8 @@ const QUICK_ACTIONS = [
   { id: "onduty", label: "On duty", cat: "Raise Request", icon: "briefcase", tint: "t-teal", go: "#/req/onduty" },
   { id: "balances", label: "Leave balances", cat: "Leave Management", icon: "list", tint: "t-blue", go: "#/leave/balances" },
   { id: "helpdesk", label: "Helpdesk", cat: "Helpdesk", icon: "ticket", tint: "t-slate", go: "#/apps?tab=helpdesk" },
+  { id: "payslip", label: "Salary slips", cat: "Payroll", icon: "rupee", tint: "t-green", go: "#/pay" },
+  { id: "tax", label: "Tax & declarations", cat: "Payroll", icon: "percent", tint: "t-blue", go: "#/tax" },
 ];
 const QUICK_MAX = 7;
 const QUICK_SUGGESTED = ["scan", "leave", "wfh", "clock", "insights", "bills", "track"];

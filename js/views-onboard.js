@@ -2,9 +2,9 @@
 // Inspired by the KEBS onboarding designs: coral curtain dome, 3D illustration, title, coral tagline, body, dots, Skip / next.
 
 const OB = [
-  { title: "AI-Powered Workspace", tag: "Streamline operations with intelligent automation", body: "Kais learns how you work: it clocks you in, logs your time and drafts requests so you can focus on the work.",
+  { title: "Assistant-Powered Workspace", tag: "Streamline operations with intelligent automation", body: "Kais learns how you work: it clocks you in, logs your time and drafts requests so you can focus on the work.",
     art: [["ai.svg", "main"], ["sparkles", "tl"], ["bulb", "tr"]] },
-  { title: "Smart Approval Hub", tag: "Intelligent request management and insights", body: "Priority Inbox sorts what needs you first. Approve routine requests in one tap with AI-verified suggestions.",
+  { title: "Smart Approval Hub", tag: "Intelligent request management and insights", body: "Priority Inbox sorts what needs you first. Approve routine requests in one tap with assistant-verified suggestions.",
     art: [["approve.svg", "main"], ["check", "tr"], ["bell", "tl"]] },
   { title: "Unified Analytics", tag: "Data-driven insights at your fingertips", body: "Leave, hours and spend at a glance — live charts, smart summaries and answers from Kais whenever you ask.",
     art: [["analytics.svg", "main"], ["chart", "tr"], ["coin", "tl"]] },
@@ -20,7 +20,7 @@ function obArt(s) {
 
 // Onboarding v3: real product UI as floating cards on a brand gradient (Dribbble product-onboarding pattern)
 const OB4 = [
-  { eyebrow: "Meet Kais", icon: "sparkles", feats: [["clock", "Clock in from anywhere"], ["timesheet", "Log time just by asking"], ["request", "Drafts WFH and leave requests"]], title: "Kais handles the busywork", body: "Clock in, log hours and draft requests just by asking. Your AI teammate keeps your day moving.",
+  { eyebrow: "Meet Kais", icon: "sparkles", feats: [["clock", "Clock in from anywhere"], ["timesheet", "Log time just by asking"], ["request", "Drafts WFH and leave requests"]], title: "Kais handles the busywork", body: "Clock in, log hours and draft requests just by asking. Your assistant keeps your day moving.",
     art: () => `
       <div class="oc oc-chat c1">
         <div class="oc-row me"><span class="oc-bub me">Clock me in</span></div>

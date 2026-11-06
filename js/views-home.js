@@ -64,7 +64,7 @@ function weekCard() {
   }).join("");
   const sec = workedSec(), pct = Math.min(100, (sec / 3600 / 9) * 100);
   return `<div class="card stack">
-    <div class="hrow"><div class="week grow">${days}</div><button class="fp" data-act="clockToggle" aria-label="${clockedIn() ? "Clock out" : "Clock in"}">${I("fingerprint")}</button></div>
+    <div class="hrow"><div class="week grow">${days}</div></div>
     <b>Today (${D.hm(SHIFT.start)} – ${D.hm(SHIFT.end)})</b>
     <div class="bar"><i data-live-bar style="width:${pct}%"></i></div>
     <div class="hrow small muted"><span class="grow">Duration: <b data-live="dur">${fmtMin(sec / 60)}</b></span><span>Break: 0 min</span></div>
@@ -86,7 +86,7 @@ function todayCard(t, late) {
   else action = `<div class="banner ok">${I("checkCircle")}<span class="grow">Shift complete</span><button class="link" data-act="resumeShift">Resume</button></div>`;
   return `<div class="card stack today-card">
     <button class="hrow" data-go="#/attendance" style="width:100%;text-align:left"><span class="grow"><span class="eyebrow" style="display:block">Today</span><b style="font-size:17px">${D.nice(today)}</b><span class="small muted" style="display:block">${SHIFT.name} shift · ${D.hm(SHIFT.start)} – ${D.hm(SHIFT.end)}</span></span>${chip}<span class="chev">${I("chevR")}</span></button>
-    <div class="hrow"><div class="week grow">${days}</div><button class="fp" data-act="clockToggle" aria-label="${clockedIn() ? "Clock out" : "Clock in"}">${I("fingerprint")}</button></div>
+    <div class="hrow"><div class="week grow">${days}</div></div>
     <div class="tc-times"><div><span class="tiny muted">Clock in</span><b>${t.inTs ? D.time(t.inTs) : "--:--"}</b></div><div><span class="tiny muted">Clock out</span><b>${t.outTs ? D.time(t.outTs) : "--:--"}</b></div><div><span class="tiny muted">Worked</span><b class="num" ${t.inTs && !t.outTs ? `data-live="worked"` : ""}>${t.inTs && !t.outTs ? fmtClock(sec) : fmtMin(sec / 60)}</b></div></div>
     <div class="bar"><i data-live-bar style="width:${pct}%"></i></div>
     <div class="hrow tiny muted"><span class="grow">Duration: <b data-live="dur">${fmtMin(sec / 60)}</b> of 9h</span><span>Break: 0 min</span></div>
@@ -104,7 +104,7 @@ route("home", () => {
       <span class="hero-mark">${KEBS_MARK}</span>
       <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button><div class="grow" style="min-width:0"><b class="ell">${T(greetingKey())}, ${esc(S.me.display)}</b><small>${esc(S.me.role)}</small></div></div>
       <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1">${ini}<span class="hero-menu" aria-hidden="true">${I("menu")}</span></button>
-        <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
+        <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go mic" data-act="heroVoice" aria-label="Talk to Kais">${I("mic")}</button><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
       <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2></div>
@@ -131,6 +131,8 @@ route("home", () => {
   },
 });
 act("submit:heroAsk", (f) => { const q = f.q.value.trim(); if (q) openKais(q); else go("#/search"); });
+// voice: open Kais and go straight into voice mode
+act("heroVoice", () => { kaisNewChat(); save(); openKais(); setTimeout(() => ACTIONS.kaisVoice(), 380); });
 act("heroGo", (b) => { const q = b.closest("form").q.value.trim(); q ? openKais(q) : go("#/search"); });
 
 act("clockToggle", () => {
@@ -151,21 +153,52 @@ act("offWeek", () => openSheet({ title: "Off this week", body: `<div class="list
 route("clockin", () => `<div class="screen has-foot">
   ${topbar("Confirm clock in")}
   <div class="scroll">
-    <div class="map" aria-label="Map showing your location">
+    <div class="map" aria-label="Map showing your location and the office">
       <span class="road" style="left:38%;top:0;bottom:0;width:30px;transform:skewX(-6deg)"></span>
       <span class="road" style="left:0;right:0;top:28%;height:26px;transform:rotate(-4deg)"></span>
       <span class="road" style="left:0;right:0;top:78%;height:22px;transform:rotate(-3deg)"></span>
       <span class="road" style="left:70%;top:0;bottom:0;width:18px"></span>
-      <span class="lbl" style="left:8%;top:20%">18th St</span><span class="lbl" style="left:52%;top:18%">23rd St</span>
-      <span class="lbl" style="left:40%;top:44%;transform:rotate(84deg);transform-origin:left">Gandhi St</span>
-      <span class="lbl" style="left:10%;top:70%">16th St</span><span class="lbl" style="left:74%;top:70%">21st St</span>
-      <span class="me"></span><span class="prec">Precise location: ON</span>
+      <span class="me"></span>
+      <div class="map-live" data-map></div>
+      <span class="prec">${I("pin")}<span data-dist>Precise location: ON</span></span>
+      <button class="ib sm map-fit" data-act="mapFit" aria-label="Recenter map">${I("locate")}</button>
     </div>
     <div class="card hrow" style="margin-top:12px"><span class="li" style="padding:0;border:0"><span class="ic tint t-blue">${I("pin")}</span></span><span class="grow"><b style="display:block">${OFFICE.name}</b><span class="small muted">${OFFICE.addr}</span></span><span class="chip ok">In range</span></div>
     <p class="small muted" style="margin:14px 4px 0">${SHIFT.name} shift · ${D.hm(SHIFT.start)} – ${D.hm(SHIFT.end)}. Your clock-in will be recorded with this location.</p>
   </div>
   <div class="foot"><div class="hrow"><div class="grow"><div class="timer" style="font-size:22px" data-live="now">${new Date().toLocaleTimeString("en-US")}</div><div class="small muted">${D.f(D.today(), { weekday: "long", day: "numeric", month: "short", year: "numeric" })}</div></div><button class="btn primary" data-act="confirmClockIn">Continue</button></div></div>
-</div>`);
+</div>`, { mount: clockMap });
+// ── Real map for clock-in: Leaflet + OpenStreetMap tiles (themed with a CSS filter in dark mode), loaded on first use ──
+let LEAFLET, CLOCK_MAP = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  return (LEAFLET ||= new Promise((ok, no) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.append(css);
+    const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload = () => ok(window.L); s.onerror = () => { LEAFLET = null; no(new Error("map unavailable")); }; document.head.append(s);
+  }));
+}
+const isDarkUI = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+function clockMap() {
+  const el = $("[data-map]"); if (!el) return;
+  loadLeaflet().then((L) => {
+    if (!el.isConnected) return;
+    const office = [OFFICE.lat, OFFICE.lng], me = [OFFICE.lat - 0.00038, OFFICE.lng + 0.00042]; // demo: you, ~60 m from the office gate
+    const map = L.map(el, { zoomControl: false, scrollWheelZoom: false, attributionControl: true, tap: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(map);
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#ff4013";
+    L.circle(office, { radius: OFFICE.radius, color: accent, weight: 1.5, opacity: 0.6, fillColor: accent, fillOpacity: 0.08 }).addTo(map);
+    L.marker(office, { icon: L.divIcon({ className: "map-pin", html: `<span>${KEBS_MARK}</span>`, iconSize: [36, 44], iconAnchor: [18, 44] }), title: OFFICE.name }).addTo(map);
+    L.marker(me, { icon: L.divIcon({ className: "map-me", html: "<i></i>", iconSize: [22, 22], iconAnchor: [11, 11] }), title: "You" }).addTo(map);
+    const fit = () => map.fitBounds([office, me], { padding: [56, 56], maxZoom: 17 });
+    fit(); setTimeout(() => { map.invalidateSize(); fit(); }, 320);
+    el.closest(".map").classList.add("live");
+    const d = Math.round(map.distance(office, me));
+    const lbl = el.closest(".map").querySelector("[data-dist]"); if (lbl) lbl.textContent = `${d} m from ${OFFICE.name.split(" – ")[0]} · in range`;
+    CLOCK_MAP = { map, fit };
+  }).catch(() => {}); // offline: the drawn placeholder map stays
+}
+act("mapFit", () => CLOCK_MAP?.fit());
 act("confirmClockIn", () => {
   S.att.today.inTs = Date.now(); S.att.today.outTs = null; save();
   toast(`Clocked in at ${D.time(S.att.today.inTs)}`);
@@ -226,7 +259,7 @@ route("post/:id", ({ id }) => {
   const p = S.posts.find((x) => x.id === id);
   if (!p) return emptyState(["megaphone"], "Not found", "This post was removed.");
   pRx(p);
-  return `<div class="screen has-foot">${topbar("Announcement", { right: `<button class="ib" data-act="sharePost" data-id="${p.id}" aria-label="Share">${I("upload")}</button>` })}<div class="scroll">
+  return `<div class="screen has-foot">${topbar("Announcement", { right: `<button class="ib" data-act="sharePost" data-id="${p.id}" aria-label="Share">${I("share")}</button>` })}<div class="scroll">
     <div class="hrow" style="margin:6px 0 14px">${avatar(p.by)}<span class="grow"><b style="display:block">${esc(person(p.by).name)}</b><span class="small muted">${new Date(p.ts).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></span></div>
     <h2 style="font:800 22px/1.2 var(--font);letter-spacing:-.6px;margin-bottom:8px">${esc(p.title)}</h2>
     <p style="white-space:pre-wrap;color:var(--ink-body)">${esc(p.body)}</p>
@@ -333,7 +366,7 @@ act("editQuick", () => {
     foot: `<label class="hrow" style="cursor:pointer"><input type="checkbox" class="check" data-sugg><span class="small b">Select suggested actions</span></label><button class="btn primary block" data-s="save"></button>`,
     onMount(el) {
       const draw = () => {
-        el.querySelector("[data-list]").innerHTML = QUICK_ACTIONS.filter((a) => (a.label + a.cat).toLowerCase().includes(q)).map((a) => `<label class="li" style="cursor:pointer"><span class="ic tint ${a.tint}">${I(a.icon)}</span><span class="grow"><span class="s" style="display:block">${esc(a.cat)}</span><span class="t">${esc(a.label)}</span></span><input type="checkbox" class="check" value="${a.id}" ${sel.includes(a.id) ? "checked" : ""}></label>`).join("");
+        el.querySelector("[data-list]").innerHTML = QUICK_ACTIONS.filter((a) => (a.label + a.cat).toLowerCase().includes(q)).map((a) => `<label class="li" style="cursor:pointer"><span class="qa-li-ic">${msIcon(a.id)}</span><span class="grow"><span class="s" style="display:block">${esc(a.cat)}</span><span class="t">${esc(a.label)}</span></span><input type="checkbox" class="check" value="${a.id}" ${sel.includes(a.id) ? "checked" : ""}></label>`).join("");
         el.querySelector("[data-s=save]").textContent = `Save actions (${sel.length}/${QUICK_MAX})`;
         el.querySelector("[data-sugg]").checked = QUICK_SUGGESTED.every((x) => sel.includes(x)) && sel.length === QUICK_SUGGESTED.length;
       };

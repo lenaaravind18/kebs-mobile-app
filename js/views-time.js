@@ -1,6 +1,6 @@
 // My Apps hub · Attendance · Time logs · Raise request (WFH / partial / on duty / regularize) · Request history + detail
 
-const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights" };
+const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights", payslip: "payslip", tax: "tax" };
 const tileBtn = (icon, tint, t, s, attr) => `<button class="card tile" ${attr}><span class="tico ms">${msIcon(/holiday/i.test(t) ? "holidays" : TILE_MS[icon] || "more")}</span><span class="tt">${t}</span><span class="ts">${s}</span></button>`;
 function reqCard(r) {
   const T2 = REQ_TYPES[r.type];
@@ -48,6 +48,11 @@ route("apps", (_, q) => {
         <div class="pc-amt">${rs(pending)}</div>
         <div class="pc-foot"><span class="pc-sub">${I("checkCircle")}<span>Approved in ${mon}</span><b>${rs(approved)}</b><em>· ${plural(aN, "claim")}</em></span><span class="pc-go">${I("chevR")}</span></div>
       </a>
+      <div class="sec"><h2>Payroll</h2></div>
+      <div class="grid2">
+        ${tileBtn("payslip", "t-green", "Salary slips", "Monthly slips, PDFs and pay changes.", `data-go="#/pay"`)}
+        ${tileBtn("tax", "t-blue", "Tax & declarations", "Regime, TDS, proofs and Form 16.", `data-go="#/tax"`)}
+      </div>
       <div class="sec"><h2>Expenses</h2></div>
       <div class="grid2">
         ${tileBtn("wallet", "t-amber", "Track expense", "Claims, statuses and receipts.", `data-go="#/expenses"`)}

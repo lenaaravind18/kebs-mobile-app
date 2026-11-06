@@ -24,6 +24,8 @@ const MS_STYLE = {
   request:   ["file",        "#FF8A3D", "#E2531F", "#FFD2B3", "#FFA66E"],
   attend:    ["fingerprint", "#20B2A6", "#0B7A70", "#B5ECE6", "#64CFC4"],
   alert:     ["alert",       "#F7B928", "#C98A00", "#FCE6A8", "#F6CD61"],
+  payslip:   ["rupee",       "#0FA36B", "#0A6E48", "#B4EBD3", "#62CFA2"], // payroll green
+  tax:       ["percent",     "#4C8BF5", "#1A56C4", "#BBD3FB", "#7AA7F2"], // Word blue
   more:      ["gridPlus",  "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"],
 };
 let MS_ID = 0;
