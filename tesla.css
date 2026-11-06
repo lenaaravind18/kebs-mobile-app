@@ -2910,3 +2910,11 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 /* Quick access: a card like the rest of Home (same margins, corners, surface) */
 .home-scroll > .qa-card { margin: 0 !important; border-radius: 16px !important; padding: 16px 12px 14px !important; box-shadow: var(--elev) !important; }
 :root[data-corners="sharp"] .home-scroll > .qa-card { border-radius: 6px !important; }
+
+/* Alerts page: borderless like the rest of the app */
+.sw-fg { box-shadow: var(--elev) !important; border: 0 !important; }
+.pi-anchors button { box-shadow: none !important; border: 0 !important; background: var(--panel) !important; }
+.pi-anchors button.on { background: color-mix(in srgb, var(--t, var(--accent)) 14%, var(--panel)) !important; box-shadow: none !important; }
+.pi-chips > *, .pi-chips .chip { box-shadow: none !important; border: 0 !important; background: var(--panel-2) !important; }
+.pi-chips .chip.warn, .pi-chips > .warn { background: color-mix(in srgb, var(--warn) 14%, var(--panel)) !important; }
+.pi-sort { box-shadow: none !important; }
