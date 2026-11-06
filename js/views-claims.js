@@ -146,11 +146,12 @@ route("expenses", (_, q) => {
       <div class="xs-tabs" role="tablist">${[["all", "All"], ["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["withdrawn", "Withdrawn"]].map(([v, l]) => `<button role="tab" class="${st === v ? "on" : ""}" aria-selected="${st === v}" data-act="xSt" data-v="${v}">${l}</button>`).join("")}</div>
       ${xfCount() ? `<div class="hrow small muted" style="margin:2px 4px 0">${plural(xfCount(), "filter")} applied<span class="grow"></span><button class="link" data-act="xClear">Clear</button></div>` : ""}
       ${groups.length ? groups.map((g) => `<div class="sec"><h2>${dayLabel(g.k)} <span class="muted" style="font-weight:600">(${g.items.length})</span></h2></div><div class="stack">${g.items.map(claimCard).join("")}</div>`).join("")
-        : emptyState(["wallet", "receipt", "scan"], qq || xfCount() || st !== "all" ? "No claims match" : "No claims yet", qq || xfCount() || st !== "all" ? "Try a different search or filter." : "Upload a receipt to start your first claim.")}`;
+        : emptyState(qq || xfCount() || st !== "all" ? ["search", "filter", "receipt"] : ["wallet", "receipt", "scan"], qq || xfCount() || st !== "all" ? "No claims match" : "No claims yet", qq || xfCount() || st !== "all" ? "Try a different search or filter." : "Upload a receipt to start your first claim.")}`;
   } else if (tab === "saved") {
     const drafts = S.claims.filter((c) => c.status === "saved");
     const loose = S.receipts.filter((r) => !r.claim);
-    body = `<div class="sec" style="margin-top:4px"><h2>Saved claims</h2><span class="tiny muted">Not submitted yet</span></div>
+    if (!drafts.length && !loose.length) body = emptyState(["wallet", "receipt", "scan"], "Nothing saved yet", "Receipts and claims you save for later appear here.", `<button class="btn primary" data-act="xNew">${I("plus")}New claim</button>`);
+    else body = `<div class="sec" style="margin-top:4px"><h2>Saved claims</h2><span class="tiny muted">Not submitted yet</span></div>
       <div class="stack">${drafts.map(claimCard).join("") || emptyMini("wallet", "No saved claims.")}</div>
       <div class="sec"><h2>Saved receipts</h2>${loose.length > 1 ? `<button class="link" data-act="xClaimAll">Claim all</button>` : ""}</div>
       <div class="stack">${loose.map((r) => `<div class="card hrow">${rcThumb(r)}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.merchant)}</b><span class="tiny muted">${fmtCur(r.inr)} · ${D.short(r.date)} · ${esc(r.cat)}</span></span><button class="btn primary sm" data-act="xClaimOne" data-id="${r.id}">Claim</button><button class="ib sm" data-act="xRcDel" data-id="${r.id}" aria-label="Delete receipt">${I("trash")}</button></div>`).join("") || emptyMini("receipt", "Receipts you save for later appear here.")}</div>`;
@@ -221,7 +222,7 @@ route("expenses/new", (_, q) => {
   return `<div class="screen">${topbar("Upload receipt", { sub: "Kais reads and categorises it for you" })}
   ${seg([["single", "Single claim"], ["multi", "Multi claim"]], mode, "upMode")}
   <div class="scroll"><div class="stack s16">
-    <button class="up-drop" data-act="upPick" data-drop>${I("upload")}<b>Tap to upload${mode === "multi" ? " receipts" : " a receipt"}</b><span class="small muted">or drag and drop · photo or PDF, up to 25 MB</span></button>
+    <button class="up-drop" data-act="upPick" data-drop><img class="x-ill up-ill" src="assets/ill/camera-access.svg" alt="" width="150" height="132"><span class="x-ill-dark">${I("upload")}</span><b>Tap to upload${mode === "multi" ? " receipts" : " a receipt"}</b><span class="small muted">or drag and drop · photo or PDF, up to 25 MB</span></button>
     <div class="card soft up-tips"><div class="hrow"><span class="i acc-ic">${I("sparkles")}</span><b>Smart tips</b></div>
       <p>Capture the whole receipt in good light for the best extraction.</p><p>Kais reads multiple currencies and languages.</p>${mode === "multi" ? `<p>Pick several receipts at once to group them into one claim.</p>` : `<p>Have more than one bill? Switch to Multi claim.</p>`}</div>
     <div class="up-opts">
@@ -391,7 +392,7 @@ function claimDetail(c, rs, total, q) {
   const act2 = [["Created", c.created, ""], c.submitted && ["Submitted to " + approverName(c.approver), c.submitted, ""], c.status === "approved" && ["Approved", c.submitted + 864e5, "ok"], c.status === "rejected" && ["Rejected", c.submitted + 864e5, "bad"], c.status === "withdrawn" && ["Withdrawn by you", c.withdrawn || Date.now(), "bad"]].filter(Boolean);
   return `<div class="screen has-foot">${topbar(esc(c.code), { sub: "Claim" })}
   <div class="scroll"><div class="stack">
-    ${q.new && c.status === "pending" ? `<div class="banner ok">${I("checkCircle")}Claim submitted successfully</div>` : banner}
+    ${q.new && c.status === "pending" ? `<div class="cd-done">${successTick()}<b>Claim submitted</b><span class="cd-amt num">${fmtCur(total, c.cur)}</span><span class="small muted">Sent to ${esc(approverName(c.approver))} for approval. You’ll be notified when it’s reviewed.</span></div>` : banner}
     <div class="card accent cd-hero"><b class="cd-t">${esc(claimTitle(c))}</b><span class="small muted ell">${esc(c.entity)}</span>
       <div class="grid2" style="margin-top:12px"><span><small>Amount requested</small><b class="num">${fmtCur(total, c.cur)}</b></span><span><small>Amount paid</small><b class="num">${fmtCur(c.paid || 0, c.cur)}</b></span></div></div>
     <div class="sec"><h2>Claim details</h2></div>
@@ -436,7 +437,7 @@ act("xSubmit", (b) => {
   const c = claimOf(b.dataset.id);
   if (!c.cc) { toast("Add a cost centre before submitting", "bad"); return go(`#/expenses/claim/${c.id}/edit`); }
   confirmSheet({ eyebrow: "Submit claim", text: `Submit ${esc(claimTitle(c))} for ${fmtCur(claimTotal(c), c.cur)} to ${esc(approverName(c.approver))}?`, ok: "Submit claim", onOk() {
-    c.status = "pending"; c.submitted = Date.now(); save(); swap(`#/expenses/claim/${c.id}?new=1`);
+    c.status = "pending"; c.submitted = Date.now(); save(); try { navigator.vibrate?.([18, 40, 28]); } catch {} swap(`#/expenses/claim/${c.id}?new=1`);
   } });
 });
 act("xWithdraw", (b) => confirmSheet({ eyebrow: "Withdraw", text: "Withdraw this claim? Your approver will be notified.", ok: "Yes, withdraw", danger: true, onOk() { const c = claimOf(b.dataset.id); c.status = "withdrawn"; c.withdrawn = Date.now(); save(); rerender(); toast("Claim withdrawn"); } }));
@@ -515,3 +516,10 @@ act("spSubmit", (b) => {
 
 // demo reset re-creates the claims sample data
 { const base = resetDemo; resetDemo = function () { base(); const x = seedClaims(); S.receipts = x.receipts; S.claims = x.claims; delete S.expenses; delete S.bills; save(); }; }
+
+// animated success tick (claim submitted): circle pops, check draws, rings ripple, confetti bursts
+function successTick() {
+  const bits = Array.from({ length: 12 }, (_, i) => `<i style="--a:${i * 30}deg;--d:${(i % 3) * 0.04}s;--c:${["#22c55e", "#f97316", "#facc15", "#3b82f6"][i % 4]}"></i>`).join("");
+  return `<div class="tick" role="img" aria-label="Success"><span class="tick-ring"></span><span class="tick-ring r2"></span><span class="tick-bits">${bits}</span>
+    <svg viewBox="0 0 96 96"><circle class="tick-c" cx="48" cy="48" r="44"/><path class="tick-p" d="M29 49.5 L42 62 L67 35"/></svg></div>`;
+}
