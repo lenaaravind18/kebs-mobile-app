@@ -114,9 +114,30 @@ const settingsPage = (title, body) => `<div class="screen">${topbar(title, { lef
 route("settings/lang", () => settingsPage("Language selection", `<b style="display:block;margin:8px 4px 2px">Choose your language</b><p class="small muted" style="margin:0 4px 8px">Navigation and greetings switch right away.</p>
   <div class="list">${LANGS.map((l) => `<button class="opt-row" data-act="setLang" data-v="${l.id}"><span class="grow"><b style="display:block">${l.native}</b><span class="small faint">${l.name}</span></span>${S.settings.lang === l.id ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`));
 act("setLang", (b) => { S.settings.lang = b.dataset.v; save(); rerender(); toast(`Language: ${LANGS.find((l) => l.id === b.dataset.v).name}`); });
-route("settings/theme", () => settingsPage("Theme", `<b style="display:block;margin:8px 4px 8px">Choose how KEBS looks on this device</b>
-  <div class="list">${[["auto", "Automatic", "Matches your device’s light or dark setting", "sparkles"], ["light", "Light mode", "Always light", "sun"], ["dark", "Dark mode", "Always dark", "moon"]].map(([v, t, s, ic]) => `<button class="opt-row" data-act="setTheme" data-v="${v}"><span class="ic tint t-slate" style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center">${I(ic)}</span><span class="grow"><b style="display:block">${t}</b><span class="small faint">${s}</span></span>${S.settings.theme === v ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`));
+const THEME_COLORS = [["orange", "Orange", "#ff9a6b", "#ff4013"], ["blue", "Blue", "#60a5fa", "#2563eb"], ["green", "Green", "#4ade80", "#16a34a"], ["purple", "Purple", "#a78bfa", "#7c4dff"],
+  ["teal", "Teal", "#2dd4bf", "#0d9488"], ["rose", "Rose", "#fb7199", "#e11d58"], ["graphite", "Graphite", "#94a3b8", "#334155"]];
+route("settings/theme", () => {
+  const t = S.settings.theme, ac = S.settings.accent || "orange", st = S.settings.style || "classic";
+  return settingsPage("Theme", `<div class="stack s16" style="padding-top:4px">
+    <div class="th-prev" aria-hidden="true">
+      <div class="th-prev-bar"><i></i>Good morning, ${esc(S.me.display.split(" ")[0])}</div>
+      <div class="th-prev-row"><span class="th-prev-ring"></span><span class="grow"><b>31 days</b><small>Leave left this year</small></span><span class="chip acc">Preview</span></div>
+      <div class="row-btns"><button class="btn primary" style="flex:1" tabindex="-1">Clock in</button><button class="btn outline" style="flex:1" tabindex="-1">Apply leave</button></div>
+    </div>
+    <div class="field"><span class="lbl">Appearance</span><div class="th-modes">${[["auto", "Automatic", "sparkles"], ["light", "Light", "sun"], ["dark", "Dark", "moon"]].map(([v, l, ic]) => `<button class="th-mode ${t === v ? "on" : ""}" data-act="setTheme" data-v="${v}" aria-pressed="${t === v}">${I(ic)}${l}</button>`).join("")}</div>
+      <span class="tiny muted">${t === "auto" ? "Follows your phone’s light or dark setting." : t === "light" ? "Always light." : "Always dark — easier on the eyes at night."}</span></div>
+    <div class="field"><span class="lbl">Colour</span><div class="th-swatches">${THEME_COLORS.map(([v, l, a, b]) => `<button class="th-sw ${ac === v ? "on" : ""}" data-act="setAccent" data-v="${v}" aria-pressed="${ac === v}" aria-label="${l}"><span class="th-dot" style="--a:${a};--b:${b}">${I("check")}</span>${l}</button>`).join("")}</div></div>
+    <div class="field"><span class="lbl">Style</span><div class="th-styles">
+      <button class="th-style ${st === "classic" ? "on" : ""}" data-act="setStyle" data-v="classic" aria-pressed="${st === "classic"}"><span class="th-mini classic"><i></i><i></i><i style="width:70%"></i></span><b>Classic</b><small>Soft gradients, depth and colour</small></button>
+      <button class="th-style ${st === "minimal" ? "on" : ""}" data-act="setStyle" data-v="minimal" aria-pressed="${st === "minimal"}"><span class="th-mini minimal"><i></i><i></i><i style="width:70%"></i></span><b>Minimal</b><small>Flat and quiet — no gradients or shadows</small></button>
+    </div></div>
+    ${ac !== "orange" || st !== "classic" ? `<button class="link" style="align-self:center" data-act="themeReset">Reset to KEBS default</button>` : ""}
+  </div>`);
+});
 act("setTheme", (b) => { S.settings.theme = b.dataset.v; save(); rerender(); });
+act("setAccent", (b) => { S.settings.accent = b.dataset.v; save(); rerender(); toast(`${THEME_COLORS.find((c) => c[0] === b.dataset.v)[1]} theme on`); });
+act("setStyle", (b) => { S.settings.style = b.dataset.v; save(); rerender(); });
+act("themeReset", () => { S.settings.accent = "orange"; S.settings.style = "classic"; save(); rerender(); toast("Back to the KEBS default"); });
 // Device-lock illustration in the Design System's illustration style: dashed blue-grey rings,
 // soft grey objects, one coral gradient accent (#FF8960 → #FF62A5), tiny sparkles
 function secureArt(on) {
