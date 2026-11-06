@@ -81,12 +81,13 @@ route("pay", () => {
   const max = Math.max(...slips.slice(-6).map((s) => s.net));
   return `<div class="screen">${topbar("Salary slips", { right: eyeBtn() })}
   <div class="scroll"><div class="stack">
-    <button class="card accent pay-hero" data-go="#/pay/${last.k}">
-      <span class="eyebrow">${monthName(last.k)} · Paid ${fmtD(last.paidOn, { day: "numeric", month: "short" })}</span>
-      <div class="hrow" style="margin-top:6px"><b class="timer grow">${m$(last.net)}</b>${prev && delta ? `<span class="chip ${delta > 0 ? "ok" : "bad"}">${I(delta > 0 ? "arrowUp" : "arrowDown")}${sign$(delta)}</span>` : ""}</div>
-      <span class="small muted">Take-home pay · ${PAY.bank}</span>
-      <div class="pay-split"><span><i class="dot ok"></i>Gross <b>${m$(last.gross)}</b></span><span><i class="dot bad"></i>Deductions <b>${m$(last.deductions)}</b></span></div>
-      <span class="link-row">View salary slip ${I("chevR")}</span>
+    <button class="paycard ph" data-go="#/pay/${last.k}" aria-label="${esc(monthName(last.k))} take-home ${m$(last.net)}, view salary slip">
+      <div class="pc-top"><span class="pc-ic">${I("wallet")}</span><span class="pc-lbl">${esc(monthName(last.k, { month: "long" }))} take-home</span><span class="ph-paid">Paid ${fmtD(last.paidOn, { day: "numeric", month: "short" })}</span></div>
+      <div class="pc-amt">${S.settings.payHide ? "₹ ••••••" : `<span class="pc-cur">₹</span>${Number(last.net).toLocaleString("en-IN")}`}</div>
+      ${prev && delta ? `<span class="ph-delta ${delta > 0 ? "up" : "down"}">${I(delta > 0 ? "arrowUp" : "arrowDown")}${S.settings.payHide ? "••••" : `₹${Math.abs(delta).toLocaleString("en-IN")}`} ${delta > 0 ? "more" : "less"} than ${esc(monthName(prev.k, { month: "short" }))}</span>` : ""}
+      <div class="ph-bar" aria-hidden="true"><i style="width:${Math.round((last.net / last.gross) * 100)}%"></i></div>
+      <div class="ph-legend"><span><i class="w"></i>Take-home <b>${S.settings.payHide ? "••••" : Math.round((last.net / last.gross) * 100) + "%"}</b></span><span><i></i>Deductions <b>${m$(last.deductions)}</b></span></div>
+      <div class="pc-foot"><span class="pc-sub">${I("building")}<span>${esc(PAY.bank)}</span><em>· Gross ${m$(last.gross)}</em></span><span class="pc-go">${I("chevR")}</span></div>
     </button>
     <div class="sec"><h2>Take-home, last 6 months</h2></div>
     <div class="card ch-card">${areaChart({ values: slips.slice(-6).map((s) => s.net), labels: slips.slice(-6).map((s) => monthName(s.k, { month: "short" })), fmt: (v) => (S.settings.payHide ? "INR ••••" : money(v)) })}</div>
@@ -99,7 +100,7 @@ route("pay", () => {
     </div>
     <button class="card hrow" data-go="#/tax"><span class="tico ms">${msIcon("tax")}</span><span class="grow"><b style="display:block">Tax &amp; declarations</b><span class="small muted">Regime, TDS projection, proofs, Form 16</span></span>${I("chevR")}</button>
     <div class="sec"><h2>Monthly slips</h2></div>
-    <div class="stack s8">${slips.slice().reverse().map((s, i, a) => { const d = a[i + 1] ? s.net - a[i + 1].net : 0; return `<button class="card hrow" data-go="#/pay/${s.k}">${fileIcon(`Payslip_${monthName(s.k, { month: "short" })}_${s.k.slice(0, 4)}.pdf`)}<span class="grow"><b style="display:block">${monthName(s.k)}</b><span class="tiny muted">${s.lop ? `${plural(s.lop, "day")} loss of pay · ` : ""}Paid ${fmtD(s.paidOn, { day: "numeric", month: "short" })}</span></span><span class="pay-amt"><b>${m$(s.net)}</b>${d ? `<small class="${d > 0 ? "up" : "down"}">${sign$(d)}</small>` : ""}</span></button>`; }).join("")}</div>
+    <div class="stack s8" data-lazy="6">${slips.slice().reverse().map((s, i, a) => { const d = a[i + 1] ? s.net - a[i + 1].net : 0; return `<button class="card hrow" data-go="#/pay/${s.k}">${fileIcon(`Payslip_${monthName(s.k, { month: "short" })}_${s.k.slice(0, 4)}.pdf`)}<span class="grow"><b style="display:block">${monthName(s.k)}</b><span class="tiny muted">${s.lop ? `${plural(s.lop, "day")} loss of pay · ` : ""}Paid ${fmtD(s.paidOn, { day: "numeric", month: "short" })}</span></span><span class="pay-amt"><b>${m$(s.net)}</b>${d ? `<small class="${d > 0 ? "up" : "down"}">${sign$(d)}</small>` : ""}</span></button>`; }).join("")}</div>
   </div></div></div>`;
 });
 

@@ -276,7 +276,7 @@ route("search", () => `<div class="screen">
 act("searchAsk", (b) => { const q = b?.dataset?.q || $("[data-search]")?.value.trim(); openKais(q || ""); });
 
 // ── Announcements ──
-route("announcements", () => `<div class="screen">${topbar("Announcements")}<div class="scroll"><div class="stack">${S.posts.map((p) => `
+route("announcements", () => `<div class="screen">${topbar("Announcements")}<div class="scroll"><div class="stack" data-lazy="6">${S.posts.map((p) => `
   <div class="card stack">
     <button class="hrow" data-go="#/post/${p.id}" style="width:100%;text-align:left">${avatar(p.by)}<span class="grow"><b style="display:block">${esc(person(p.by).name)} made an announcement</b><span class="small muted">${D.short(D.iso(p.ts))}</span></span><span class="chev faint">${I("arrowOut")}</span></button>
     <button data-go="#/post/${p.id}" style="text-align:left"><b style="display:block">${esc(p.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.body)}</span></button>

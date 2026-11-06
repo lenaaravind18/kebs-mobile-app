@@ -8,12 +8,13 @@ route("leave/apply", (_, q) => {
   const days = F.from ? (F.dayType === "half" ? 0.5 : D.workdays(F.from, F.to)) : 0;
   return `<div class="screen has-foot">${topbar("Apply leave", { left: `<button class="ib" data-act="back" aria-label="Close">${I("x")}</button>` })}
   <div class="scroll"><div class="stack s16" style="padding-top:6px">
-    <div class="choices">
+    <div class="field"><span class="lbl">Leave dates</span>
+    <div class="choices" role="group" aria-label="Leave dates">
       <button class="choice ${F.quick === "today" ? "on" : ""}" data-act="leaveQuick" data-v="today">Today</button>
       <button class="choice ${F.quick === "tomorrow" ? "on" : ""}" data-act="leaveQuick" data-v="tomorrow">Tomorrow</button>
       <button class="choice ${F.quick === "custom" ? "on" : ""}" data-act="leaveDates">Select dates</button>
     </div>
-    ${F.from ? rangeField("leaveDates", F.from, F.to, { dayType: F.dayType }) : ""}
+    ${F.from ? rangeField("leaveDates", F.from, F.to, { dayType: F.dayType }) : ""}</div>
     ${F.from && days === 0 ? `<div class="banner warn">${I("info")}These dates fall on weekly offs — no leave will be deducted.</div>` : ""}
     <div class="field"><span class="lbl">Leave type</span><button class="inp sel ${lt ? "" : "ph"}" data-act="leaveType"><span>${lt ? `${esc(lt.name)} · ${lt.available} available` : "Select leave type"}</span>${I("chevD")}</button></div>
     ${lt && days > lt.available ? `<div class="banner bad">${I("alert")}Only ${lt.available} ${lt.name.toLowerCase()} day(s) left — you’re requesting ${days}.</div>` : ""}

@@ -33,12 +33,12 @@
   // ── native app updates ──
   const REPO = "lenaaravind18/kebs-mobile-app";
   let nativeAsked = 0;
-  async function checkNative() {
-    const N = window.KebsNative; if (!N || !N.versionCode || Date.now() - nativeAsked < 6 * 3600 * 1000) return;
+  async function checkNative(force) {
+    const N = window.KebsNative; if (!N || !N.versionCode || (!force && Date.now() - nativeAsked < 6 * 3600 * 1000)) return;
     try {
       const rel = await (await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { cache: "no-store" })).json();
       const code = parseInt((rel.tag_name || "").replace(/\D+/g, ""), 10), apk = (rel.assets || []).find((a) => /\.apk$/i.test(a.name));
-      if (!code || !apk || code <= N.versionCode()) return;
+      if (!code || !apk || code <= N.versionCode()) { if (force) toast("You’re on the latest version of the app", "info"); return; }
       nativeAsked = Date.now();
       openSheet({
         title: "Update available",
@@ -51,7 +51,8 @@
           });
         },
       });
-    } catch {}
+    } catch { if (force) toast("Couldn’t check for updates. Check your connection.", "bad"); }
   }
+  window.kebsNativeUpdate = () => checkNative(true); // e.g. the lock screen on an app too old for fingerprint unlock
   addEventListener("load", () => setTimeout(checkNative, 4000));
 })();

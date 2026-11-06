@@ -4,21 +4,27 @@
 
 let CH_ID = 0;
 
+// Range colours: green when on track, amber when partway, red when low. good: "high" (more is better, e.g. hours
+// against a goal) or "low" (less is better, e.g. spend). "accent" keeps the brand colour.
+const RANGE_C = { good: "var(--ok)", mid: "#f5a524", low: "var(--danger)" };
+function rangeColor(r, good = "high") { const x = good === "low" ? 1 - r : r; return x >= 0.75 ? RANGE_C.good : x >= 0.4 ? RANGE_C.mid : RANGE_C.low; }
+
 /** Vertical capsule bars. values: numbers; labels: short x labels; active: index highlighted (e.g. today). */
-function capsuleBars({ values, labels, max, goal, goalLabel, active = values.length - 1, fmt = (v) => String(v), height = 132, future = [] }) {
+function capsuleBars({ values, labels, max, goal, goalLabel, active = values.length - 1, fmt = (v) => String(v), height = 132, future = [], tone = "high" }) {
   const top = Math.max(max || 0, ...values, goal || 0) || 1;
   const pct = (v) => Math.max(0, Math.min(100, (v / top) * 100));
   return `<div class="ch-bars" style="--h:${height}px" data-chart="bars">
     ${goal ? `<span class="ch-goal" style="bottom:calc(18px + (var(--h) + 4px) * ${(pct(goal) / 100).toFixed(4)})"><em>${esc(goalLabel || fmt(goal))}</em></span>` : ""}
-    ${values.map((v, i) => `<button type="button" class="ch-col ${i === active ? "on" : ""} ${future.includes(i) ? "future" : ""} ${goal && v >= goal ? "met" : ""}" data-v="${esc(fmt(v))}" aria-label="${esc(labels[i])}: ${esc(fmt(v))}">
+    ${values.map((v, i) => `<button type="button" class="ch-col ${i === active ? "on" : ""} ${future.includes(i) ? "future" : ""} ${goal && v >= goal ? "met" : ""}" ${tone !== "accent" && v ? `style="--bc:${rangeColor(goal ? v / goal : v / top, tone)}"` : ""} data-v="${esc(fmt(v))}" aria-label="${esc(labels[i])}: ${esc(fmt(v))}">
       <span class="ch-track"><i style="height:${v ? Math.max(6, pct(v)) : 0}%"></i></span><small>${esc(labels[i])}</small></button>`).join("")}
     <span class="ch-tip" aria-hidden="true"></span>
   </div>`;
 }
 
 /** Smooth area chart (monotone curve) with gradient fill; tap a point to read it. */
-function areaChart({ values, labels, fmt = (v) => String(v), height = 128, color = "var(--accent)" }) {
+function areaChart({ values, labels, fmt = (v) => String(v), height = 128, color = "trend" }) {
   const id = "ch" + CH_ID++, W = 320, H = height, P = 14, n = values.length;
+  if (color === "trend") { const a = values[0], b = values[n - 1]; color = b >= a * 1.01 ? RANGE_C.good : b <= a * 0.97 ? RANGE_C.low : RANGE_C.mid; }
   const lo = Math.min(...values), hi = Math.max(...values), span = hi - lo || 1;
   const x = (i) => P + (i * (W - 2 * P)) / Math.max(1, n - 1), y = (v) => H - 22 - ((v - lo) / span) * (H - 48);
   const pts = values.map((v, i) => [x(i), y(v)]);

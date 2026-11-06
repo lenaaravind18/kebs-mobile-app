@@ -117,6 +117,7 @@ function kaisCard(c, mi) {
   if (!c) return "";
   const btn = (label, k, cls = "primary") => (c.done ? "" : `<button class="btn ${cls} sm" data-act="kaisDo" data-k="${k}" data-mi="${mi}">${label}</button>`);
   const done = c.done ? `<div class="banner ok" style="margin-top:10px">${I("checkCircle")}${esc(c.done)}</div>` : "";
+  if (/^x(up|sum|done|mode)$/.test(c.type)) return kaisExpenseCard(c, mi);
   switch (c.type) {
     case "clockin": return `<div class="kc"><div class="hrow"><span class="kc-ic tint t-green">${I("fingerprint")}</span><span class="grow"><b>Clock in now</b><span class="small muted" style="display:block">${OFFICE.name}</span></span>${btn("Clock in", "clockin")}</div>${done}</div>`;
     case "clockout": return `<div class="kc"><div class="hrow"><span class="kc-ic tint t-red">${I("clock")}</span><span class="grow"><b>${fmtMin(workedSec() / 60)} worked</b><span class="small muted" style="display:block">since ${D.time(S.att.today.inTs || Date.now())}</span></span>${btn("Clock out", "clockout", "danger fill")}</div>${done}</div>`;
@@ -133,7 +134,7 @@ function kaisCard(c, mi) {
     case "week": {
       const max = Math.max(9 * 60, ...c.days.map((d) => d.m)), tot = c.days.reduce((a, d) => a + d.m, 0), target = 45 * 60;
       return `<div class="kc"><div class="hrow" style="margin-bottom:6px"><span class="grow"><span class="eyebrow">This week</span><b class="timer" style="display:block;font-size:24px;margin-top:2px">${fmtH(tot)}</b></span><span class="chip ${tot >= target ? "ok" : "acc"}">${Math.round((tot / target) * 100)}% of 45h</span></div>
-        <div class="kchart"><span class="kgoal" style="bottom:${(8 * 60 / max) * 100}%"><em>8h</em></span>${c.days.map((d) => `<div class="col ${d.d === D.today() ? "today" : ""}"><span class="tiny b num">${d.m ? `${Math.floor(d.m / 60)}h${d.m % 60 ? ` ${d.m % 60}m` : ""}` : ""}</span><i style="height:${Math.max(2, (d.m / max) * 100)}%;${d.m ? "" : "opacity:.25"}"></i><small>${D.f(d.d, { weekday: "narrow" })}</small></div>`).join("")}</div>
+        <div class="kchart"><span class="kgoal" style="bottom:${(8 * 60 / max) * 100}%"><em>8h</em></span>${c.days.map((d) => `<div class="col ${d.d === D.today() ? "today" : ""}"><span class="tiny b num">${d.m ? `${Math.floor(d.m / 60)}h${d.m % 60 ? ` ${d.m % 60}m` : ""}` : ""}</span><i style="height:${Math.max(2, (d.m / max) * 100)}%;${d.m ? `background:${rangeColor(d.m / 480)}` : "opacity:.25"}"></i><small>${D.f(d.d, { weekday: "narrow" })}</small></div>`).join("")}</div>
         <button class="btn ghost sm" style="margin-top:12px" data-go="#/ts">Open timesheet</button></div>`;
     }
     case "holidays": return `<div class="kc"><div class="list">${c.list.map((h) => `<div class="li"><span class="daycell"><small>${D.f(h.date, { month: "short" }).toUpperCase()}</small><b>${D.parse(h.date).getDate()}</b></span><span class="grow"><span class="t" style="display:block">${esc(h.name)}</span><span class="s">${D.dayName(h.date)}</span></span>${h.floater ? `<span class="chip vio">Floater</span>` : ""}</div>`).join("")}</div></div>`;
@@ -158,10 +159,17 @@ function kaisCard(c, mi) {
 const KAIS_STARTERS = [
   ["fingerprint", "Clock me in", "Start today’s shift"], ["calendar", "Apply leave tomorrow", "Draft a casual leave"],
   ["clipboard", "How many hours did I log this week?", "Timesheet summary"], ["inbox", "Any pending approvals?", "Clear your inbox"],
-  ["list", "What’s my leave balance?", "All leave types"], ["sun", "When is the next holiday?", "Plan your time off"],
+  ["list", "What’s my leave balance?", "All leave types"], ["receipt", "Apply for an expense", "Kais asks what it needs"],
 ];
 function kaisMsgHtml(m, i, isLast) {
-  if (m.role === "user") return `<div class="km user"><div class="kbub">${m.files?.length ? `<div class="kfiles">${m.files.map((f) => `<span class="chip" style="height:auto;padding:4px 10px 4px 4px">${fileIcon(f)}${esc(f)}</span>`).join("")}</div>` : ""}${esc(m.text)}</div></div>`;
+  // ChatGPT-style: attachments sit above the bubble — photos as thumbnails, other files as a small card
+  if (m.role === "user") {
+    const files = (m.files || []).map((f) => (typeof f === "string" ? { name: f } : f));
+    const att = files.length ? `<div class="kup-files">${files.map((f) => f.img
+      ? `<img class="kup-img" src="${f.img}" alt="${esc(f.name)}">`
+      : `<div class="kup-file">${fileIcon(f.name)}<span class="grow" style="min-width:0"><b class="ell">${esc(f.name)}</b><small>${fileKind(f.name)}${f.size ? ` · ${esc(f.size)}` : ""}</small></span></div>`).join("")}</div>` : "";
+    return `<div class="km user">${att}${m.text ? `<div class="kbub">${esc(m.text)}</div>` : ""}</div>`;
+  }
   const streaming = KAIS.streaming?.mi === i;
   return `<div class="km ai"><div class="kname"><span class="kav-wrap ${streaming ? "busy" : ""}" style="--ad:-${Date.now() % 900}ms"><img class="kav" src="kais.svg" alt=""></span><b>Kais</b>${streaming ? `<span class="sr-only">is responding</span>` : ""}</div><div class="kbody">
     ${kaisReasoning(m, i, streaming)}
@@ -178,7 +186,7 @@ route("kais", () => {
     <div class="kstarters">${KAIS_STARTERS.map(([ic, q, s]) => `<button data-act="kaisAsk" data-q="${esc(q)}"><span class="i">${I(ic)}</span><b>${esc(q)}</b><small>${s}</small></button>`).join("")}</div></div>`;
   const agc = ag && MS_STYLE["ag-" + ag.id];
   return `<div class="screen kais${agc ? " agent" : ""}"${agc ? ` style="--ag:${agc[1]};--ag-2:${agc[2]}"` : ""}>
-    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><button class="ttl kais-ttl" data-act="kaisHistory" aria-label="Open Kais sidebar"><span class="hrow" style="gap:6px;justify-content:center">${ag ? `<span class="ag-logo xs">${msIcon("ag-" + ag.id)}</span>${esc(ag.name)}` : `Kais <span class="k-assist">Assistant</span>`}${I("chevD")}</span></button><button class="ib" data-act="kaisNew" aria-label="New chat">${I("edit")}</button></div></header>
+    <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button><button class="ttl kais-ttl" data-act="kaisHistory" aria-label="Open Kais sidebar"><span class="hrow" style="gap:6px;justify-content:center">${ag ? `<span class="ag-logo xs">${msIcon("ag-" + ag.id)}</span>${esc(ag.name)}` : `Kais <span class="k-assist">Assistant</span>`}${I("chevD")}</span></button><button class="ib" data-act="kaisNew" aria-label="New chat">${I("compose")}</button></div></header>
     <div class="scroll kthread" data-thread>${msgs.length ? msgs.map((m, i) => kaisMsgHtml(m, i, i === msgs.length - 1)).join("") : ag ? agentHello(ag) : hello}</div>
     <form class="kcomposer" data-form="kais">
 
@@ -212,8 +220,8 @@ function kaisSend(text) {
   kaisRespond(c, text);
 }
 function kaisRespond(c, text) {
-  const a = (c.agent && agentAnswer(c.agent, text)) || kaisAnswer(text);
-  const steps = kaisSteps(text, a, c.agent);
+  const a = kaisExpense(c, text) || (c.agent && agentAnswer(c.agent, text)) || kaisAnswer(text);
+  const steps = a.steps || kaisSteps(text, a, c.agent);
   const t0 = Date.now();
   c.msgs.push({ role: "ai", text: a.text, card: a.card || null, follow: a.follow || [], steps });
   save();
@@ -368,7 +376,7 @@ act("kaisHistory", () => {
   const layer = $("#layer");
   const scrim = document.createElement("div"); scrim.className = "scrim";
   const el = document.createElement("aside"); el.className = "drawer ksb";
-  el.innerHTML = `<div class="ksb-top"><span class="hero-pattern" aria-hidden="true"></span><div class="ksb-title"><img src="kais.svg" alt=""><b>Kais</b><span class="k-assist">Assistant</span><span class="grow"></span><button class="ib" data-k="close" aria-label="Close sidebar">${I("x")}</button></div><div class="ksb-head"><label class="searchbox grow">${I("search")}<input data-ksq placeholder="Search chats & agents" aria-label="Search chats and agents"></label><button class="ib" data-k="new" aria-label="New chat">${I("edit")}</button></div></div><div class="ksb-body" data-ksb></div>`;
+  el.innerHTML = `<div class="ksb-top"><span class="hero-pattern" aria-hidden="true"></span><div class="ksb-title"><img src="kais.svg" alt=""><b>Kais</b><span class="k-assist">Assistant</span><span class="grow"></span><button class="ib" data-k="close" aria-label="Close sidebar">${I("x")}</button></div><div class="ksb-head"><label class="searchbox grow">${I("search")}<input data-ksq placeholder="Search chats & agents" aria-label="Search chats and agents"></label><button class="ib" data-k="new" aria-label="New chat">${I("compose")}</button></div></div><div class="ksb-body" data-ksb></div>`;
   layer.append(scrim, el); drawerEl = { el, scrim }; scrim.addEventListener("click", closeDrawer);
   let q = "";
   const draw = () => {

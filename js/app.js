@@ -3,9 +3,30 @@ let navCount = 0;
 let FORM_CHECK = null;
 let unlocked = false;
 
-function go(h) { DRAFT = null; if (location.hash === h) { closeAllSheets(); return rerender(); } navCount++; location.hash = h; }
-function swap(h) { DRAFT = null; location.replace(h); }
-act("back", () => { DRAFT = null; if (navCount > 0) { navCount--; history.back(); } else swap("#/home"); });
+// NAV mirrors the in-app history entries (navCount of them sit above the first screen)
+const NAV = [location.hash || "#/home"];
+const hpath = (h) => (h || "").replace(/^#\/?/, "").split("?")[0];
+function go(h) { DRAFT = null; if (location.hash === h) { closeAllSheets(); return rerender(); } navCount++; NAV.push(h); location.hash = h; }
+function swap(h) { DRAFT = null; NAV[NAV.length - 1] = h; location.replace(h); }
+// Back goes to the screen one level up when a route names its parent (e.g. claim → My expenses),
+// not to whatever page was open before; other screens step back through history as usual.
+function parentOf() {
+  const { path, q } = parseHash();
+  for (const r of ROUTES) { const m = path.match(r.re); if (m) return typeof r.parent === "function" ? r.parent(m.groups || {}, q) : r.parent || null; }
+  return null;
+}
+act("back", () => {
+  DRAFT = null;
+  const target = parentOf();
+  if (target) {
+    let idx = -1;
+    for (let i = NAV.length - 2; i >= 0; i--) if (hpath(NAV[i]) === hpath(target)) { idx = i; break; }
+    const steps = idx >= 0 ? NAV.length - 1 - idx : 0;
+    if (steps && steps <= navCount) { NAV.length = idx + 1; navCount -= steps; NAV[idx] = target; addEventListener("hashchange", () => { if (location.hash !== target) location.replace(target); }, { once: true }); history.go(-steps); return; }
+    return swap(target);
+  }
+  if (navCount > 0) { navCount--; NAV.pop(); history.back(); } else swap("#/home");
+});
 
 function parseHash() {
   const h = location.hash.replace(/^#\/?/, "");
@@ -25,8 +46,11 @@ function dockHtml(on) {
 function lockView() {
   return `<div class="screen"><div class="scroll" style="display:flex;flex-direction:column;justify-content:center;text-align:center">
     <button class="lock-art on" data-lock data-act="unlock" aria-label="Unlock with fingerprint">${I("fingerprint")}</button><h2 style="font:800 24px var(--font);letter-spacing:-.8px">KEBS is locked</h2>
-    <p class="muted" data-lmsg style="margin:6px 24px 22px">Use your fingerprint or screen lock to continue.</p>
-    <button class="btn primary" style="align-self:center" data-act="unlock">${I("fingerprint")}Unlock</button>
+    ${DeviceAuth.isOldNative()
+      ? `<p class="muted" data-lmsg style="margin:6px 24px 22px">Fingerprint unlock needs the latest KEBS app. Update to continue — your data stays on this phone.</p>
+    <button class="btn primary" style="align-self:center" data-act="lockUpdate">${I("arrowDown")}Update app</button>`
+      : `<p class="muted" data-lmsg style="margin:6px 24px 22px">Use your fingerprint or screen lock to continue.</p>
+    <button class="btn primary" style="align-self:center" data-act="unlock">${I("fingerprint")}Unlock</button>`}
     <button class="link" style="align-self:center;margin-top:18px" data-act="lockSignOut">Sign in again instead</button></div></div>`;
 }
 let unlocking = false, lockAuto = true;
@@ -40,7 +64,8 @@ async function tryUnlock() {
   art?.classList.add("err");
   if (msg) msg.textContent = r.error === "cancelled" ? "Tap the fingerprint to try again." : r.error === "lockout" ? "Too many attempts. Try again in a moment, or use your screen lock." : DeviceAuth.message(r.error);
 }
-act("unlock", () => tryUnlock());
+act("unlock", () => { if (DeviceAuth.isOldNative()) return window.kebsNativeUpdate?.(); tryUnlock(); });
+act("lockUpdate", () => window.kebsNativeUpdate ? window.kebsNativeUpdate() : toast("Open KEBS from the app to update", "info"));
 act("lockSignOut", () => confirmSheet({ eyebrow: "Sign in again", text: "Sign out and sign back in with your KEBS account? App lock stays on.", ok: "Sign out", onOk() { S.authed = false; save(); unlocked = false; location.replace("#/login"); render(false); } }));
 // lock again when KEBS comes back after a minute in the background
 let hiddenAt = 0;
@@ -136,6 +161,7 @@ function render(keep) {
   if (keep && st) { const sc = $(".scroll", view); if (sc) sc.scrollTop = st; }
   r.mount?.(m.groups || {}, q);
   lazyMount(path, keep);
+  if (!keep) countUp(view);
   tick();
 }
 const rerender = () => render(true);
@@ -264,3 +290,28 @@ window.kebsBack = () => {
   ACTIONS.back();
   return "handled";
 };
+
+// ── micro-interactions ──
+// hero amounts count up when a screen opens (₹ 4,438 rolls up from 0); skipped for reduced motion
+function RM() { return matchMedia("(prefers-reduced-motion: reduce)").matches; }
+function countUp(root) {
+  if (RM()) return;
+  root.querySelectorAll(".pc-amt, .cg-total > b, .xc-hero .timer, .kx-tot").forEach((el) => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node, target = null;
+    while ((node = walker.nextNode())) if (/\d/.test(node.nodeValue)) target = node;
+    if (!target) return;
+    const raw = target.nodeValue, m = raw.match(/[\d,]+(\.\d+)?/); if (!m) return;
+    const end = parseFloat(m[0].replace(/,/g, "")), dec = (m[1] || "").length - (m[1] ? 1 : 0), indian = !/\$|€|£/.test(el.textContent);
+    if (!(end > 0)) return;
+    const fmt = (v) => v.toLocaleString(indian ? "en-IN" : "en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    const t0 = performance.now(), dur = 700;
+    const tick = (now) => { const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3); target.nodeValue = raw.replace(m[0], fmt(end * e)); if (p < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  });
+}
+// a light haptic tick on primary actions and tab switches (Android; ignored elsewhere)
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".btn.primary, .dock-btn, .dock-kais, .seg button, .choice, .switch, .kx-mode");
+  if (b && !b.disabled && e.isTrusted && navigator.userActivation?.hasBeenActive) try { navigator.vibrate?.(8); } catch {}
+}, true);

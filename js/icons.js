@@ -1,5 +1,6 @@
 // Stroke icons (24px grid, Lucide-style geometry)
 const ICON_PATHS = {
+  compose: '<path d="M12 3.5H6A2.5 2.5 0 0 0 3.5 6v12A2.5 2.5 0 0 0 6 20.5h12a2.5 2.5 0 0 0 2.5-2.5v-6"/><path d="M18.1 3.4a1.9 1.9 0 0 1 2.7 2.7l-8.2 8.2-3.6.9.9-3.6Z"/>',
   cake: '<path d="M4 21h16"/><path d="M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7"/><path d="M5 16c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0"/><path d="M12 12V9"/><path d="M12 6.5c.8-.8.8-2 0-3-.8 1-.8 2.2 0 3Z"/>',
   minus: '<path d="M5 12h14"/>',
   sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
