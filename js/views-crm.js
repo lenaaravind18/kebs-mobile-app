@@ -8,10 +8,19 @@ const stageName = (s) => CRM_STAGES.find((x) => x[0] === s)?.[1] || s;
 const stageProb = (s) => CRM_STAGES.find((x) => x[0] === s)?.[2] ?? 0;
 const LEAD_ST = { new: ["New", "#3b82f6"], contacted: ["Contacted", "#8b5cf6"], qualified: ["Qualified", "#16a34a"], unqualified: ["Unqualified", "#64748b"], converted: ["Converted", "#0d9488"] };
 const LEAD_SRC = ["Website", "Referral", "LinkedIn", "Event", "Cold call", "Partner"];
-const ACT_T = { call: ["Call", "phone", "#16a34a"], meeting: ["Meeting", "users", "#3b82f6"], email: ["Email", "mail", "#8b5cf6"], note: ["Note", "edit", "#d97706"], task: ["Task", "checkCircle", "#e5484d"] };
+const ACT_T = { call: ["Call", "phone", "#16a34a"], meeting: ["Meeting", "calendar", "#3b82f6"], email: ["Email", "mail", "#8b5cf6"], note: ["Note", "edit", "#d97706"], task: ["Task", "clipboard", "#0d9488"] };
 const CALL_OUT = ["Connected", "Left voicemail", "No answer", "Wrong number"];
 const LOST_REASONS = ["Price too high", "Went with a competitor", "No budget", "Went quiet", "Timing — not now", "Missing feature"];
-const CRM_TINTS = ["t-blue", "t-violet", "t-green", "t-teal", "t-amber", "t-pink", "t-orange"];
+// what has to be true before a deal leaves each stage
+const CRM_CHECK = {
+  qualify: [["Budget confirmed", "They have money set aside for this"], ["Decision maker identified", "We know who signs off"], ["Pain point is clear", "We can say why they need us, in one line"], ["Timeline known", "They told us when they want to go live"]],
+  discovery: [["Requirements documented", "Scope written down and shared"], ["Demo done", "Key users have seen the product"], ["Stakeholders mapped", "Champion, buyer and blockers known"], ["Success criteria agreed", "We know what “working” means for them"]],
+  proposal: [["Proposal sent", "Pricing and scope are with the customer"], ["Proposal walked through", "We presented it, not just emailed it"], ["Procurement contact known", "Legal / purchase team identified"], ["Verbal yes from champion", "Our champion supports the proposal"]],
+  negotiation: [["Commercial terms agreed", "Price, payment terms and discounts final"], ["Contract signed or PO received", "We have it in writing"], ["Handover to delivery planned", "Kick-off date and team set"]],
+};
+const crmChecks = (d) => { const list = CRM_CHECK[d.stage] || []; const got = d.checks?.[d.stage] || []; return list.map((_, i) => got.includes(i)); };
+const crmNextStage = (d) => (d.stage === "negotiation" ? "won" : CRM_OPEN[CRM_OPEN.indexOf(d.stage) + 1] || "won");
+const CRM_TINTS =["t-blue", "t-violet", "t-green", "t-teal", "t-amber", "t-pink", "t-orange"];
 
 function seedCrm() {
   const t = D.today(), add = (n) => D.add(t, n), now = Date.now(), dayMs = 864e5;
@@ -55,6 +64,9 @@ function seedCrm() {
   return { contacts, deals, leads, acts };
 }
 if (!S.crm) { S.crm = seedCrm(); save(); }
+// demo: some checklist items already ticked on the sample deals
+{ const pre = { dl1: { negotiation: [0] }, dl2: { proposal: [0, 1] }, dl3: { discovery: [0] }, dl6: { discovery: [0, 1, 2] } };
+  let ch = false; S.crm.deals.forEach((d) => { if (!d.checks && pre[d.id]) { d.checks = pre[d.id]; ch = true; } }); if (ch) save(); }
 // deal-room chats live with the project chats
 function seedDealChats() {
   const now = Date.now(), h = 36e5, me = (S.me.display || "you").split(" ")[0];
@@ -186,13 +198,14 @@ function crmLeadRow(l) {
 const crmScoreTxt = (s) => `${s >= 70 ? "🔥 " : ""}Score ${s}`;
 function crmActRow(a, showRef) {
   const [label, ic, c] = ACT_T[a.type], overdue = !a.done && a.due && a.due < D.today();
-  return `<div class="crm-act ${a.done ? "done" : ""}">
-    ${!a.done && a.due ? `<button class="tk-check" data-act="crmDone" data-id="${a.id}" aria-label="Mark done">${I("check")}</button>` : `<span class="crm-act-ic" style="--c:${c}">${I(ic)}</span>`}
+  return `<div class="crm-act ${a.done ? "logged" : ""}">
+    <span class="crm-act-ic" style="--c:${c}" aria-hidden="true">${I(ic)}</span>
     <button class="grow crm-act-b" data-act="crmActOpen" data-id="${a.id}">
       <b class="ell">${esc(a.title)}</b>
       <span class="small muted ell">${label}${a.outcome ? ` · ${esc(a.outcome)}` : ""}${a.dur ? ` · ${a.dur} min` : ""}${showRef ? ` · ${esc(crmRefName(a.ref))}` : ""}</span>
       <span class="tiny ${overdue ? "bad" : "muted"}">${crmWhen(a)}</span>
-    </button></div>`;
+    </button>
+    ${!a.done && a.due ? `<button class="tk-check crm-act-ck" data-act="crmDone" data-id="${a.id}" aria-label="Mark “${esc(a.title)}” done">${I("check")}</button>` : ""}</div>`;
 }
 
 // ── deal detail ──
@@ -210,7 +223,10 @@ route("crm/deal/:id", ({ id }) => {
         <div class="hrow" style="align-items:flex-start"><span class="grow" style="min-width:0"><span class="tiny muted">${esc(d.company)}</span><h1>${esc(d.name)}</h1></span><span class="crm-st" style="--c:${STAGE_C[d.stage]}">${stageName(d.stage)}</span></div>
         <div class="crm-dval"><b class="num">${crmAmt(d.value)}</b><span class="small muted">${d.prob}% likely · ${crmAmt(d.value * d.prob / 100)} weighted</span></div>
         ${isOpen || d.stage === "won" || d.stage === "lost" ? `<div class="crm-steps" role="group" aria-label="Deal stage">${CRM_OPEN.map((s, i) => `<button class="crm-step ${d.stage === "won" || i < si ? "past" : i === si ? "on" : ""}" style="--c:${STAGE_C[s]}" data-act="crmMove" data-id="${d.id}" data-v="${s}" ${!isOpen ? "disabled" : ""} aria-label="Move to ${stageName(s)}"${i === si ? ' aria-current="step"' : ""}><i></i><span>${stageName(s)}</span></button>`).join("")}</div>` : ""}
-        ${isOpen ? `<div class="crm-wl"><button class="btn outline" data-act="crmMove" data-id="${d.id}" data-v="lost">${I("x")}Mark lost</button><button class="btn primary" data-act="crmMove" data-id="${d.id}" data-v="won">${I("award")}Mark won</button></div>`
+        ${isOpen ? (() => { const nx = crmNextStage(d), ck = crmChecks(d), n = ck.filter(Boolean).length, tot = (CRM_CHECK[d.stage] || []).length;
+          return `<button class="crm-ck-line" data-act="crmNext" data-id="${d.id}"><span class="crm-ck-ring" style="--p:${tot ? Math.round(n / tot * 100) : 0}"></span><span class="grow"><b>${stageName(d.stage)} checklist</b><small>${n} of ${tot} done · next: ${stageName(nx)}</small></span>${I("chevR")}</button>
+          <button class="btn primary block crm-next" data-act="crmNext" data-id="${d.id}">${nx === "won" ? `${I("award")}Close as won` : `Move to ${stageName(nx)}${I("chevR")}`}</button>
+          <div class="crm-wl"><button class="btn outline" data-act="crmMove" data-id="${d.id}" data-v="lost">${I("x")}Mark lost</button><button class="btn outline" data-act="crmMove" data-id="${d.id}" data-v="won">${I("award")}Mark won</button></div>`; })()
           : `<div class="banner ${d.stage === "won" ? "ok" : "bad"}">${I(d.stage === "won" ? "award" : "info")}${d.stage === "won" ? `Won ${D.short(D.iso(d.history.at(-1).ts))}` : `Lost${d.lostReason ? ` — ${esc(d.lostReason)}` : ""}`}<span class="grow"></span><button class="link" data-act="crmReopen" data-id="${d.id}">Reopen</button></div>`}
       </div>
       ${late ? `<div class="banner bad">${I("clock")}Expected close was ${D.short(d.close)} — update the date or move the deal.</div>` : ""}
@@ -311,11 +327,13 @@ function crmSetStage(d, to, extra = {}) {
   save(); rerender(); try { navigator.vibrate?.(12); } catch {}
   return () => { Object.assign(d, prev); if (!prev.lostReason) delete d.lostReason; save(); rerender(); };
 }
-function crmMoveTo(d, to) {
+function crmMoveTo(d, to, checked) {
   if (!d || d.stage === to) return;
   if (to === "lost") return crmLostSheet(d);
+  const fwd = to === "won" ? d.stage === "negotiation" : CRM_OPEN.indexOf(to) > CRM_OPEN.indexOf(d.stage);
+  // moving forward goes through the current stage's checklist first
+  if (fwd && !checked && !crmChecks(d).every(Boolean)) return crmChecklistSheet(d, to);
   if (to === "won") return crmWonSheet(d);
-  const fwd = CRM_OPEN.indexOf(to) > CRM_OPEN.indexOf(d.stage);
   const undo = crmSetStage(d, to);
   undoToast(`${fwd ? "Moved" : "Moved back"} to ${stageName(to)}`, undo);
 }
@@ -323,6 +341,35 @@ act("crmMove", (b) => crmMoveTo(crmDeal(b.dataset.id), b.dataset.v));
 function crmMoveSheet(d) {
   if (!d) return;
   pickOption({ title: `Move “${d.name}”`, value: d.stage, options: CRM_STAGES.map(([v, l, p]) => ({ v, label: l, sub: v === "won" ? "Closed — signed" : v === "lost" ? "Closed — not going ahead" : `${p}% likely · ${S.crm.deals.filter((x) => x.stage === v).length} deals here`, icon: v === "won" ? "award" : v === "lost" ? "x" : "arrowUp" })), onPick: (v) => crmMoveTo(d, v) });
+}
+act("crmNext", (b) => { const d = crmDeal(b.dataset.id); if (!d) return; const ok = crmChecks(d).every(Boolean); ok ? crmMoveTo(d, crmNextStage(d), true) : crmChecklistSheet(d, crmNextStage(d)); });
+// bottom drawer: tick the current stage's checklist, then move on (ticks are saved as you go)
+function crmChecklistSheet(d, to) {
+  const list = CRM_CHECK[d.stage] || [], from = d.stage;
+  const skipped = to !== "won" ? CRM_OPEN.slice(CRM_OPEN.indexOf(from) + 1, CRM_OPEN.indexOf(to)) : [];
+  const s = openSheet({ title: to === "won" ? "Ready to close?" : `Move to ${stageName(to)}`, body: `<div data-f></div>`, foot: `<button class="btn primary block" data-s="go"></button>`,
+    onMount(el) {
+      const draw = () => {
+        const got = crmChecks(d), n = got.filter(Boolean).length, all = n === list.length;
+        el.querySelector("[data-f]").innerHTML = `
+          <div class="crm-ck-hd"><span class="crm-ck-from" style="--c:${STAGE_C[from]}">${stageName(from)}</span>${I("chevR")}<span class="crm-ck-from" style="--c:${STAGE_C[to]}">${stageName(to)}</span><span class="grow"></span><b class="${all ? "ok" : ""}">${n}/${list.length}</b></div>
+          <span class="crm-ck-bar"><i style="width:${list.length ? n / list.length * 100 : 0}%"></i></span>
+          <p class="small muted" style="margin:10px 2px 8px">Tick what’s done in ${stageName(from)} before moving on.${skipped.length ? ` This also skips ${skipped.map(stageName).join(" and ")}.` : ""}</p>
+          <div class="crm-ck-list">${list.map(([label, hint], i) => `<button class="crm-ck ${got[i] ? "on" : ""}" data-s="ck" data-i="${i}" role="checkbox" aria-checked="${got[i]}"><span class="crm-ck-box">${I("check")}</span><span class="grow"><b>${esc(label)}</b><small>${esc(hint)}</small></span></button>`).join("")}</div>
+          ${!all ? `<button class="link crm-ck-all" data-s="all">Tick all</button>` : ""}`;
+        const go = el.querySelector("[data-s=go]");
+        go.disabled = !all;
+        go.innerHTML = all ? (to === "won" ? `${I("award")}Continue to close as won` : `Move to ${stageName(to)}${I("chevR")}`) : `${list.length - n} left to tick`;
+      };
+      const setChecks = (arr) => { d.checks ||= {}; d.checks[from] = arr; save(); draw(); };
+      onS(el, {
+        ck(b) { const i = Number(b.dataset.i), cur = new Set(d.checks?.[from] || []); cur.has(i) ? cur.delete(i) : cur.add(i); try { navigator.vibrate?.(8); } catch {} setChecks([...cur]); },
+        all() { setChecks(list.map((_, i) => i)); },
+        go() { if (!crmChecks(d).every(Boolean)) return; closeSheet(s); setTimeout(() => crmMoveTo(d, to, true), 180); },
+      });
+      draw();
+    },
+    onClose() { rerender(); } });
 }
 function crmLostSheet(d) {
   let reason = "", err = false;
@@ -355,17 +402,34 @@ act("crmDone", (b) => {
 });
 act("crmActOpen", (b) => {
   const a = S.crm.acts.find((x) => x.id === b.dataset.id); if (!a) return;
-  const [label, ic, c] = ACT_T[a.type];
-  const s = openSheet({ title: "", body: `<div class="crm-asheet"><span class="crm-act-ic lg" style="--c:${c}">${I(ic)}</span><span class="tiny muted">${label}${a.done ? " · Logged" : " · Planned"}</span><h2>${esc(a.title)}</h2>
-      <div class="cd-kv" style="width:100%;text-align:left">
-        <button class="crm-kv" data-s="ref"><span>Related to</span><b class="ell">${esc(crmRefName(a.ref))}</b></button>
-        <div><span>${a.done ? "When" : "Due"}</span><b>${crmWhen(a)}</b></div>
-        ${a.outcome ? `<div><span>Outcome</span><b>${esc(a.outcome)}</b></div>` : ""}${a.dur ? `<div><span>Duration</span><b>${a.dur} min</b></div>` : ""}
-      </div>${a.notes ? `<p class="crm-notes">${esc(a.notes)}</p>` : ""}</div>`,
-    foot: `<div class="row-btns"><button class="btn outline" style="flex:1;color:var(--danger)" data-s="del">${I("trash")}Delete</button>${a.done ? "" : `<button class="btn primary" style="flex:1" data-s="done">${I("check")}Mark done</button>`}</div>`,
+  const [label, ic, c] = ACT_T[a.type], overdue = !a.done && a.due && a.due < D.today(), refIc = a.ref.k === "deal" ? "target" : a.ref.k === "lead" ? "sparkles" : "user";
+  const status = a.done ? ["Done", "var(--ok)"] : overdue ? ["Overdue", "var(--danger)"] : ["Planned", "#3b82f6"];
+  const row = (icon, tint, k, v, attr = "") => `${attr ? `<button class="crm-kv" ${attr}>` : "<div>"}<span class="kv-ic"><i class="tint ${tint}">${I(icon)}</i>${k}</span><b class="pj-kv-v">${v}</b>${attr ? I("chevR") + "</button>" : "</div>"}`;
+  const s = openSheet({ title: "", cls: "crm-as-sheet", body: `<div class="crm-as">
+      <div class="crm-as-hd"><span class="crm-act-ic lg" style="--c:${c}">${I(ic)}</span><span class="grow" style="min-width:0"><span class="crm-as-meta">${label}<span class="crm-st" style="--c:${status[1]}">${status[0]}</span></span><h2>${esc(a.title)}</h2></span></div>
+      <div class="card"><div class="cd-kv">
+        ${row(refIc, "t-blue", "Related to", `<span class="ell">${esc(crmRefName(a.ref).split(" · ")[0])}</span>`, `data-s="ref"`)}
+        ${row("calendar", overdue ? "t-red" : "t-violet", a.done ? "Logged" : "Due", `<span class="${overdue ? "bad" : ""}">${a.done ? `${D.short(D.iso(a.ts))} · ${D.time(a.ts)}` : `${crmDayTxt(a.due)}`}</span>`)}
+        ${!a.done && a.due ? row("clock", "t-amber", "Time", a.time ? D.hm(a.time) : "Any time") : ""}
+        ${a.outcome ? row("phone", "t-green", "Outcome", esc(a.outcome)) : ""}
+        ${a.dur ? row("history", "t-slate", "Duration", `${a.dur} min`) : ""}
+        ${row("user", "t-teal", "Owner", `<span class="hrow" style="gap:6px">${avatar("me", "xs")}You</span>`)}
+      </div></div>
+      ${a.notes ? `<div class="sec" style="margin-top:14px"><h2 class="sec-ic">${I("edit")}Notes</h2></div><p class="crm-notes">${esc(a.notes)}</p>` : ""}
+      <button class="crm-as-del" data-s="del">${I("trash")}Delete activity</button>
+    </div>`,
+    foot: a.done ? `<button class="btn primary block" data-s="follow">${I("plus")}Plan a follow-up</button>`
+      : `<div class="row-btns"><button class="btn outline" style="flex:1" data-s="resched">${I("calendar")}Reschedule</button><button class="btn primary" style="flex:1" data-s="done">${I("check")}Mark done</button></div>`,
     onMount(el) { onS(el, {
       ref() { closeSheet(s); go(crmRefHref(a.ref)); },
       done() { closeSheet(s); a.done = true; a.ts = Date.now(); save(); rerender(); toast("Marked done"); },
+      follow() { closeSheet(s); setTimeout(() => crmLogSheet(a.ref, "task"), 180); },
+      resched() {
+        pickDates({ title: "Reschedule to", mode: "single", start: a.due < D.today() ? D.today() : a.due, min: D.today(), onDone: ({ start }) => {
+          const prev = a.due; a.due = start; save(); closeSheet(s); rerender();
+          undoToast(`Moved to ${crmDayTxt(start)}`, () => { a.due = prev; save(); rerender(); });
+        } });
+      },
       del() { closeSheet(s); const i = S.crm.acts.indexOf(a); S.crm.acts.splice(i, 1); save(); rerender(); undoToast("Activity deleted", () => { S.crm.acts.splice(i, 0, a); save(); rerender(); }); },
     }); } });
 });

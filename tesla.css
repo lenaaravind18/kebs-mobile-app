@@ -2693,3 +2693,56 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .tp-s:active { transform: scale(.95); }
 .tp-s.on { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
 :root[data-corners="sharp"] :is(.dt-btn, .tp-s) { border-radius: 6px !important; }
+
+/* filter heading: room below it */
+.pj-fh { margin-bottom: 10px; }
+.pj-fh + .stack, .pj-fh + .card, .pj-fh + .crm-board { margin-top: 0 !important; }
+/* deal: stage checklist + move to next stage */
+.crm-ck-line { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 14px; background: var(--panel-2); text-align: left; }
+.crm-ck-line b { display: block; font-size: 14px; } .crm-ck-line small { display: block; font-size: 12px; color: var(--ink-3); }
+.crm-ck-line > .i { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+.crm-ck-ring { flex: none; width: 30px; height: 30px; border-radius: 50%; background: conic-gradient(var(--ok) calc(var(--p) * 1%), color-mix(in srgb, var(--ink) 10%, transparent) 0); -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px); mask: radial-gradient(circle, transparent 9px, #000 10px); }
+.crm-next { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.crm-next .i { width: 18px; height: 18px; }
+.crm-wl .btn { min-height: 42px; font-size: 14px; }
+.crm-ck-hd { display: flex; align-items: center; gap: 8px; }
+.crm-ck-hd > .i { width: 14px; height: 14px; color: var(--ink-3); }
+.crm-ck-hd b { font-size: 14px; color: var(--ink-2); } .crm-ck-hd b.ok { color: var(--ok); }
+.crm-ck-from { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.crm-ck-from::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.crm-ck-bar { display: block; height: 6px; margin-top: 10px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
+.crm-ck-bar i { display: block; height: 100%; border-radius: 3px; background: var(--ok); transition: width .3s ease; }
+.crm-ck-list { display: flex; flex-direction: column; border-radius: 16px; background: var(--panel); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
+.crm-ck { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; transition: background .15s; }
+.crm-ck + .crm-ck { border-top: 1px solid var(--hairline, var(--line)); }
+.crm-ck b { display: block; font-size: 14.5px; transition: color .15s; } .crm-ck small { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.crm-ck-box { flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px var(--line-2, #c7ccd6); color: transparent; transition: background .15s, box-shadow .15s, transform .15s; }
+.crm-ck-box .i { width: 14px; height: 14px; }
+.crm-ck.on .crm-ck-box { background: var(--ok); box-shadow: none; color: #fff; animation: ckPop .25s ease; }
+.crm-ck.on b { color: var(--ink-2); }
+.crm-ck:active { background: var(--panel-2); }
+@keyframes ckPop { 50% { transform: scale(1.18); } }
+.crm-ck-all { display: block; margin: 10px auto 0; }
+:root[data-corners="sharp"] :is(.crm-ck-line, .crm-ck-list, .crm-ck-box) { border-radius: 6px !important; }
+
+/* CRM activity rows: type icon left, tick right; activity detail sheet */
+.crm-act { align-items: center; }
+.crm-act > .crm-act-ic { align-self: flex-start; margin-top: 2px; width: 36px; height: 36px; border-radius: 11px; }
+.crm-act > .crm-act-ic .i { width: 18px; height: 18px; }
+.crm-act-ck { flex: none; margin: 0 !important; }
+.crm-act.logged .crm-act-b b { color: var(--ink); }
+.crm-as { display: flex; flex-direction: column; gap: 14px; }
+.crm-as-hd { display: flex; align-items: center; gap: 14px; }
+.crm-as-hd .crm-act-ic.lg { width: 52px; height: 52px; border-radius: 16px; }
+.crm-as-hd .crm-act-ic.lg .i { width: 24px; height: 24px; }
+.crm-as-meta { display: flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+.crm-as-hd h2 { font: 700 19px/1.3 var(--font); letter-spacing: -.4px; margin-top: 3px; }
+.crm-as .card { padding-top: 6px !important; padding-bottom: 6px !important; }
+.crm-as .crm-kv > .i { width: 15px; height: 15px; color: var(--ink-3); flex: none; margin-left: -4px; }
+.crm-as .crm-kv .pj-kv-v { margin-left: auto; }
+.crm-as .crm-notes { margin-top: -6px; }
+.crm-as-del { display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: center; padding: 6px 12px; font-size: 14px; font-weight: 600; color: var(--danger); }
+.crm-as-del .i { width: 16px; height: 16px; }
+.crm-as-sheet .row-btns .btn, .crm-as-sheet .btn.block { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+:root[data-corners="sharp"] :is(.crm-act > .crm-act-ic, .crm-as-hd .crm-act-ic.lg) { border-radius: 6px !important; }
+.crm-as .bad, .pj-kv-v .bad { color: var(--danger) !important; font-weight: 600; }
