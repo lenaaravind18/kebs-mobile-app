@@ -2918,3 +2918,48 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .pi-chips > *, .pi-chips .chip { box-shadow: none !important; border: 0 !important; background: var(--panel-2) !important; }
 .pi-chips .chip.warn, .pi-chips > .warn { background: color-mix(in srgb, var(--warn) 14%, var(--panel)) !important; }
 .pi-sort { box-shadow: none !important; }
+
+/* ══ calm pass: neutral page, accent only for actions, colour only for meaning, one icon style ══ */
+/* 1. neutral cool page in light mode (the header keeps the theme colour) */
+:root:root:root[data-theme="light"] { --bg: #f9fafb; --canvas: #f3f4f6; --panel-2: #f2f3f5; }
+@media (prefers-color-scheme: light) { :root:root:root:not([data-theme="dark"]) { --bg: #f9fafb; --canvas: #f3f4f6; --panel-2: #f2f3f5; } }
+
+/* 2. accent only for actions: links and section icons go neutral */
+.link, .sec .link { color: var(--ink-2) !important; font-weight: 600; }
+.link:active { color: var(--ink) !important; }
+.sec-ic > .i, .sec h2 > .i { color: var(--ink-3) !important; }
+.pj-fbtn .i { color: var(--ink-3) !important; }
+
+/* 3. colour only for meaning: icons in stats and detail rows are neutral unless they mean overdue / warning / done */
+.kv-ic > i, .pj-st-ic, .pj-sum-ic, .crm-kpis i, .w-tk-h .i, .rw-card .w-tk-h .i { color: var(--ink-3) !important; }
+.kv-ic > i.t-red, .pj-st-ic.t-red, .pj-sum-ic.t-red, .w-tk-stat.bad .w-tk-h .i, .rw-card .w-tk-stat.bad .w-tk-h .i { color: var(--danger) !important; }
+.w-tk-stat.warn .w-tk-h .i { color: var(--warn) !important; }
+.pj-sum-ic.t-green { color: var(--ok) !important; }
+.tk-grp > .i { color: var(--ink-3) !important; }
+.tk-grp[data-g="Overdue"] > .i { color: var(--danger) !important; }
+
+/* 4. one icon style inside content: plain line icons, no tinted squares (glossy tiles stay for launching apps) */
+.li > .ic.tint, .w-attn .ic.tint, .rw-list .ic, .rw-list .ic.tint { background: none !important; box-shadow: none !important; color: var(--ink-2) !important; width: 28px !important; height: 28px !important; }
+.li > .ic.tint .i, .w-attn .ic .i, .rw-list .ic .i { width: 22px !important; height: 22px !important; }
+.li > .ic.tint::before { content: none !important; }
+
+/* 5. Clock in: a slimmer button so it doesn't compete with the header */
+.btn.block[data-act="clockToggle"] { min-height: 44px !important; height: 44px; font-size: 15px; }
+
+/* header search: a solid search bar on the coloured header (dark text, grey icons), like Google / PhonePe */
+.hero-ask, :root[data-theme="dark"] .hero-ask { background: #ffffff !important; box-shadow: 0 2px 10px -4px rgba(0, 0, 0, .22) !important; border: 0 !important; backdrop-filter: none !important; color: #4b5563 !important; height: 46px !important; border-radius: 23px !important; padding: 0 5px 0 16px !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: #ffffff !important; box-shadow: 0 2px 10px -4px rgba(0, 0, 0, .35) !important; } }
+.hero-ask > .i { color: var(--accent) !important; opacity: 1 !important; width: 18px !important; height: 18px !important; }
+.hero-ask input, :root[data-theme="dark"] .hero-ask input { color: #111827 !important; font: 400 15px var(--font) !important; }
+.hero-ask input::placeholder { color: #6b7280 !important; font-weight: 400 !important; }
+.hero-ask .go, :root[data-theme="dark"] .hero-ask .go { background: none !important; box-shadow: none !important; color: #4b5563 !important; width: 36px !important; height: 36px !important; border-radius: 50% !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask .go { background: none !important; color: #4b5563 !important; } }
+.hero-ask .go:active { background: #f3f4f6 !important; }
+.hero-ask .go .i { opacity: 1 !important; }
+.hero-ask .go.send { background: var(--accent) !important; color: #fff !important; }
+.hero-ask .go.mic + .go { margin-left: 0 !important; }
+:root[data-corners="sharp"] .hero-ask { border-radius: 6px !important; }
+/* neutral stat and row icons (beats the older .tint colours) */
+.pj-st .pj-st-ic.tint, .pj-sum > div .pj-sum-ic.tint, .kv-ic > i.tint, .crm-kpis > span > i { color: var(--ink-3) !important; }
+.pj-st .pj-st-ic.tint.t-red, .pj-sum > div .pj-sum-ic.tint.t-red, .kv-ic > i.tint.t-red { color: var(--danger) !important; }
+.pj-sum > div .pj-sum-ic.tint.t-green { color: var(--ok) !important; }
