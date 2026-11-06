@@ -39,12 +39,12 @@ function holidaysFor(year) {
 }
 
 const QUICK_ACTIONS = [
-  { id: "scan", label: "Scan bill", cat: "Expense", icon: "scan", tint: "t-blue", go: "#/expenses/new?scan=1" },
+  { id: "scan", label: "Scan bill", cat: "Expense", icon: "scan", tint: "t-blue", go: "#/expenses/new?mode=single" },
   { id: "leave", label: "Book leave", cat: "Leave Management", icon: "calendar", tint: "t-red", go: "#/leave/apply" },
   { id: "wfh", label: "Apply WFH", cat: "Raise Request", icon: "home", tint: "t-orange", go: "#/req/wfh" },
   { id: "clock", label: "Clock in", cat: "Attendance", icon: "fingerprint", tint: "t-green", act: "clockToggle" },
   { id: "insights", label: "Expense insights", cat: "Expense", icon: "chart", tint: "t-violet", go: "#/expenses?tab=insights" },
-  { id: "bills", label: "Saved bills", cat: "Expense", icon: "receipt", tint: "t-pink", go: "#/expenses?tab=bills" },
+  { id: "bills", label: "Saved receipts", cat: "Expense", icon: "receipt", tint: "t-pink", go: "#/expenses?tab=saved" },
   { id: "track", label: "Track expense", cat: "Expense", icon: "wallet", tint: "t-amber", go: "#/expenses" },
   { id: "timesheet", label: "Timesheet", cat: "Timesheet", icon: "clipboard", tint: "t-teal", go: "#/ts" },
   { id: "holidays", label: "Holidays", cat: "Leave Management", icon: "calendar", tint: "t-orange", go: "#/holidays" },

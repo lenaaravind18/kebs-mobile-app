@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "kebs", "runtimeExecutable": "node", "runtimeArgs": ["server.mjs", "5270"], "port": 5270 }
+    { "name": "kebs", "runtimeExecutable": "node", "runtimeArgs": ["server.mjs"], "port": 5270 }
   ]
 }

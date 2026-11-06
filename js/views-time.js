@@ -36,12 +36,12 @@ route("apps", (_, q) => {
         ${tileBtn("alert", "t-amber", "Rejected entries", "View rejected entries and resubmit them.", `data-go="#/ts/history?f=rejected"`)}
       </div>`;
   } else if (tab === "finances") {
-    const pending = S.expenses.filter((e) => e.status === "pending").reduce((a, e) => a + e.amount, 0);
+    const pending = expList().filter((e) => e.status === "pending").reduce((a, e) => a + e.amount, 0);
     const month = D.today().slice(0, 7);
-    const approved = S.expenses.filter((e) => e.status === "approved" && e.date.startsWith(month)).reduce((a, e) => a + e.amount, 0);
+    const approved = expList().filter((e) => e.status === "approved" && e.date.startsWith(month)).reduce((a, e) => a + e.amount, 0);
     const hols = holidays().filter((h) => h.date >= D.today()).slice(0, 3);
     const mon = D.f(D.today(), { month: "short" });
-    const pN = S.expenses.filter((e) => e.status === "pending").length, aN = S.expenses.filter((e) => e.status === "approved" && e.date.startsWith(month)).length;
+    const pN = expList().filter((e) => e.status === "pending").length, aN = expList().filter((e) => e.status === "approved" && e.date.startsWith(month)).length;
     const rs = (n) => `<span class="pc-cur">₹</span>${Number(n).toLocaleString("en-IN")}`;
     body = `<a class="paycard" href="#/expenses" aria-label="Pending payout ${money(pending)}, view claims">
         <div class="pc-top"><span class="pc-ic">${I("wallet")}</span><span class="pc-lbl">Pending payout</span><span class="pc-chip">${I("clock")}${plural(pN, "claim")}</span></div>
@@ -56,8 +56,8 @@ route("apps", (_, q) => {
       <div class="sec"><h2>Expenses</h2></div>
       <div class="grid2">
         ${tileBtn("wallet", "t-amber", "Track expense", "Claims, statuses and receipts.", `data-go="#/expenses"`)}
-        ${tileBtn("scan", "t-blue", "Scan bill", "Snap a receipt to start a claim.", `data-go="#/expenses/new?scan=1"`)}
-        ${tileBtn("receipt", "t-pink", "Saved bills", "Bills waiting to be claimed.", `data-go="#/expenses?tab=bills"`)}
+        ${tileBtn("scan", "t-blue", "Scan bill", "Snap a receipt to start a claim.", `data-go="#/expenses/new?mode=single"`)}
+        ${tileBtn("receipt", "t-pink", "Saved receipts", "Receipts waiting to be claimed.", `data-go="#/expenses?tab=saved"`)}
         ${tileBtn("chart", "t-violet", "Expense insights", "Where your spend goes.", `data-go="#/expenses?tab=insights"`)}
       </div>
       <div class="sec"><h2>Upcoming holidays</h2><button class="link" data-go="#/holidays">View all</button></div>
@@ -232,7 +232,7 @@ act("withdrawReq", (b) => confirmSheet({ eyebrow: "Withdraw", text: "Withdraw th
   const r = S.requests.find((x) => x.id === b.dataset.id); r.status = "withdrawn"; r.activity.push({ text: "Withdrawn by you", ts: Date.now(), kind: "bad" }); save(); swap(`#/request/${r.id}`); toast("Request withdrawn");
 } }));
 act("reqComment", (b) => {
-  const s = openSheet({ title: "Add comment", body: `<textarea class="inp" data-t placeholder="Add context for your approver" autofocus></textarea>`, foot: `<button class="btn primary block" data-s="ok">Add comment</button>`,
+  const s = openSheet({ title: "Add comment", body: `<textarea class="inp" data-t placeholder="Add context for your approver"></textarea>`, foot: `<button class="btn primary block" data-s="ok">Add comment</button>`,
     onMount(el) { onS(el, { ok() { const v = el.querySelector("[data-t]").value.trim(); if (!v) return; const r = S.requests.find((x) => x.id === b.dataset.id); r.comments.push({ text: v, ts: Date.now() }); r.activity.push({ text: "Comment added", ts: Date.now(), kind: "" }); save(); closeSheet(s); rerender(); } }); } });
 });
 

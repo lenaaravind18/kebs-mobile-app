@@ -109,58 +109,6 @@ act("ixOpen", (b) => {
   });
 });
 
-// ── Expenses ──
-const EXP_CATS = [["Food & Beverages", "utensils"], ["Travel", "plane"], ["Software", "grid"], ["Internet", "globe"], ["Local conveyance", "wallet"], ["Other", "receipt"]];
-const catIcon = (c) => (EXP_CATS.find(([n]) => n === c) || EXP_CATS[5])[1];
-route("expenses", (_, q) => {
-  const tab = q.tab || "claims";
-  let body;
-  if (tab === "claims") {
-    body = `<div class="stack">${S.expenses.slice().sort((a, b) => (a.date < b.date ? 1 : -1)).map((e) => `<div class="card hrow"><span class="li" style="padding:0;border:0"><span class="ic tint t-amber">${I(catIcon(e.cat))}</span></span><span class="grow"><b style="display:block" class="ell">${esc(e.title)}</b><span class="tiny muted">${esc(e.cat)} · ${D.short(e.date)}${e.note ? ` · <span style="color:var(--danger)">${esc(e.note)}</span>` : ""}</span></span><span class="stack s6" style="align-items:flex-end"><b class="num">${money(e.amount)}</b>${statusChip(e.status)}</span></div>`).join("") || emptyState(["wallet", "receipt", "scan"], "No claims yet", "Scan a bill to start your first claim.")}</div>`;
-  } else if (tab === "bills") {
-    body = `<div class="stack">${S.bills.map((b) => `<div class="card hrow">${fileIcon(b.name)}<span class="grow"><b class="ell" style="display:block">${esc(b.name)}</b><span class="tiny muted">${b.amount ? money(b.amount) + " · " : ""}saved ${D.short(b.date)}</span></span><button class="btn primary sm" data-go="#/expenses/new?bill=${b.id}">Claim</button><button class="ib sm" data-act="billDel" data-id="${b.id}" aria-label="Delete bill">${I("trash")}</button></div>`).join("") || emptyState(["receipt", "scan", "wallet"], "No saved bills", "Bills you save for later appear here.")}</div>`;
-  } else {
-    const by = {}; S.expenses.filter((e) => e.status !== "rejected").forEach((e) => (by[e.cat] = (by[e.cat] || 0) + e.amount));
-    const max = Math.max(1, ...Object.values(by)), total = Object.values(by).reduce((a, b) => a + b, 0);
-    const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
-    body = `<div class="card accent"><span class="eyebrow">Total claimed (last 30 days)</span><div class="timer" style="font-size:28px;margin-top:6px">${money(total)}</div>${top ? `<span class="small muted">Most spent on <b style="color:var(--ink)">${esc(top[0])}</b></span>` : ""}</div>
-      <div class="sec"><h2>By category</h2></div>
-      <div class="card ch-card">${Object.keys(by).length ? capsuleBars({ values: Object.values(by), labels: Object.keys(by).map((c) => c.split(" ")[0]), active: Object.values(by).indexOf(Math.max(...Object.values(by))), fmt: (v) => money(Math.round(v)), height: 132 }) : `<p class="muted small">No spend yet.</p>`}</div>`;
-  }
-  return `<div class="screen has-foot">${topbar("Expenses")}${seg([["claims", "Claims"], ["bills", "Saved bills"], ["insights", "Insights"]], tab, "expTab")}<div class="scroll">${body}</div>
-    <div class="foot"><button class="btn primary block" data-go="#/expenses/new?scan=1">${I("scan")}Scan bill / new claim</button></div></div>`;
-});
-act("expTab", (b) => swap(`#/expenses?tab=${b.dataset.v}`));
-act("billDel", (b) => { S.bills = S.bills.filter((x) => x.id !== b.dataset.id); save(); rerender(); toast("Bill removed"); });
-route("expenses/new", (_, q) => {
-  const bill = S.bills.find((b) => b.id === q.bill);
-  const F = draft("exp", { title: "", cat: "Food & Beverages", amount: bill?.amount ? String(bill.amount) : "", date: bill?.date || D.today(), file: bill ? { name: bill.name } : null, billId: bill?.id || null });
-  return `<div class="screen has-foot">${topbar("New expense")}<div class="scroll"><div class="stack s16" style="padding-top:6px">
-    ${F.file ? `<div class="attach">${fileIcon(F.file.name)}<span class="grow"><b class="ell" style="display:block">${esc(F.file.name)}</b><span class="tiny muted">${esc(F.file.size || "Saved bill")}</span></span><button class="ib sm" data-act="expFile" aria-label="Replace bill">${I("edit")}</button></div>`
-      : `<button class="card" data-act="expFile" style="border-style:dashed;text-align:center;padding:28px 16px"><span class="i" style="width:34px;height:34px;color:var(--accent)">${I("scan")}</span><b style="display:block;margin-top:8px">Scan or upload bill</b><span class="small muted">Photo, PDF or image · up to 5 MB</span></button>`}
-    <div class="field"><label for="ex-t">Title</label><input id="ex-t" class="inp" data-bind="title" value="${esc(F.title)}" placeholder="Ex: Client lunch – Zifo"></div>
-    <div class="field"><span class="lbl">Category</span><div class="choices">${EXP_CATS.map(([c]) => `<button class="choice ${F.cat === c ? "on" : ""}" data-act="expCat" data-v="${c}">${c}</button>`).join("")}</div></div>
-    <div class="grid2"><div class="field"><label for="ex-a">Amount (INR)</label><input id="ex-a" class="inp" type="number" min="1" inputmode="decimal" data-bind="amount" value="${esc(F.amount)}" placeholder="0"></div>
-      <div class="field"><span class="lbl">Bill date</span><button class="inp sel" data-act="expDate"><span>${D.long(F.date)}</span>${I("calendar")}</button></div></div>
-  </div></div>
-  <div class="foot"><div class="row-btns"><button class="btn outline" data-act="expSaveBill">Save bill for later</button><button class="btn primary" data-act="expSubmit" data-cta>Submit claim</button></div></div></div>`;
-}, { mount() { FORM_CHECK = () => { const b = $("[data-cta]"); if (b) b.disabled = !(DRAFT.title.trim() && Number(DRAFT.amount) > 0 && DRAFT.file); }; FORM_CHECK(); } });
-act("expFile", () => pickFile("image/*,.pdf", (f) => { if (f.bytes > 5e6) return toast(`${f.name} is over 5 MB`, "bad"); DRAFT.file = { name: f.name, size: f.size }; if (!DRAFT.title) DRAFT.title = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " "); rerender(); toast("Bill attached"); }));
-act("expCat", (b) => { DRAFT.cat = b.dataset.v; rerender(); });
-act("expDate", () => pickDates({ title: "Bill date", mode: "single", start: DRAFT.date, onDone({ start }) { if (start > D.today()) return toast("Bill date can’t be in the future", "bad"); DRAFT.date = start; rerender(); } }));
-act("expSaveBill", () => {
-  const F = DRAFT; if (!F.file) return toast("Attach a bill first", "bad");
-  if (!F.billId) S.bills.unshift({ id: uid(), name: F.file.name, amount: Number(F.amount) || 0, date: F.date });
-  save(); DRAFT = null; toast("Bill saved for later"); swap("#/expenses?tab=bills");
-});
-act("expSubmit", (b) => {
-  if (b.disabled) return;
-  const F = DRAFT;
-  S.expenses.unshift({ id: uid(), title: F.title.trim(), cat: F.cat, amount: Math.round(Number(F.amount)), date: F.date, status: "pending", bill: F.file.name });
-  if (F.billId) S.bills = S.bills.filter((x) => x.id !== F.billId);
-  save(); DRAFT = null; toast("Claim submitted for approval"); swap("#/expenses");
-});
-
 // ── Settings ──
 const settingsPage = (title, body) => `<div class="screen">${topbar(title, { left: `<button class="ib" data-act="back" aria-label="Close">${I("x")}</button>` })}<div class="scroll">${body}</div></div>`;
 route("settings/lang", () => settingsPage("Language selection", `<b style="display:block;margin:8px 4px 2px">Choose your language</b><p class="small muted" style="margin:0 4px 8px">Navigation and greetings switch right away.</p>

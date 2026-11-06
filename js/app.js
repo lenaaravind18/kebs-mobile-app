@@ -33,7 +33,7 @@ act("unlock", () => { $("[data-lock]")?.classList.add("scanning"); setTimeout(()
 // first visit to a screen in this session shows a skeleton while it "loads"
 const SEEN = new Set();
 function skelKind(path) {
-  if (/^(welcome|login|kais|search|clockin|feedback|settings|req\/|leave\/apply|compoff\/request|expenses\/new|profile\/edit)/.test(path)) return null;
+  if (/^(welcome|login|kais|search|clockin|feedback|settings|req\/|leave\/apply|compoff\/request|expenses\/(new|review|claim\/[^/]+\/(edit|split))|profile\/edit)/.test(path)) return null;
   if (path === "home") return "home";
   if (/^(apps|leave\/balances|expenses)/.test(path)) return "grid";
   if (/^(post|request|people|profile|attendance)/.test(path)) return "detail";

@@ -33,7 +33,6 @@ function openSheet({ title = "", body = "", foot = "", cls = "", raw = null, onM
   scrim.addEventListener("click", () => closeSheet(s));
   el.addEventListener("click", (e) => { if (e.target.closest("[data-sheet-close]")) closeSheet(s); });
   onMount?.(el, s);
-  setTimeout(() => el.querySelector("[autofocus]")?.focus(), 60);
   return s;
 }
 function closeSheet(s = sheets[sheets.length - 1]) {
@@ -78,7 +77,7 @@ function pickPeople({ title = "Notify teammates", selected = [], onDone }) {
   let sel = new Set(selected), q = "";
   const s = openSheet({
     title,
-    body: `<div class="searchbox" style="margin-bottom:8px">${I("search")}<input placeholder="Search people" data-q autofocus></div><div class="list" data-list></div>`,
+    body: `<div class="searchbox" style="margin-bottom:8px">${I("search")}<input placeholder="Search people" data-q></div><div class="list" data-list></div>`,
     foot: `<button class="btn primary block" data-s="done">Done</button>`,
     onMount(el) {
       const draw = () => {

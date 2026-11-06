@@ -98,8 +98,8 @@ function kaisAnswer(q) {
     return { text: off.length ? `${off.length} teammates are off this week:\n${off.map((o) => `- **${person(o.id).name}** — ${D.nice(o.date)}`).join("\n")}` : "Everyone’s in this week.", follow: ["Apply leave tomorrow"] };
   }
   if (/expense|bill|claim|reimburse/.test(t)) {
-    const p = S.expenses.filter((e) => e.status === "pending");
-    return { text: `**${p.length}** claim(s) are awaiting reimbursement, worth **${money(p.reduce((a, e) => a + e.amount, 0))}**.`, card: { type: "link", label: "Scan a new bill", go: "#/expenses/new?scan=1", icon: "scan" }, follow: ["Show my expense insights"] };
+    const p = expList().filter((e) => e.status === "pending");
+    return { text: `**${p.length}** claim(s) are awaiting reimbursement, worth **${money(p.reduce((a, e) => a + e.amount, 0))}**.`, card: { type: "link", label: "Scan a new bill", go: "#/expenses/new?mode=single", icon: "scan" }, follow: ["Show my expense insights"] };
   }
   if (/insight/.test(t)) return { text: "Here’s where your spend goes.", card: { type: "link", label: "Open expense insights", go: "#/expenses?tab=insights", icon: "chart" }, follow: [] };
   if (/praise|kudos|thank/.test(t)) return { text: "Recognition goes a long way. Pick a teammate and a badge.", card: { type: "link", label: "Give a praise", act: "praisePick", icon: "award" }, follow: [] };
@@ -201,7 +201,6 @@ route("kais", () => {
     ta.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ta.form.requestSubmit(); } });
     if (q.agent) { kaisNewChat(q.agent); history.replaceState(null, "", "#/kais"); rerender(); return; }
     if (q.q) { history.replaceState(null, "", "#/kais"); kaisSend(q.q); return; }
-    if (!KAIS.streaming) ta.focus();
   },
 });
 
@@ -325,19 +324,19 @@ function agentAnswer(id, q) {
   const t = q.toLowerCase();
   if (id === "expense") {
     if (/summar|categor|breakdown|spend|where/.test(t)) {
-      const by = {}; S.expenses.filter((e) => e.status !== "rejected").forEach((e) => (by[e.cat] = (by[e.cat] || 0) + e.amount));
+      const by = {}; expList().filter((e) => e.status !== "rejected").forEach((e) => (by[e.cat] = (by[e.cat] || 0) + e.amount));
       const items = Object.entries(by).sort((a, b) => b[1] - a[1]).map(([l, v], i) => ({ l, v, c: CAT_COLORS[i % CAT_COLORS.length] }));
       const tot = items.reduce((a, x) => a + x.v, 0);
       return { text: `Here’s your spend by category over the last month. **${items[0]?.l}** is the biggest share at **${Math.round((items[0]?.v / tot) * 100)}%**.\n${items.map((x) => `- ${x.l}: **${money(x.v)}**`).join("\n")}`,
         card: { type: "donut", title: "Expenses by category", total: money(tot), items, go: "#/expenses?tab=insights", cta: "Open insights" }, follow: ["Show pending claims", "Generate expense report"] };
     }
     if (/pending|claim|status/.test(t)) {
-      const p = S.expenses.filter((e) => e.status === "pending");
+      const p = expList().filter((e) => e.status === "pending");
       return { text: p.length ? `You have **${p.length}** claim(s) awaiting reimbursement:\n${p.map((e) => `- ${e.title} — **${money(e.amount)}** (${D.short(e.date)})`).join("\n")}` : "No claims are pending — everything’s been processed.",
         card: { type: "link", label: "Open my claims", go: "#/expenses", icon: "wallet" }, follow: ["Summarise my expenses by category", "Upload new expense"] };
     }
-    if (/upload|new|scan|add/.test(t)) return { text: "Snap or upload the bill and I’ll fill in the amount and category for you.", card: { type: "link", label: "Scan a bill", go: "#/expenses/new?scan=1", icon: "scan" }, follow: ["Show pending claims"] };
-    if (/report/.test(t)) { const tot = S.expenses.reduce((a, e) => a + e.amount, 0); return { text: `This month: **${S.expenses.length}** claims worth **${money(tot)}** — ${S.expenses.filter((e) => e.status === "approved").length} approved, ${S.expenses.filter((e) => e.status === "pending").length} pending, ${S.expenses.filter((e) => e.status === "rejected").length} rejected.`, card: { type: "link", label: "Open expense insights", go: "#/expenses?tab=insights", icon: "chart" }, follow: ["Summarise my expenses by category"] }; }
+    if (/upload|new|scan|add/.test(t)) return { text: "Snap or upload the bill and I’ll fill in the amount and category for you.", card: { type: "link", label: "Scan a bill", go: "#/expenses/new?mode=single", icon: "scan" }, follow: ["Show pending claims"] };
+    if (/report/.test(t)) { const tot = expList().reduce((a, e) => a + e.amount, 0); return { text: `This month: **${expList().length}** claims worth **${money(tot)}** — ${expList().filter((e) => e.status === "approved").length} approved, ${expList().filter((e) => e.status === "pending").length} pending, ${expList().filter((e) => e.status === "rejected").length} rejected.`, card: { type: "link", label: "Open expense insights", go: "#/expenses?tab=insights", icon: "chart" }, follow: ["Summarise my expenses by category"] }; }
   }
   if (id === "report") {
     if (/revenue/.test(t)) {

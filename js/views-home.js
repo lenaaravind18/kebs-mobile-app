@@ -245,7 +245,7 @@ const SCREENS = [
 ];
 route("search", () => `<div class="screen">
   <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button>
-    <label class="searchbox grow" style="background:none;padding:0">${I("sparkles")}<input data-search placeholder="Search or ask Kais…" autofocus enterkeyhint="search"></label>
+    <label class="searchbox grow" style="background:none;padding:0">${I("sparkles")}<input data-search placeholder="Search or ask Kais…" enterkeyhint="search"></label>
     <button class="ib acc" data-act="searchAsk" aria-label="Ask Kais">${I("arrowUp")}</button></div></header>
   <div class="scroll" data-results></div></div>`, {
   mount() {

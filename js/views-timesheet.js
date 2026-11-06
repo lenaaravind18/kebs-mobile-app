@@ -72,7 +72,7 @@ act("tsAdd", (b) => {
   const row = (k) => { const [pid, ti] = k.split(":"); const p = proj(pid); return `<label class="li" style="cursor:pointer"><input type="checkbox" class="check" value="${k}" ${sel.has(k) ? "checked" : ""}><span class="grow"><span class="tiny muted" style="display:block">${esc(p.name)}</span><span class="t">${esc(p.tasks[ti])}</span></span></label>`; };
   const s = openSheet({
     title: `<span class="eyebrow" style="color:var(--accent)">Add tasks</span>`,
-    body: `<div class="searchbox">${I("search")}<input data-q placeholder="Search by project or tasks" autofocus></div><div data-list></div>`,
+    body: `<div class="searchbox">${I("search")}<input data-q placeholder="Search by project or tasks"></div><div data-list></div>`,
     foot: `<label class="hrow" style="cursor:pointer"><input type="checkbox" class="check" data-all><span class="small b">Add tasks for all working days in this week</span></label><button class="btn primary block" data-s="add" disabled>Add tasks</button>`,
     onMount(el) {
       const draw = () => {

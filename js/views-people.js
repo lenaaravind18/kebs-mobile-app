@@ -74,13 +74,13 @@ route("profile", (_, q) => {
 });
 act("profTab", (b) => swap(`#/profile?tab=${b.dataset.v}`));
 act("editIntro", () => {
-  const s = openSheet({ title: "About you", body: `<textarea class="inp" data-t maxlength="280" placeholder="Share what you work on, what you love, a fun fact…" autofocus>${esc(S.me.intro)}</textarea><p class="tiny faint" style="margin-top:6px">Visible to your teammates · up to 280 characters</p>`,
+  const s = openSheet({ title: "About you", body: `<textarea class="inp" data-t maxlength="280" placeholder="Share what you work on, what you love, a fun fact…">${esc(S.me.intro)}</textarea><p class="tiny faint" style="margin-top:6px">Visible to your teammates · up to 280 characters</p>`,
     foot: `<button class="btn primary block" data-s="ok">Save</button>`,
     onMount(el) { onS(el, { ok() { S.me.intro = el.querySelector("[data-t]").value.trim(); save(); closeSheet(s); rerender(); toast("Intro updated"); } }); } });
 });
 
 act("editAbout", () => {
-  const s = openSheet({ title: "About yourself", body: `<textarea class="inp" data-t maxlength="400" rows="5" placeholder="Your hobbies, what you love working on, a fun fact or two…" autofocus>${esc(S.me.about || "")}</textarea>`,
+  const s = openSheet({ title: "About yourself", body: `<textarea class="inp" data-t maxlength="400" rows="5" placeholder="Your hobbies, what you love working on, a fun fact or two…">${esc(S.me.about || "")}</textarea>`,
     foot: `<button class="btn primary block" data-s="ok">Save</button>`,
     onMount(el) { onS(el, { ok() { S.me.about = el.querySelector("[data-t]").value.trim(); save(); closeSheet(s); rerender(); toast("About yourself updated"); } }); } });
 });
@@ -88,7 +88,7 @@ function addEntry(kind) {
   const edu = kind === "edu";
   const s = openSheet({ title: edu ? "Add education" : "Add work experience",
     body: `<div class="stack s12">
-      <div class="field"><label for="pe-a">${edu ? "Degree or course" : "Role"}</label><input id="pe-a" class="inp" data-a placeholder="${edu ? "B.Des, Communication Design" : "UI Designer"}" autofocus></div>
+      <div class="field"><label for="pe-a">${edu ? "Degree or course" : "Role"}</label><input id="pe-a" class="inp" data-a placeholder="${edu ? "B.Des, Communication Design" : "UI Designer"}"></div>
       <div class="field"><label for="pe-b">${edu ? "School or university" : "Company"}</label><input id="pe-b" class="inp" data-b placeholder="${edu ? "NID Ahmedabad" : "Zoho"}"></div>
       <div class="field"><label for="pe-c">${edu ? "Year of completion" : "Duration"}</label><input id="pe-c" class="inp" data-c placeholder="${edu ? "2022" : "2021 – 2023"}"></div></div>`,
     foot: `<button class="btn primary block" data-s="ok">Save</button>`,
