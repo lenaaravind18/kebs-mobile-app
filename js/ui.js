@@ -105,7 +105,15 @@ function pickPeople({ title = "Notify teammates", selected = [], onDone }) {
   });
 }
 
-function pickDates({ title = "Select date", mode = "range", start = null, end = null, half = false, dayType = "full", onDone }) {
+// time picker: half-hour slots grouped Morning / Afternoon / Evening, plus "No time"
+function pickTime({ title = "Pick a time", value = "", optional = true, onDone }) {
+  const slots = []; for (let m = 7 * 60; m <= 21 * 60; m += 30) slots.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  const grp = [["Morning", slots.filter((t) => t < "12:00")], ["Afternoon", slots.filter((t) => t >= "12:00" && t < "17:00")], ["Evening", slots.filter((t) => t >= "17:00")]];
+  const s = openSheet({ title, body: `<div class="tp">${grp.map(([h, ts]) => `<div class="tp-h">${h}</div><div class="tp-grid">${ts.map((t) => `<button class="tp-s ${t === value ? "on" : ""}" data-s="t" data-v="${t}">${D.hm(t)}</button>`).join("")}</div>`).join("")}</div>`,
+    foot: optional ? `<button class="btn outline block" data-s="none">No specific time</button>` : "",
+    onMount(el) { onS(el, { t(b) { closeSheet(s); onDone(b.dataset.v); }, none() { closeSheet(s); onDone(""); } }); el.querySelector(".tp-s.on")?.scrollIntoView({ block: "center" }); } });
+}
+function pickDates({ title = "Select date", mode = "range", start = null, end = null, half = false, dayType = "full", min = null, onDone }) {
   let month = (start || D.today()).slice(0, 8) + "01", st = start, en = end, dt = dayType;
   const hol = new Set(holidays().map((h) => h.date));
   const today = D.today();
@@ -123,7 +131,7 @@ function pickDates({ title = "Select date", mode = "range", start = null, end = 
         for (let d = 1; d <= dim; d++) {
           const iso = `${month.slice(0, 8)}${String(d).padStart(2, "0")}`;
           const c = [iso === today && "today", hol.has(iso) && "hol", st && iso === st && "s", st && iso === e2 && "e", st && iso > st && iso < e2 && "in"].filter(Boolean).join(" ");
-          cells += `<button class="${c}" data-s="day" data-d="${iso}"><span>${d}</span></button>`;
+          cells += `<button class="${c}" data-s="day" data-d="${iso}"${min && iso < min ? ' disabled aria-disabled="true"' : ""}><span>${d}</span></button>`;
         }
         const multi = st && e2 && e2 !== st;
         const box = mode === "range"
@@ -141,7 +149,7 @@ function pickDates({ title = "Select date", mode = "range", start = null, end = 
       onS(el, {
         prev() { month = D.addMonths(month, -1); draw(); },
         next() { month = D.addMonths(month, 1); draw(); },
-        day(b) { const d = b.dataset.d; if (mode === "single") st = en = d; else if (!st || en || d < st) { st = d; en = null; } else en = d; if (en && en !== st) dt = "full"; draw(); },
+        day(b) { const d = b.dataset.d; if (min && d < min) return; if (mode === "single") st = en = d; else if (!st || en || d < st) { st = d; en = null; } else en = d; if (en && en !== st) dt = "full"; draw(); },
         dt(b) { if (!b.disabled) { dt = b.dataset.v; draw(); } },
         done() { if (!st) return; closeSheet(s); onDone({ start: st, end: en || st, dayType: dt }); },
       });

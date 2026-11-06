@@ -197,6 +197,7 @@ route("projects/:id", ({ id }, q) => {
   if (tab === "overview") {
     const mine = p.tasks.filter((t) => t.assignee === "me" && t.status !== "done").slice(0, 3);
     body = `${p.desc ? `<div class="sec" style="margin-top:14px"><h2 class="sec-ic">${I("info")}About</h2></div><p class="pj-desc" style="margin-top:0">${esc(p.desc)}</p>` : ""}
+      ${pjDetailsCard(p)}
       <div class="sec"><h2 class="sec-ic">${I("checkCircle")}Your open tasks</h2>${myOpen(p) > 3 ? `<button class="link" data-act="pjTabD" data-v="tasks">See all</button>` : ""}</div>
       ${mine.length ? `<div class="tk-list">${mine.map((t) => tkRow(p, t, false)).join("")}</div>` : emptyMini("checkCircle", "Nothing open for you here.")}
       ${typeof pcCard === "function" ? pcCard(p) : ""}
@@ -402,3 +403,85 @@ function pjWeekChart(p) {
   return `<div class="sec"><h2 class="sec-ic">${I("chart")}This week</h2><span class="tiny muted">${Math.round(total)}h logged by the team</span></div>
     <div class="card ch-card">${capsuleBars({ values: vals, labels: ["Mon", "Tue", "Wed", "Thu", "Fri"], goal: Math.max(1, Math.round(daily)), goalLabel: `${Math.round(daily)}h`, active: today >= 0 ? today : 4, future: fut, fmt: (v) => `${v}h`, height: 110 })}</div>`;
 }
+
+
+// ── project details: key facts on the overview, everything (by category) on its own page ──
+const PJ_META = {
+  p1: { model: "Time & material", po: "PO-ZF-2026-114", dept: "Mobile", region: "Chennai, India", priority: "High", rate: 2400 },
+  p2: { model: "Internal", dept: "Design", region: "Chennai, India", priority: "Medium" },
+  p3: { model: "Fixed price", po: "PO-PR-0991", dept: "Mobile", region: "Bengaluru, India", priority: "High", value: 1850000 },
+  p4: { model: "Internal", dept: "Finance tech", region: "Chennai, India", priority: "Low" },
+  p5: { model: "Internal", dept: "Company-wide", region: "All offices", priority: "Low" },
+  p6: { model: "Fixed price", po: "PO-NG-552", dept: "Web", region: "Remote", priority: "Medium", value: 940000 },
+};
+const pjMeta = (p) => PJ_META[p.id] || { model: p.internal ? "Internal" : "Time & material", dept: "—", region: "—", priority: "Medium" };
+const pjBillable = (p) => !p.internal && !/internal/i.test(p.client);
+const pjContact = (p) => S.crm?.contacts.find((c) => c.company === p.client);
+const pjRow = (icon, tint, label, val, attr = "") => `${attr ? `<button class="crm-kv" ${attr}>` : "<div>"}<span class="kv-ic"><i class="tint ${tint}">${I(icon)}</i>${label}</span><b class="pj-kv-v">${val}</b>${attr ? "</button>" : "</div>"}`;
+
+function pjDetailsCard(p) {
+  const m = pjMeta(p);
+  return `<div class="sec"><h2 class="sec-ic">${I("list")}Details</h2><button class="link" data-go="#/projects/${p.id}/info">View more</button></div>
+    <div class="card"><div class="cd-kv">
+      ${pjRow("building", "t-blue", "Client", esc(p.client))}
+      ${pjRow("user", "t-green", "Project manager", `<span class="hrow" style="gap:6px">${avatar(p.manager, "xs")}${esc(p.manager === "me" ? "You" : person(p.manager).name)}</span>`, `data-go="#/people/${p.manager}"`)}
+      ${pjRow("calendar", "t-violet", "Timeline", `${D.short(p.start)} – ${p.end ? D.short(p.end) : "Ongoing"}`)}
+      ${pjRow("receipt", "t-amber", "Billing", `${pjBillable(p) ? "Billable" : "Non-billable"} · ${esc(m.model)}`)}
+    </div></div>`;
+}
+
+route("projects/:id/info", ({ id }) => {
+  const p = pjOf(id);
+  if (!p) return `<div class="screen">${topbar("Project details")}${emptyState(["briefcase"], "Project not found", "It may have been removed.", `<button class="btn primary" data-go="#/projects">All projects</button>`)}</div>`;
+  const m = pjMeta(p), hrs = Math.round(pjMins(p) / 60), dl = daysLeft(p), weeks = Math.max(1, D.diff(p.start, D.today()) / 7);
+  const open = p.tasks.filter((t) => t.status !== "done"), overdue = open.filter((t) => t.due && t.due < D.today()).length;
+  const next = p.milestones.find((x) => !x.done), c = pjContact(p);
+  const dur = p.end ? D.diff(p.start, p.end) : null;
+  const sec = (icon, title, rows) => `<div class="sec"><h2 class="sec-ic">${I(icon)}${title}</h2></div><div class="card"><div class="cd-kv">${rows.filter(Boolean).join("")}</div></div>`;
+  return `<div class="screen">${topbar("Project details", { sub: p.code })}
+    <div class="scroll"><div class="stack">
+      <div class="pj-info-hd"><span class="pj-ic tint ${p.tint}">${I(pjIcon(p))}</span><span class="grow" style="min-width:0"><b>${esc(pjName(p))}</b><span class="small muted">${esc(p.client)}</span></span>${pjBadge(p)}</div>
+      ${sec("info", "General", [
+        pjRow("tag", "t-slate", "Project code", esc(p.code)),
+        pjRow("briefcase", "t-blue", "Type", p.internal || !pjBillable(p) ? "Internal project" : "Client project"),
+        pjRow("users", "t-violet", "Department", esc(m.dept)),
+        pjRow("flame", m.priority === "High" ? "t-red" : m.priority === "Low" ? "t-green" : "t-amber", "Priority", esc(m.priority)),
+        pjRow("pin", "t-teal", "Location", esc(m.region)),
+      ])}
+      ${p.desc ? `<p class="pj-desc pj-info-desc">${esc(p.desc)}</p>` : ""}
+      ${sec("building", "Client & billing", [
+        pjRow("building", "t-blue", "Client", esc(p.client)),
+        c ? pjRow("user", "t-green", "Client contact", `<span class="hrow" style="gap:6px">${crmAv(c, "xs")}${esc(c.name)}</span>`, `data-go="#/crm/contact/${c.id}"`) : "",
+        pjRow("receipt", "t-amber", "Billing", pjBillable(p) ? "Billable" : "Non-billable"),
+        pjRow("wallet", "t-violet", "Engagement", esc(m.model)),
+        m.value ? pjRow("dollar", "t-green", "Contract value", money(m.value)) : "",
+        m.rate ? pjRow("dollar", "t-green", "Hourly rate", `${money(m.rate)} / h`) : "",
+        m.po ? pjRow("file", "t-slate", "PO number", esc(m.po)) : "",
+      ])}
+      ${sec("calendar", "Schedule", [
+        pjRow("calendar", "t-blue", "Start date", D.long(p.start)),
+        pjRow("calendar", "t-violet", p.status === "done" ? "Closed on" : "End date", p.end ? D.long(p.end) : "Ongoing"),
+        dur != null ? pjRow("clock", "t-slate", "Duration", `${plural(Math.round(dur / 7), "week")}`) : "",
+        p.status === "active" && dl != null ? pjRow("clock", dl < 0 ? "t-red" : dl <= 7 ? "t-amber" : "t-green", dl < 0 ? "Overdue by" : "Time left", `<span class="${dl < 0 ? "bad" : ""}">${plural(Math.abs(dl), "day")}</span>`) : "",
+        next ? pjRow("milestone", "t-amber", "Next milestone", `${esc(next.name)} · ${D.short(next.date)}`) : "",
+      ])}
+      ${sec("clock", "Effort & budget", [
+        pjRow("clock", "t-blue", "Hours logged", `${hrs}h`),
+        p.budget ? pjRow("wallet", "t-violet", "Budget", `${p.budget}h`) : "",
+        p.budget ? pjRow("chart", hrs > p.budget ? "t-red" : "t-green", hrs > p.budget ? "Over budget" : "Remaining", `<span class="${hrs > p.budget ? "bad" : ""}">${Math.abs(p.budget - hrs)}h</span>`) : "",
+        p.budget ? pjRow("chart", "t-amber", "Budget used", `${Math.round(hrs / p.budget * 100)}%`) : "",
+        pjRow("history", "t-slate", "Average burn", `${Math.round(hrs / weeks)}h / week`),
+      ])}
+      ${sec("checkCircle", "Tasks", [
+        pjRow("list", "t-slate", "Total", String(p.tasks.length)),
+        pjRow("clock", "t-blue", "Open", String(open.length)),
+        pjRow("checkCircle", "t-green", "Done", String(pjDone(p))),
+        pjRow("alert", overdue ? "t-red" : "t-slate", "Overdue", `<span class="${overdue ? "bad" : ""}">${overdue}</span>`),
+        pjRow("user", "t-violet", "Assigned to you", String(p.tasks.filter((t) => t.assignee === "me").length), `data-go="#/projects/${p.id}?tab=tasks"`),
+      ])}
+      <div class="sec"><h2 class="sec-ic">${I("users")}Team</h2><span class="tiny muted">${plural(p.team.length, "member")}</span></div>
+      <div class="card crm-list">${p.team.map((x) => `<button class="crm-row" data-go="#/people/${x}">${avatar(x, "sm")}<span class="grow" style="min-width:0"><b class="ell">${esc(x === "me" ? `${person("me").name} (you)` : person(x).name)}</b><span class="small muted ell">${x === p.manager ? "Project manager" : esc(person(x).role || "Team member")}</span></span>${I("chevR")}</button>`).join("")}</div>
+      ${p.milestones.length ? `<div class="sec"><h2 class="sec-ic">${I("milestone")}Milestones</h2><span class="tiny muted">${p.milestones.filter((x) => x.done).length} of ${p.milestones.length} done</span></div>
+      <div class="card"><div class="cd-kv">${p.milestones.map((x) => { const late = !x.done && x.date < D.today(); return pjRow(x.done ? "checkCircle" : late ? "alert" : "milestone", x.done ? "t-green" : late ? "t-red" : "t-slate", esc(x.name), `<span class="${late ? "bad" : ""}">${x.done ? "Done · " : late ? "Late · " : ""}${D.short(x.date)}</span>`); }).join("")}</div></div>` : ""}
+    </div></div></div>`;
+}, { parent: ({ id }) => `#/projects/${id}` });

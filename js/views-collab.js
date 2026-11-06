@@ -50,6 +50,11 @@ function seedChat() {
 if (!S.pjChat) { S.pjChat = seedChat(); save(); }
 { const base = resetDemo; resetDemo = function () { base(); S.pjChat = seedChat(); save(); }; }
 
+// a chat belongs to a project or to a CRM deal; each source returns { id, team, name, closed, path, back, kind }
+const PC_CTX = {
+  project: (id) => { const p = typeof pjOf === "function" && pjOf(id); return p && { id, team: p.team, name: pjName(p), closed: p.status === "done", path: `projects/${id}/chat`, back: `#/projects/${id}`, kind: "project" }; },
+};
+function pcCtx(id) { for (const f of Object.values(PC_CTX)) { const c = f(id); if (c) return c; } return null; }
 const pcOf = (pid) => (S.pjChat[pid] ||= { msgs: [], read: Date.now() });
 const pcUnread = (pid) => { const c = S.pjChat[pid]; return c ? c.msgs.filter((m) => m.who !== "me" && m.ts > c.read).length : 0; };
 const pcFirst = (id) => (id === "me" ? "You" : person(id).name.split(" ")[0]);
@@ -82,7 +87,7 @@ function pcFilesHtml(m) {
 
 function pcThreadHtml(p) {
   const c = pcOf(p.id);
-  if (!c.msgs.length) return `<div class="pc-empty">${emptyState(["msg"], "Start the conversation", `Share updates, files and ideas with the ${esc(pjName(p))} team. Type @ to mention someone.`)}</div>`;
+  if (!c.msgs.length) return `<div class="pc-empty">${emptyState(["msg"], "Start the conversation", `Share updates, files and ideas with the ${esc(p.name)} team. Type @ to mention someone.`)}</div>`;
   let out = "", lastDay = "", prev = null;
   c.msgs.forEach((m, i) => {
     const day = D.iso(m.ts);
@@ -100,7 +105,7 @@ function pcThreadHtml(p) {
       ${mine ? "" : endGroup ? avatar(m.who, "sm") : `<span class="pc-av-sp"></span>`}
       <div class="pc-col">
         <div class="pc-bub ${m.failed ? "failed" : ""}" data-m="${m.id}" tabindex="0" aria-label="Message from ${esc(pcFirst(m.who))}. Press and hold for reactions, swipe right to reply">
-          ${!mine && !cont ? `<b class="pc-bn" style="color:${PC_NAME_TINT[person(m.who).tint] || "var(--accent)"}">${esc(person(m.who).name)}</b>` : ""}
+          ${!mine && !cont ? `<b class="pc-bn" style="color:${PC_NAME_TINT[person(m.who).tint] || "var(--accent)"}">${esc(person(m.who).name)}${person(m.who).role ? `<span class="pc-role"> · ${esc(person(m.who).role)}</span>` : ""}</b>` : ""}
           ${rq ? `<span class="pc-quote" data-act="pcJump" data-to="${rq.id}" role="button"><b>${esc(pcFirst(rq.who))}</b><span class="ell">${esc(pcSnippet({ ...rq, who: "" }))}</span></span>` : m.reply ? `<span class="pc-quote gone"><span class="ell">Original message was deleted</span></span>` : ""}
           ${pcFilesHtml(m)}
           ${m.text ? `<p>${pcRich(m.text, p)}${m.failed ? "" : meta}</p>` : m.failed ? "" : meta}
@@ -121,17 +126,17 @@ function pcCtxHtml() {
     ${PC.files.length ? `<div class="pc-tray">${PC.files.map((f, i) => `<div class="pc-tf">${f.src ? `<img src="${f.src}" alt="">` : fileIcon(f.name)}${f.src ? "" : `<span class="ell">${esc(f.name)}</span>`}<button type="button" data-act="pcUnfile" data-i="${i}" aria-label="Remove ${esc(f.name)}">${I("x")}</button></div>`).join("")}</div>` : ""}`;
 }
 
-route("projects/:id/chat", ({ id }) => {
-  const p = pjOf(id);
-  if (!p) return `<div class="screen">${topbar("Team chat")}${emptyState(["msg"], "Chat not found", "This project may have been removed.", `<button class="btn primary" data-go="#/projects">All projects</button>`)}</div>`;
+function pcScreen(id) {
+  const p = pcCtx(id);
+  if (!p) return `<div class="screen">${topbar("Team chat")}${emptyState(["msg"], "Chat not found", "It may have been removed, or you’re no longer on the team.", `<button class="btn primary" data-act="back">Go back</button>`)}</div>`;
   if (PC.pid !== id) { PC.pid = id; PC.files = []; PC.reply = null; PC.edit = null; PC.typing = null; PC.below = 0; }
-  const closed = p.status === "done", nFiles = pcOf(id).msgs.reduce((a, m) => a + (m.files?.length || 0), 0);
+  const closed = p.closed, nFiles = pcOf(id).msgs.reduce((a, m) => a + (m.files?.length || 0), 0);
   return `<div class="screen pc">
-    ${topbar(esc(pjName(p)), { sub: `Team chat · ${plural(p.team.length, "member")}`, right: `<button class="ib" data-act="pcFiles" aria-label="Shared files">${I("clip")}${nFiles ? `<span class="pc-nb">${nFiles}</span>` : ""}</button>` })}
+    ${topbar(esc(p.name), { sub: `${p.kind === "deal" ? "Deal room" : "Team chat"} · ${plural(p.team.length, "member")}`, right: `<button class="ib" data-act="pcFiles" aria-label="Shared files">${I("clip")}${nFiles ? `<span class="pc-nb">${nFiles}</span>` : ""}</button>` })}
     <div class="pc-members"><span class="av-stack">${p.team.slice(0, 6).map((m) => avatar(m, "xs")).join("")}</span><span class="tiny muted ell">${p.team.map((m) => (m === "me" ? "You" : pcFirst(m))).join(", ")}</span></div>
     <div class="pc-wrap"><div class="scroll pc-thread" data-thread>${pcThreadHtml(p)}</div>
       <button type="button" class="pc-down" data-act="pcDown" aria-label="Jump to latest messages" hidden>${I("chevD")}<span class="pc-down-n" hidden></span></button></div>
-    ${closed ? `<div class="pc-closed">${I("lock")}This project is closed — the chat is read-only.</div>` : `<form class="pc-compose" data-form="pcSend" data-p="${id}">
+    ${closed ? `<div class="pc-closed">${I("lock")}${p.kind === "deal" ? "This deal is closed" : "This project is closed"} — the chat is read-only.</div>` : `<form class="pc-compose" data-form="pcSend" data-p="${id}">
       <div data-ctx>${pcCtxHtml()}</div>
       <div class="pc-mention" data-mention hidden></div>
       <div class="pc-row">
@@ -140,14 +145,15 @@ route("projects/:id/chat", ({ id }) => {
         <button type="submit" class="ksend" aria-label="Send">${I("send")}</button>
       </div></form>`}
   </div>`;
-}, {
-  parent: ({ id }) => `#/projects/${id}`,
+}
+const pcRoute = {
+  parent: ({ id }) => pcCtx(id)?.back || "#/home",
   mount({ id }) {
     const c = S.pjChat[id]; if (c) { c.read = Date.now(); save(); }
     pcScroll(true);
     const th = $("[data-thread]");
     if (th) {
-      pcGestures(th, pjOf(id).status === "done");
+      pcGestures(th, !!pcCtx(id)?.closed);
       th.addEventListener("scroll", pcDownSync, { passive: true });
     }
     const ta = $(".pc-compose textarea"); if (!ta) return;
@@ -164,7 +170,8 @@ route("projects/:id/chat", ({ id }) => {
     });
     ta.addEventListener("click", () => pcMentionMenu(ta, id));
   },
-});
+};
+route("projects/:id/chat", ({ id }) => pcScreen(id), pcRoute);
 
 function pcScroll(force) {
   const th = $("[data-thread]"); if (!th) return;
@@ -172,8 +179,8 @@ function pcScroll(force) {
   if (force || near) requestAnimationFrame(() => { th.scrollTop = th.scrollHeight; });
 }
 function pcRedraw(force, incoming) {
-  const p = pjOf(PC.pid), th = $("[data-thread]");
-  if (!p || !th || hpath(location.hash) !== `projects/${p.id}/chat`) return;
+  const p = pcCtx(PC.pid), th = $("[data-thread]");
+  if (!p || !th || hpath(location.hash) !== p.path) return;
   const near = th.scrollHeight - th.scrollTop - th.clientHeight < 160, top = th.scrollTop;
   th.innerHTML = pcThreadHtml(p);
   th.scrollTop = top;
@@ -268,7 +275,7 @@ function pcMentionMenu(ta, pid) {
   const menu = $("[data-mention]"); if (!menu) return;
   const before = ta.value.slice(0, ta.selectionStart), m = before.match(/(^|\s)@(\w*)$/);
   if (!m) { menu.hidden = true; return; }
-  const q = m[2].toLowerCase(), p = pjOf(pid);
+  const q = m[2].toLowerCase(), p = pcCtx(pid);
   const opts = [...p.team.filter((x) => x !== "me").map((x) => ({ id: x, name: person(x).name, first: pcFirst(x), sub: person(x).role })), { id: "everyone", name: "everyone", first: "everyone", sub: `Notify all ${p.team.length - 1} teammates` }]
     .filter((o) => !q || o.name.toLowerCase().split(" ").some((w) => w.startsWith(q)));
   if (!opts.length) { menu.hidden = true; return; }
@@ -337,7 +344,7 @@ act("pcNoReply", () => { PC.reply = null; const ctx = $("[data-ctx]"); if (ctx) 
 
 // sending
 act("submit:pcSend", (f) => {
-  const pid = f.dataset.p, p = pjOf(pid), ta = f.m, text = ta.value.trim();
+  const pid = f.dataset.p, p = pcCtx(pid), ta = f.m, text = ta.value.trim();
   if (PC.edit) {
     const em = pcOf(pid).msgs.find((x) => x.id === PC.edit); PC.edit = null;
     if (em && text && text !== em.text) { em.text = text; em.edited = true; save(); toast("Message edited"); }
@@ -358,7 +365,7 @@ act("submit:pcSend", (f) => {
 act("pcRetry", (b) => {
   const c = pcOf(PC.pid), m = c.msgs.find((x) => x.id === b.dataset.m); if (!m) return;
   if (!navigator.onLine) return toast("Still offline — try again when you’re connected", "bad");
-  delete m.failed; m.ts = Date.now(); c.msgs.splice(c.msgs.indexOf(m), 1); c.msgs.push(m); save(); pcRedraw(true); pcRespond(pjOf(PC.pid), m);
+  delete m.failed; m.ts = Date.now(); c.msgs.splice(c.msgs.indexOf(m), 1); c.msgs.push(m); save(); pcRedraw(true); pcRespond(pcCtx(PC.pid), m);
 });
 
 // a teammate answers (whoever you mentioned, otherwise someone on the team)
@@ -379,10 +386,10 @@ function pcRespond(p, m) {
     setTimeout(() => {
       PC.typing = null;
       const c = pcOf(p.id); c.msgs.push({ id: uid(), who, ts: Date.now(), text: reply, reply: named.length ? m.id : undefined });
-      const here = hpath(location.hash) === `projects/${p.id}/chat`;
+      const here = hpath(location.hash) === p.path;
       if (here) c.read = Date.now();
       save(); pcRedraw(false, true);
-      if (!here) actionToast(`${pcFirst(who)} replied in ${pjName(p)}`, "Open", () => go(`#/projects/${p.id}/chat`));
+      if (!here) actionToast(`${pcFirst(who)} replied in ${p.name}`, "Open", () => go(`#/${p.path}`));
     }, 1600 + Math.random() * 1200);
   }, 900);
 }
@@ -391,7 +398,7 @@ function pcRespond(p, m) {
 act("pcMsg", (b, e) => {
   if (e?.target.closest("a, .pc-img, .pc-doc")) return;
   const c = pcOf(PC.pid), m = c.msgs.find((x) => x.id === b.dataset.m); if (!m) return;
-  const closed = pjOf(PC.pid)?.status === "done";
+  const closed = pcCtx(PC.pid)?.closed;
   const s = openSheet({ title: "", cls: "pc-sheet", body: `
     ${closed ? "" : `<div class="pc-emoji">${PC_EMOJI.map((e2) => `<button data-s="rx" data-e="${e2}" class="${m.react?.[e2]?.includes("me") ? "on" : ""}" aria-label="React ${e2}">${emoImg(e2)}</button>`).join("")}</div>`}
     <div class="pc-prev"><b>${esc(m.who === "me" ? "You" : person(m.who).name)}</b><span>${emoText(esc(pcSnippet({ ...m, who: "" })))}</span><small>${D.nice(D.iso(m.ts))} · ${pcTime(m.ts)}</small></div>
@@ -425,7 +432,7 @@ function pcToggleReact(m, e) {
   save(); pcRedraw(); try { navigator.vibrate?.(8); } catch {}
 }
 act("pcReact", (b) => {
-  if (pjOf(PC.pid)?.status === "done") return toast("This project is closed — reactions are off", "info");
+  if (pcCtx(PC.pid)?.closed) return toast("This chat is closed — reactions are off", "info");
   const m = pcOf(PC.pid).msgs.find((x) => x.id === b.dataset.m); if (m) pcToggleReact(m, b.dataset.e);
 });
 
@@ -451,7 +458,7 @@ act("pcFiles", () => {
 function pcCard(p) {
   const c = pcOf(p.id), last = c.msgs[c.msgs.length - 1], n = pcUnread(p.id);
   return `<div class="sec"><h2 class="sec-ic">${I("msg")}Team chat</h2>${n ? `<span class="pc-new">${n} new</span>` : ""}</div>
-    <button class="card pc-card" data-go="#/projects/${p.id}/chat">
+    <button class="card pc-card" data-go="#/${pcCtx(p.id)?.path || `projects/${p.id}/chat`}">
       ${last ? `${last.who === "me" ? avatar("me", "sm") : avatar(last.who, "sm")}<span class="grow" style="min-width:0"><span class="hrow" style="gap:6px"><b class="ell">${esc(last.who === "me" ? "You" : person(last.who).name)}</b><span class="tiny muted" style="margin-left:auto;flex:none">${D.ago(last.ts) === "now" ? "now" : D.ago(last.ts) + " ago"}</span></span><span class="small ${n ? "" : "muted"} ell" style="display:block">${emoText(esc(pcSnippet({ ...last, who: "" })))}</span></span>`
         : `<span class="pc-card-ic">${I("msg")}</span><span class="grow"><b style="display:block">Start the conversation</b><span class="small muted">Chat, share files and @mention your team</span></span>`}
       ${I("chevR")}
