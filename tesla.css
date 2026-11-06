@@ -2319,3 +2319,6 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 /* project detail header: plain card like the rest of Projects */
 .pj-hero, :root[data-theme="dark"] .pj-hero { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pj-hero { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; } }
+/* header divider: inset 16px from each side instead of edge to edge */
+.top { border-bottom-color: transparent !important; background-image: linear-gradient(var(--line), var(--line)); background-size: calc(100% - 32px) 1px; background-position: center bottom; background-repeat: no-repeat; }
+.screen.kais .top { background-image: none; }
