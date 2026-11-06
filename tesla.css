@@ -1902,7 +1902,7 @@ button.lock-art { cursor: pointer; border: 0; }
 /* ── micro-animations (all respect reduced motion) ── */
 @media (prefers-reduced-motion: no-preference) {
   /* press feedback on everything tappable */
-  .card, .li, .choice, .ib, .opt-row, .dock-btn, .seg button, .qa-btn, .rc-row, .up-alt button, .xs-tabs button, .kfollow button, .kstarters button, .cd-file, .choice-card {
+  .card, .li, .choice, .ib, .opt-row, .dock-btn, .seg button, .qa-btn, .rc-row, .up-alt button, .kfollow button, .kstarters button, .cd-file, .choice-card {
     transition: transform .14s cubic-bezier(.2, .8, .2, 1), background-color .18s, box-shadow .18s, color .18s; }
   .li:active, .opt-row:active, .rc-row:active, .cd-file:active, .choice-card:active { transform: scale(.985); }
   .choice:active, .ib:active, .seg button:active, .kfollow button:active, .xs-tabs button:active { transform: scale(.94); }
@@ -2256,7 +2256,7 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"])[data-accent="navy"] { --accent: #7d95ee; --accent-soft: #151d3d; --soft-1: #161a2b; --soft-2: #191f35; --soft-3: #1b1d3a; --softd-1: #161a2b; --softd-2: #191f35; --softd-3: #1b1d3a; --herod-1: #16214f; --herod-2: #1b2a63; --herod-3: #213375; --cd-a: #26357a; --cd-b: #34479c; --cd-c: #4058b8; --btn-grad: linear-gradient(135deg, #5470dd 0%, #4560cc 55%, #3851b5 100%); } }
 
 /* ── Corners: Sharp (6px everywhere, square Home header); round things stay round ── */
-:root[data-corners="sharp"] :is(.card, .btn, .inp, .searchbox, .seg, .seg button, .choice, .choice-card, .chip, .banner, .toast, .attach, .attach .ic, .kbox, .kbub, .kc, .kc-ic, .kfollow button, .kstarters button, .kx-mode, .kup-file, .kup-img, .kfile, .kais-tip, .kthink-sum, .nt-bub, .nt-ctx, .nt-ctx .kc-ic, .nt-reply .inp, .paycard, .pc-chip, .pc-ic, .pj-hero, .pj-sum > div, .pj-badge, .pj-ic, .pj-prog, .pj-prog i, .tk-list, .tk-status button, .tk-log-t, .qa-card, .qa-pill, .range-box, .range-box .mid, .rc-thumb, .rv-amt, .rv-cur, .rv-manual, .rv-manual .kc-ic, .rv-prev, .up-hero, .up-alt, .x-err, .xc-hero, .cg-cur, .cdh .cg-meta, .cdh-badge, .cdh > .ib, .wish-hero, .wish-card, .wish-thx, .wish-reply, .add-row, .empty-mini, .empty-mini .em-ic, .lb-card, .ksb-row, .ksb-chat, .pi-sort, .pi-sort button, .pi-anchors button, .w-tk-stat, .th-prev, .th-prev-bar, .th-prev-row, .th-sw, .th-style, .th-mini, .th-mode, .ag-hero, .ag-chips button, .fc, .oc, .msg, .daycell, .li .ic, .tile, .tico, .sw, .sw-fg, .sw-bg, .opt-row, .sp-sum, .sp-g, .rc-row.sp-drag, .rc-row.dragging, .xs-tabs button, .cd-file, .up-drop, .sg-art, .sg-card, .sg-chip, .sg-claim, .sg-sel, .bar, .ch-card, .kd-wrap, .ch-tip, .pc-go, .top .pill > .ib, .top .pill > .ttl, .top .pill > .dateNav, .top .pill > .searchbox, .dock) { border-radius: 6px !important; }
+:root[data-corners="sharp"] :is(.card, .btn, .inp, .searchbox, .seg, .seg button, .choice, .choice-card, .chip, .banner, .toast, .attach, .attach .ic, .kbox, .kbub, .kc, .kc-ic, .kfollow button, .kstarters button, .kx-mode, .kup-file, .kup-img, .kfile, .kais-tip, .kthink-sum, .nt-bub, .nt-ctx, .nt-ctx .kc-ic, .nt-reply .inp, .paycard, .pc-chip, .pc-ic, .pj-hero, .pj-sum > div, .pj-badge, .pj-ic, .pj-prog, .pj-prog i, .tk-list, .tk-status button, .tk-log-t, .qa-card, .qa-pill, .range-box, .range-box .mid, .rc-thumb, .rv-amt, .rv-cur, .rv-manual, .rv-manual .kc-ic, .rv-prev, .up-hero, .up-alt, .x-err, .xc-hero, .cg-cur, .cdh .cg-meta, .cdh-badge, .cdh > .ib, .wish-hero, .wish-card, .wish-thx, .wish-reply, .add-row, .empty-mini, .empty-mini .em-ic, .lb-card, .ksb-row, .ksb-chat, .pi-sort, .pi-sort button, .pi-anchors button, .w-tk-stat, .th-prev, .th-prev-bar, .th-prev-row, .th-sw, .th-style, .th-mini, .th-mode, .ag-hero, .ag-chips button, .fc, .oc, .msg, .daycell, .li .ic, .tile, .tico, .sw, .sw-fg, .sw-bg, .opt-row, .sp-sum, .sp-g, .rc-row.sp-drag, .rc-row.dragging, .cd-file, .up-drop, .sg-art, .sg-card, .sg-chip, .sg-claim, .sg-sel, .bar, .ch-card, .kd-wrap, .ch-tip, .pc-go, .top .pill > .ib, .top .pill > .ttl, .top .pill > .dateNav, .top .pill > .searchbox, .dock) { border-radius: 6px !important; }
 :root[data-corners="sharp"] .hero, :root[data-corners="sharp"] .hero.collapsed { border-radius: 0 !important; }
 :root[data-corners="sharp"] .hero-ask { border-radius: 6px !important; }
 :root[data-corners="sharp"] .hero-ask .go { border-radius: 6px !important; }
@@ -2276,3 +2276,19 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 .hero-ask .i { opacity: .85; }
 /* Ask Kais bar: no glass saturation boost — just a faint even tint of the header */
 .hero-ask { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(255,255,255,.12) !important; }
+/* loading skeletons follow Sharp corners too (avatar placeholders stay round) */
+:root[data-corners="sharp"] :is(.sk-card, .sk-tile, .sk-ic, .sk-qa .sk-ic) { border-radius: 6px !important; }
+:root[data-corners="sharp"] .sk { border-radius: 3px !important; }
+:root[data-corners="sharp"] .sk-hero { border-radius: 0 !important; }
+:root[data-corners="sharp"] .top .sk-circle { border-radius: 6px !important; }
+:root[data-corners="sharp"] :is(.sk-av, .sk.sk-av, .sk-card .sk-av) { border-radius: 50% !important; }
+/* underline tabs: straight underline, no corner rounding */
+.xs-tabs button, :root[data-corners="sharp"] .xs-tabs button { border-radius: 0 !important; }
+/* light-mode polish: tight header shadow (no haze band), readable Ask Kais bar */
+.hero { box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--accent) 55%, transparent) !important; }
+.hero-ask { background: rgba(255,255,255,.18) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.32) !important; }
+.hero-ask input::placeholder { color: rgba(255,255,255,.88) !important; }
+.hero-ask .i { opacity: 1; }
+:root[data-theme="dark"] .hero-ask { background: rgba(255,255,255,.08) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: rgba(255,255,255,.08) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14) !important; } }
+:root[data-style="minimal"] .hero { box-shadow: none !important; }
