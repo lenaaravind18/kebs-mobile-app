@@ -2316,3 +2316,6 @@ body.sp-dragging, body.sp-dragging * { cursor: grabbing !important; }
 @media (prefers-color-scheme: light) { :root[data-accent="rose"]:not([data-theme="dark"]) { --bg: #fdf9fa; --canvas: #f5ecef; --panel-2: #f7eff2; } }
 :root[data-accent="graphite"][data-theme="light"] { --bg: #f8f9fa; --canvas: #eef0f3; --panel-2: #f0f2f5; }
 @media (prefers-color-scheme: light) { :root[data-accent="graphite"]:not([data-theme="dark"]) { --bg: #f8f9fa; --canvas: #eef0f3; --panel-2: #f0f2f5; } }
+/* project detail header: plain card like the rest of Projects */
+.pj-hero, :root[data-theme="dark"] .pj-hero { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pj-hero { background: var(--panel) !important; box-shadow: 0 0 0 1px var(--line) !important; } }
