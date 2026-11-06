@@ -378,17 +378,19 @@ act("kaisHistory", () => {
   const el = document.createElement("aside"); el.className = "drawer ksb";
   el.innerHTML = `<div class="ksb-top"><span class="hero-pattern" aria-hidden="true"></span><div class="ksb-title"><img src="kais.svg" alt=""><b>Kais</b><span class="k-assist">Assistant</span><span class="grow"></span><button class="ib" data-k="close" aria-label="Close sidebar">${I("x")}</button></div><div class="ksb-head"><label class="searchbox grow">${I("search")}<input data-ksq placeholder="Search chats & agents" aria-label="Search chats and agents"></label><button class="ib" data-k="new" aria-label="New chat">${I("compose")}</button></div></div><div class="ksb-body" data-ksb></div>`;
   layer.append(scrim, el); drawerEl = { el, scrim }; scrim.addEventListener("click", closeDrawer);
-  let q = "";
+  let q = "", showAll = false;
   const draw = () => {
     const ql = q.toLowerCase();
     const ags = KAIS_AGENTS.filter((a) => !ql || (a.name + a.desc).toLowerCase().includes(ql));
     const chats = S.kais.chats.filter((c) => !ql || c.title.toLowerCase().includes(ql));
+    const shown = ql || showAll ? chats : chats.slice(0, 6);
     el.querySelector("[data-ksb]").innerHTML = `
       ${!ql || "prompt library".includes(ql) || ags.length ? `<div class="ksb-sec">Agents</div>` : ""}
       ${!ql || "prompt library".includes(ql) ? `<button class="ksb-row" data-k="prompts"><span class="ag-logo sm">${msIcon("ag-prompts")}</span><span class="grow"><b>Prompt Library</b><small>Explore ready-to-use prompts</small></span></button>` : ""}
       ${ags.map((a) => `<button class="ksb-row ${KAIS.agent === a.id ? "on" : ""}" data-k="agent" data-id="${a.id}"><span class="ag-logo sm">${msIcon("ag-" + a.id)}</span><span class="grow"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></span></button>`).join("")}
-      ${chatGroups(chats).map(([g, list]) => `<div class="ksb-sec">${g}</div>${list.map((c) => { const a = KAIS_AGENTS.find((x) => x.id === c.agent);
+      ${chatGroups(shown).map(([g, list]) => `<div class="ksb-sec">${g}</div>${list.map((c) => { const a = KAIS_AGENTS.find((x) => x.id === c.agent);
         return `<div class="ksb-chat ${S.kais.active === c.id ? "on" : ""}"><button class="grow" data-k="open" data-id="${c.id}">${a ? `<span class="ag-logo xs">${msIcon("ag-" + a.id)}</span>` : `<span class="i">${I("msg")}</span>`}<span class="ell">${esc(c.title)}</span></button><button class="ib sm" data-k="del" data-id="${c.id}" aria-label="Delete chat">${I("trash")}</button></div>`; }).join("")}`).join("")}
+      ${!ql && chats.length > 6 ? `<button class="ksb-more" data-k="more">${showAll ? `${I("chevU")}Show less` : `${I("chevD")}See all chats (${chats.length})`}</button>` : ""}
       ${!chats.length ? (ql ? `<p class="small muted" style="padding:12px 6px">No chats match “${esc(q)}”.</p>` : emptyMini("msg", "No chats yet — ask Kais anything.")) : ""}`;
   };
   el.addEventListener("input", (e) => { if (e.target.matches("[data-ksq]")) { q = e.target.value; draw(); } });
@@ -396,6 +398,7 @@ act("kaisHistory", () => {
     const b = e.target.closest("[data-k]"); if (!b) return;
     const k2 = b.dataset.k;
     if (k2 === "close") { closeDrawer(); return; }
+    if (k2 === "more") { showAll = !showAll; draw(); return; }
     if (k2 === "new") { kaisNewChat(); closeDrawer(); rerender(); }
     if (k2 === "agent") { kaisNewChat(b.dataset.id); closeDrawer(); rerender(); }
     if (k2 === "prompts") { closeDrawer(); setTimeout(() => ACTIONS.kaisPrompts(), 230); }
