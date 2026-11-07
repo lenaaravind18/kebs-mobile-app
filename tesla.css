@@ -3761,3 +3761,11 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .sheet .grab::before { content: ""; position: absolute; left: -150px; right: -150px; top: -9px; height: 30px; }
 .sheet .sheet-head { touch-action: none; padding-right: 20px; }
 .sheet > .grab + .sheet-body { padding-top: 26px; }
+/* light mode: my chat bubbles as a soft peach gradient with dark text (the deep orange read too heavy) */
+:root:not([data-theme="dark"]) .pc-msg.me .pc-bub:not(.sup-pv) { background: linear-gradient(135deg, #fff3ec 0%, #ffe3d3 100%); color: var(--ink); box-shadow: 0 1px 2px rgba(204, 68, 22, .08), inset 0 0 0 1px rgba(232, 108, 60, .14); }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-bub:not(.sup-pv) p, :root:not([data-theme="dark"]) .pc-msg.me .pc-bub:not(.sup-pv) a { color: #2b1a12; }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-bub:not(.sup-pv) .pc-bt { color: #9a5a3c !important; }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-tick { color: #c2410c; }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-at-tag { color: #c2410c; }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-quote { background: rgba(204, 68, 22, .08); } :root:not([data-theme="dark"]) .pc-msg.me .pc-quote b, :root:not([data-theme="dark"]) .pc-msg.me .pc-quote span { color: #7c2d12; }
+:root:not([data-theme="dark"]) .pc-msg.me .pc-bub .pc-doc { background: rgba(255, 255, 255, .7); color: var(--ink); } :root:not([data-theme="dark"]) .pc-msg.me .pc-bub .pc-doc small { color: var(--ink-3); }
