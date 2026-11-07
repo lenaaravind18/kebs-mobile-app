@@ -40,6 +40,8 @@ route("apps", (_, q) => {
         ${tileBtn("target", "t-blue", "CRM pipeline", (() => { const o = S.crm ? S.crm.deals.filter((d) => ["qualify", "discovery", "proposal", "negotiation"].includes(d.stage)) : []; return `${o.length} open deals · ${typeof crmAmt === "function" ? crmAmt(o.reduce((x, d) => x + d.value, 0)) : ""} in pipeline.`; })(), `data-go="#/crm"`)}
         ${tileBtn("users", "t-violet", "Leads & contacts", (() => { const n = S.crm ? S.crm.leads.filter((l) => l.status === "new").length : 0; return `${n} new lead${n === 1 ? "" : "s"} to follow up.`; })(), `data-go="#/crm?tab=leads"`)}
       </div>` : ""}
+      ${typeof RPT !== "undefined" && Object.keys(RPT).some(rptAllowed) ? `<div class="sec"><h2>Reports</h2><button class="link" data-go="#/reports">All reports</button></div>
+      <div class="grid2">${Object.keys(RPT).filter(rptAllowed).slice(0, 4).map((id) => `<button class="card tile" data-go="#/reports/${id}"><span class="tico ms">${msIcon(RPT[id].ms)}</span><span class="tt">${RPT[id].name} report</span><span class="ts">${RPT[id].sub}.</span></button>`).join("")}</div>` : ""}
       <div class="sec"><h2>Timesheet</h2></div>
       <div class="grid2">
         ${tileBtn("clipboard", "t-green", "Submit timesheet", "Add daily tasks, submit and view past timesheets.", `data-go="#/ts"`)}

@@ -2,6 +2,10 @@
 const ICON_PATHS = {
   phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
   folder: '<path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/>',
+  wifi: '<path d="M2.5 8.8a14 14 0 0 1 19 0"/><path d="M5.6 12.2a9.5 9.5 0 0 1 12.8 0"/><path d="M8.7 15.5a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19" r="1.1"/>',
+  wifiOff: '<path d="M2.5 8.8a14 14 0 0 1 4.3-2.8M10.5 5.1A14 14 0 0 1 21.5 8.8"/><path d="M5.6 12.2a9.5 9.5 0 0 1 3.6-2.1M14.8 10.2a9.5 9.5 0 0 1 3.6 2"/><path d="M8.7 15.5a5 5 0 0 1 6.6 0"/><circle cx="12" cy="19" r="1.1"/><path d="m3 3 18 18"/>',
+  signal: '<path d="M5 19v-2.5"/><path d="M9.5 19v-5"/><path d="M14 19v-8" opacity=".35"/><path d="M18.5 19V8" opacity=".35"/>',
+  refresh: '<path d="M20 11a8 8 0 0 0-14.7-4.4L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.7 4.4L20 16"/><path d="M20 20v-4h-4"/>',
   reply: '<path d="M9.5 7 4.5 12l5 5"/><path d="M4.5 12h9a6 6 0 0 1 6 6v.5"/>',
   image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m20.5 16-4.6-4.6a1 1 0 0 0-1.4 0L5.5 19.5"/>',
   compose: '<path d="M12 3.5H6A2.5 2.5 0 0 0 3.5 6v12A2.5 2.5 0 0 0 6 20.5h12a2.5 2.5 0 0 0 2.5-2.5v-6"/><path d="M18.1 3.4a1.9 1.9 0 0 1 2.7 2.7l-8.2 8.2-3.6.9.9-3.6Z"/>',

@@ -119,11 +119,6 @@ const THEME_COLORS = [["orange", "Orange", "#ff9a6b", "#ff4013"], ["blue", "Blue
 route("settings/theme", () => {
   const t = S.settings.theme, ac = S.settings.accent || "orange", st = S.settings.style || "classic";
   return settingsPage("Theme", `<div class="stack s16" style="padding-top:4px">
-    <div class="th-prev" aria-hidden="true">
-      <div class="th-prev-bar"><i></i>Good morning, ${esc(S.me.display.split(" ")[0])}</div>
-      <div class="th-prev-row"><span class="th-prev-ring"></span><span class="grow"><b>31 days</b><small>Leave left this year</small></span><span class="chip acc">Preview</span></div>
-      <div class="row-btns"><button class="btn primary" style="flex:1" tabindex="-1">Clock in</button><button class="btn outline" style="flex:1" tabindex="-1">Apply leave</button></div>
-    </div>
     <div class="field"><span class="lbl">Appearance</span><div class="th-modes">${[["auto", "Automatic", "sparkles"], ["light", "Light", "sun"], ["dark", "Dark", "moon"]].map(([v, l, ic]) => `<button class="th-mode ${t === v ? "on" : ""}" data-act="setTheme" data-v="${v}" aria-pressed="${t === v}">${I(ic)}${l}</button>`).join("")}</div>
       <span class="tiny muted">${t === "auto" ? "Follows your phone’s light or dark setting." : t === "light" ? "Always light." : "Always dark — easier on the eyes at night."}</span></div>
     <div class="field"><span class="lbl">Colour</span><div class="th-swatches">${THEME_COLORS.map(([v, l, a, b]) => `<button class="th-sw ${ac === v ? "on" : ""}" data-act="setAccent" data-v="${v}" aria-pressed="${ac === v}" aria-label="${l}"><span class="th-dot" style="--a:${a};--b:${b}">${I("check")}</span>${l}</button>`).join("")}</div></div>

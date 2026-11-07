@@ -367,6 +367,7 @@ act("drawer", () => {
       ${row("building", esc(S.me.company), esc(S.me.domain), "")}
       ${typeof roleDef === "function" ? row(roleDef().icon, "View as", roleDef().name, `data-act="pickRole"`) : ""}
       ${row("globe", "Language", lang.name, `data-go="#/settings/lang"`)}
+      ${row("chart", "Reports", "Timesheet, projects, sales, revenue, invoices", `data-go="#/reports"`)}
       ${row("bell", "Notifications", typeof nset === "function" ? (nset().on ? "On" : "Off") : "On", `data-go="#/settings/notifications"`)}
       ${row("lock", "Secure your KEBS app", S.settings.secure ? "Enabled" : "Disabled", `data-go="#/settings/secure"`)}
       ${row("msg", "Send feedback", "Give your valuable feedback", `data-go="#/feedback"`)}

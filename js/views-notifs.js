@@ -12,7 +12,7 @@ const PI_KIND = {
   assign: { label: "Task", icon: "clipboard" }, reject: { label: "Timesheet", icon: "calendar" }, approve: { label: "Approval", icon: "checkCircle" },
   announce: { label: "Announcement", icon: "megaphone" }, reminder: { label: "Reminder", icon: "clock" }, leave: { label: "Leave", icon: "calendar" },
 };
-let PI_SORT = "priority";
+let PI_SORT = "priority", PI_FILTER = "all";
 
 // one-time extra sample notifications so every category has content
 (function piSeed() {
@@ -73,14 +73,13 @@ route("notifs", () => {
   const archived = S.notifs.filter((n) => n.archived).length;
   let body;
   if (!list.length) body = emptyState(["bell", "checkCircle", "sparkles"], "Inbox clear", "You’re all caught up. New notifications land here, sorted by priority.");
-  else if (PI_SORT === "priority") body = groups.map((g) => `<div class="pi-sec ${g.tint}" id="pi-${g.id}"><span class="dot"></span><h2>${g.name}</h2><small>${g.items.length}</small><span class="ai">${I("sparkles")}Sorted by Kais</span></div>
+  else if (PI_SORT === "priority") body = groups.filter((g) => PI_FILTER === "all" || g.id === PI_FILTER).map((g) => `<div class="pi-sec ${g.tint}" id="pi-${g.id}"><span class="dot"></span><h2>${g.name}</h2><small>${g.items.length}</small><span class="ai">${I("sparkles")}Sorted by Kais</span></div>
       ${g.items.map(piCard).join("") || emptyMini(g.id === "urgent" ? "checkCircle" : "bell", g.id === "urgent" ? "Nothing urgent — nice work." : "Nothing in this group right now.")}`).join("");
   else body = `<div style="height:8px"></div><div data-lazy="6">${list.map(piCard).join("")}</div>`;
   return `<div class="screen">
     <div class="big-title hrow" style="align-items:flex-start"><div class="grow"><h1>Notifications</h1><p>${unreadCount() ? `${unreadCount()} unread` : "All read"} · swipe to clear</p></div><button class="ib" data-act="piMore" aria-label="More options">${I("dots")}</button></div>
     <div class="pi-bar"><div class="pi-sort" role="tablist" aria-label="Sort"><button class="${PI_SORT === "priority" ? "on" : ""}" data-act="piSort" data-v="priority">${I("sparkles")} Priority</button><button class="${PI_SORT === "newest" ? "on" : ""}" data-act="piSort" data-v="newest">Newest</button></div></div>
-    ${PI_SORT === "priority" ? `<div class="pi-bar"><div class="pi-anchors">${groups.map((g) => `<button class="${g.tint}" data-act="piJump" data-c="${g.id}">${g.name}<span class="n">${g.items.length}</span></button>`).join("")}</div></div>` : ""}
-    <div class="scroll" data-pi>${body}${archived ? `<button class="link" style="display:block;margin:16px auto 0" data-act="piArchived">${I("archive")} Archived (${archived})</button>` : ""}</div></div>`;
+    <div class="scroll" data-pi>${PI_SORT === "priority" && list.length ? `<div class="pi-fh">${filterHead(PI_FILTER === "all" ? `${plural(list.length, "notification")}` : `${groups.find((g) => g.id === PI_FILTER).items.length} ${groups.find((g) => g.id === PI_FILTER).name.toLowerCase()}`, "piF", PI_FILTER, [["all", "All", "bell", plural(list.length, "notification")], ...groups.map((g) => [g.id, g.name, { urgent: "alert", important: "info", others: "list" }[g.id] || "bell", plural(g.items.length, "notification")])], "Show notifications")}</div>` : ""}${body}${archived ? `<button class="link" style="display:block;margin:16px auto 0" data-act="piArchived">${I("archive")} Archived (${archived})</button>` : ""}</div></div>`;
 }, {
   dock: "notifs",
   mount() {
@@ -200,3 +199,5 @@ function piOnboarding() {
     },
   });
 }
+
+act("piF", (b) => { PI_FILTER = b.dataset.v; rerender(); });
