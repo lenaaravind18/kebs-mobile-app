@@ -77,12 +77,14 @@ function openSheet({ title = "", body = "", foot = "", cls = "", raw = null, onM
   const layer = $("#layer");
   const scrim = document.createElement("div"); scrim.className = "scrim";
   const el = document.createElement("section"); el.className = "sheet " + cls; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
-  el.innerHTML = raw ?? `<div class="grab"></div><div class="sheet-head"><h3>${title}</h3><button class="ib sm" data-sheet-close aria-label="Close">${I("x")}</button></div><div class="sheet-body">${body}</div>${foot ? `<div class="sheet-foot">${foot}</div>` : ""}`;
+  // no close (X) button: sheets close by swiping down on the handle/title, tapping outside, Back or Esc
+  el.innerHTML = raw ?? `<div class="grab" aria-hidden="true"></div>${title ? `<div class="sheet-head"><h3>${title}</h3></div>` : ""}<div class="sheet-body">${body}</div>${foot ? `<div class="sheet-foot">${foot}</div>` : ""}`;
   layer.append(scrim, el);
   const s = { el, scrim, onClose };
   sheets.push(s);
   scrim.addEventListener("click", () => closeSheet(s));
   el.addEventListener("click", (e) => { if (e.target.closest("[data-sheet-close]")) closeSheet(s); });
+  sheetSwipe(s);
   onMount?.(el, s);
   return s;
 }
@@ -94,6 +96,26 @@ function closeSheet(s = sheets[sheets.length - 1]) {
   s.onClose?.();
 }
 function closeAllSheets() { while (sheets.length) closeSheet(); }
+// swipe a sheet down by its handle or title to close it (snaps back if not dragged far enough)
+function sheetSwipe(s) {
+  const el = s.el; let y0 = null, dy = 0, t0 = 0;
+  el.addEventListener("pointerdown", (e) => {
+    if (!e.target.closest(".grab, .sheet-head") || e.target.closest("button, input, textarea, select, a")) return;
+    y0 = e.clientY; dy = 0; t0 = Date.now(); el.style.transition = "none"; try { el.setPointerCapture(e.pointerId); } catch {}
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (y0 == null) return; dy = Math.max(0, e.clientY - y0);
+    el.style.transform = `translateY(${dy}px)`; s.scrim.style.opacity = String(Math.max(0.2, 1 - dy / 420));
+  });
+  const end = () => {
+    if (y0 == null) return; y0 = null;
+    const fast = dy > 40 && dy / Math.max(1, Date.now() - t0) > 0.6;
+    el.style.transition = ""; s.scrim.style.opacity = "";
+    if (dy > 90 || fast) closeSheet(s); else el.style.transform = "";
+  };
+  el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+}
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheets.length && !document.querySelector(".imgv")) closeSheet(); });
 // local actions inside a sheet: data-s="name"
 function onS(el, handlers) {
   el.addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b && el.contains(b) && handlers[b.dataset.s]) handlers[b.dataset.s](b, e); });

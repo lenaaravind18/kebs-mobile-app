@@ -3630,7 +3630,7 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .sup-tile.wide b { font-size: 15px; }
 /* activity in the app's feed component */
 .sup-feed { padding: 18px 16px 2px !important; }
-.fd-av .sup-av.fd { width: 40px; height: 40px; font-size: 14px; }
+.fd-av .sup-av.fdav { width: 40px; height: 40px; font-size: 14px; }
 .sup-fsnip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 3px; color: var(--ink-2); }
 .sup-tile { padding: 12px 10px !important; } .sup-tile .sup-tl { font-size: 12px; gap: 5px; } .sup-tile .sup-tl .i { width: 14px; height: 14px; }
 .sup-feed .fd-av { align-self: flex-start; height: 40px; }
@@ -3739,3 +3739,25 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 28px), transparent); }
 .sup-s3-chips::after { content: ""; flex: none; width: 16px; }
 .sup-chip { height: 36px; padding: 0 14px; }
+/* similar tickets: match % with the flame (hot matches orange, like CRM lead scores) */
+.sup-pct { display: inline-flex; align-items: center; gap: 3px; width: 54px; color: var(--ink-3); }
+.sup-pct .i { width: 15px; height: 15px; flex: none; }
+.sup-pct.hot { color: #ea580c; } :root[data-theme="dark"] .sup-pct.hot { color: #fb923c; }
+.sup-pct.dup { color: #d97706; }
+/* support: Kais logo on the AI tab and the AI page */
+.sup-aitab { display: inline-flex; align-items: center; gap: 5px; }
+.sup-aitab img, .rp-ch h3 .sup-kais { flex: none; filter: var(--kais-f, none); }
+.rp-ch h3 .sup-kais { width: 18px; height: 18px; }
+/* support sheets: even spacing between fields */
+.sup-sheet .sup-ft { margin: 2px 0 16px; }
+.sup-sheet .sup-stl { margin-bottom: 4px; }
+.sup-sheet .field { margin: 18px 0 0; }
+.sup-sheet .field > .lbl, .sup-sheet .field > label.lbl { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.sup-sheet .field > .lbl .muted { font-weight: 500; }
+.sup-sheet .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.sup-sheet .field textarea.inp { display: block; width: 100%; min-height: 84px; }
+/* sheets without a close button: a bigger drag area on the handle; title-less sheets clear the handle */
+.sheet .grab { touch-action: none; cursor: grab; z-index: 2; }
+.sheet .grab::before { content: ""; position: absolute; left: -150px; right: -150px; top: -9px; height: 30px; }
+.sheet .sheet-head { touch-action: none; padding-right: 20px; }
+.sheet > .grab + .sheet-body { padding-top: 26px; }

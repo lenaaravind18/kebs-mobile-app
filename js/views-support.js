@@ -240,7 +240,7 @@ route("support/t/:id", ({ id }, q) => {
   if (!t) return `<div class="screen">${topbar("Ticket")}${emptyState(["clipboard"], "Ticket not found", "It may have been merged or removed.", `<button class="btn primary" data-go="#/support">Back to tickets</button>`)}</div>`;
   const tab = q.tab || "overview", c = SUP_CUST[t.cust], sla = supSla(t), H = 3600e3, ms = supMsgs(id);
   const top = topbar(`#${esc(t.id)}`, { sub: c.name, right: `<button class="ib" data-act="supMore" data-id="${id}" aria-label="More actions">${I("dots")}</button>` });
-  const tabs = seg([["overview", "Overview"], ["chat", `Chat${ms.filter((m) => m.kind === "msg").length ? ` · ${ms.filter((m) => m.kind === "msg").length}` : ""}`], ["activity", "Activity"], ["ai", "AI"]], tab, "supTab");
+  const tabs = seg([["overview", "Overview"], ["chat", `Chat${ms.filter((m) => m.kind === "msg").length ? ` · ${ms.filter((m) => m.kind === "msg").length}` : ""}`], ["activity", "Activity"], ["ai", `<span class="sup-aitab"><img src="kais.svg" alt="" width="16" height="16">AI</span>`]], tab, "supTab");
   let body = "", foot = "";
   if (tab === "overview") {
     const firstReply = ms.find((m) => m.kind === "msg" && m.team === "kebs"), respUsed = ((firstReply ? firstReply.at : Date.now()) - t.created) / H;
@@ -320,16 +320,16 @@ route("support/t/:id", ({ id }, q) => {
       </div>
       ${filterHead("Activity", "supMode", mode, [["all", "All changes", "list"], ["ms", "Milestones", "milestone"]], "Show")}
       ${rows.length ? `<div class="card sup-feed"><div class="feed">${rows.slice().reverse().map((r) => { const mine = r.who === supMe();
-        return `<div class="fd"><div class="fd-av">${mine ? avatar("me") : supAv(r.who, "fd")}<span class="fd-badge ${SUP_TINT[r.c] || "t-slate"}">${I(r.ic)}</span></div>
+        return `<div class="fd"><div class="fd-av">${mine ? avatar("me") : supAv(r.who, "fdav")}<span class="fd-badge ${SUP_TINT[r.c] || "t-slate"}">${I(r.ic)}</span></div>
           <div class="grow" style="min-width:0"><b class="fd-t">${esc(mine ? "You" : r.who)} ${r.html}</b>${r.snip ? `<span class="small muted sup-fsnip">${esc(r.snip)}</span>` : ""}
           <span class="small muted" style="display:block">${D.ago(r.at) === "now" ? "Just now" : D.ago(r.at) + " ago"} · ${supDT(r.at)}</span></div></div>`; }).join("")}</div></div>` : emptyMini("history", "Nothing logged yet.")}`;
   } else {
     const a = supAssist(t);
-    body = `<div class="card rp-card"><div class="rp-ch"><h3>${I("info")}Where it stands</h3></div><p class="sup-p">${a.stand}</p><p class="tiny muted">${a.last}</p></div>
+    body = `<div class="card rp-card"><div class="rp-ch"><h3><img class="sup-kais" src="kais.svg" alt="" width="18" height="18">Where it stands</h3><span class="tiny muted">by Kais</span></div><p class="sup-p">${a.stand}</p><p class="tiny muted">${a.last}</p></div>
       <div class="card rp-card"><div class="rp-ch"><h3>${I("target")}Likely root cause</h3><span class="tiny muted">${a.conf}</span></div><p class="sup-p"><b>${a.cause}</b></p><p class="tiny muted">${a.why}</p></div>
       <div class="card rp-card"><div class="rp-ch"><h3>${I("sparkles")}Suggested reply</h3></div><p class="sup-desc">${esc(a.reply)}</p>
         <div class="row-btns" style="margin-top:12px"><button class="btn outline" style="flex:1" data-act="supUseReply" data-id="${id}">${I("msg")}Use in reply</button><button class="btn primary" style="flex:1" data-act="supEmail" data-id="${id}" data-m="req" data-ai="1">${I("mail")}Email it</button></div></div>
-      <div class="card rp-card"><div class="rp-ch"><h3>${I("history")}Similar tickets</h3></div>${a.similar.length ? `<div class="sup-list flat">${a.similar.map(([x, p]) => `<button class="sup-sim" data-go="#/support/t/${x.id}"><b class="sup-pct ${p >= 80 && SUP_OPEN.includes(x.status) ? "dup" : ""}">${p}%</b><span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(x.title)}</b><span class="tiny muted">${x.id} · ${x.status}${x.resType ? ` · ${x.resType}` : ""}${p >= 80 && SUP_OPEN.includes(x.status) ? " · possible duplicate" : ""}</span></span>${I("chevR")}</button>`).join("")}</div>` : emptyMini("search", "No similar tickets found.")}</div>`;
+      <div class="card rp-card"><div class="rp-ch"><h3>${I("history")}Similar tickets</h3></div>${a.similar.length ? `<div class="sup-list flat">${a.similar.map(([x, p]) => `<button class="sup-sim" data-go="#/support/t/${x.id}"><b class="sup-pct ${p >= 80 && SUP_OPEN.includes(x.status) ? "dup" : ""} ${p >= 70 ? "hot" : ""}">${I("flame")}${p}%</b><span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(x.title)}</b><span class="tiny muted">${x.id} · ${x.status}${x.resType ? ` · ${x.resType}` : ""}${p >= 80 && SUP_OPEN.includes(x.status) ? " · possible duplicate" : ""}</span></span>${I("chevR")}</button>`).join("")}</div>` : emptyMini("search", "No similar tickets found.")}</div>`;
   }
   return `<div class="screen sup-t">${top}<div class="sup-tabs">${tabs}</div>${tab === "chat" ? `<div class="pc-wrap"><div class="scroll pc-thread" data-sup-scroll>${body}</div></div>` : `<div class="scroll" data-sup-scroll><div class="stack" style="padding-top:2px">${body}</div></div>`}${foot}</div>`;
 }, {
