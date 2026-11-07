@@ -84,7 +84,7 @@
             if (appNew) return show(I("download"), "new", "App update available", `KEBS ${esc(rel.name || "")} is ready. It installs over this version and keeps your data.${webNew ? " The latest screens come with it." : ""}`,
               `<button class="btn primary block" data-s="apk">${I("download")}Download &amp; install</button>`), (el._apk = apk.browser_download_url);
             if (webNew) return show(I("sparkles"), "new", "A new version is ready", "KEBS has new features and fixes. Updating takes a second and keeps everything you’ve saved.", `<button class="btn primary block" data-s="reload">${I("refresh")}Update now</button>`);
-            show(I("checkCircle"), "ok", "You’re up to date", `KEBS is on the latest version. Checked just now.`, `<button class="btn outline block" data-s="close">Done</button>`);
+            show(typeof successTick === "function" ? successTick() : I("checkCircle"), typeof successTick === "function" ? "tick" : "ok", "You’re up to date", `KEBS is on the latest version. Checked just now.`, `<button class="btn outline block" data-s="close">Done</button>`);
           } catch { show(I("alert"), "bad", "Couldn’t check for updates", "Something went wrong reaching KEBS. Try again in a moment.", `<button class="btn primary block" data-s="retry">${I("refresh")}Try again</button>`); }
         };
         onS(el, {

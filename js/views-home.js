@@ -113,7 +113,7 @@ route("home", () => {
     </header>
     <div class="scroll home-scroll">
       ${typeof roleBanner === "function" ? roleBanner() : ""}
-      <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2></div>
+      <section class="qa-card"><div class="qa-head"><h2>${T("quick")}</h2><button class="qa-all" data-go="#/actions" aria-label="All actions">${I("chevR")}</button></div>
       <div class="qa">${quick.map(quickTile).join("")}<button class="qa-btn" data-act="editQuick"><span class="ico more">${msIcon("more")}</span>More actions</button></div></section>
       ${typeof roleLead === "function" ? roleLead() : ""}
       <div style="height:20px"></div>
