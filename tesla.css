@@ -3769,3 +3769,8 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 :root:not([data-theme="dark"]) .pc-msg.me .pc-at-tag { color: #c2410c; }
 :root:not([data-theme="dark"]) .pc-msg.me .pc-quote { background: rgba(204, 68, 22, .08); } :root:not([data-theme="dark"]) .pc-msg.me .pc-quote b, :root:not([data-theme="dark"]) .pc-msg.me .pc-quote span { color: #7c2d12; }
 :root:not([data-theme="dark"]) .pc-msg.me .pc-bub .pc-doc { background: rgba(255, 255, 255, .7); color: var(--ink); } :root:not([data-theme="dark"]) .pc-msg.me .pc-bub .pc-doc small { color: var(--ink-3); }
+/* internal notes: same width as chat messages */
+.pc-msg.sup-nrow { max-width: 86%; }
+/* activity: breathing room above the time line */
+.sup-feed .sup-ftime { display: block; margin-top: 6px; }
+.sup-feed .fd-t + .sup-ftime { margin-top: 4px; }

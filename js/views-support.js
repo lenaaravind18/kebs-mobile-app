@@ -273,7 +273,7 @@ route("support/t/:id", ({ id }, q) => {
     list.forEach((m, i) => {
       const day = D.iso(m.at);
       if (day !== lastDay) { out += `<div class="pc-day"><span>${D.diff(day, D.today()) < 2 && typeof dayLabel === "function" ? dayLabel(day) : D.nice(day)}</span></div>`; lastDay = day; prev = null; }
-      if (m.kind === "event") { out += `<div class="pc-day sup-sys"><span><b>${esc(m.who === supMe() ? "You" : m.who)}</b> ${esc(m.text)} · ${supTime(m.at)}</span></div>`; prev = null; return; }
+      if (m.kind === "event") { out += `<div class="pc-day sup-sys"><span><b>${esc(m.who === supMe() ? "You" : m.who)}</b> ${esc(m.who === supMe() ? supYou(m.text) : m.text)} · ${supTime(m.at)}</span></div>`; prev = null; return; }
       // internal notes: a note card (not a chat bubble) on the author's side, with their avatar, so they never read as a reply to the customer
       if (m.internal) {
         const nm = m.who === supMe();
@@ -321,8 +321,8 @@ route("support/t/:id", ({ id }, q) => {
       ${filterHead("Activity", "supMode", mode, [["all", "All changes", "list"], ["ms", "Milestones", "milestone"]], "Show")}
       ${rows.length ? `<div class="card sup-feed"><div class="feed">${rows.slice().reverse().map((r) => { const mine = r.who === supMe();
         return `<div class="fd"><div class="fd-av">${mine ? avatar("me") : supAv(r.who, "fdav")}<span class="fd-badge ${SUP_TINT[r.c] || "t-slate"}">${I(r.ic)}</span></div>
-          <div class="grow" style="min-width:0"><b class="fd-t">${esc(mine ? "You" : r.who)} ${r.html}</b>${r.snip ? `<span class="small muted sup-fsnip">${esc(r.snip)}</span>` : ""}
-          <span class="small muted" style="display:block">${D.ago(r.at) === "now" ? "Just now" : D.ago(r.at) + " ago"} · ${supDT(r.at)}</span></div></div>`; }).join("")}</div></div>` : emptyMini("history", "Nothing logged yet.")}`;
+          <div class="grow" style="min-width:0"><b class="fd-t">${esc(mine ? "You" : r.who)} ${mine ? supYou(r.html) : r.html}</b>${r.snip ? `<span class="small muted sup-fsnip">${esc(r.snip)}</span>` : ""}
+          <span class="small muted sup-ftime">${D.ago(r.at) === "now" ? "Just now" : D.ago(r.at) + " ago"} · ${supDT(r.at)}</span></div></div>`; }).join("")}</div></div>` : emptyMini("history", "Nothing logged yet.")}`;
   } else {
     const a = supAssist(t);
     body = `<div class="card rp-card"><div class="rp-ch"><h3><img class="sup-kais" src="kais.svg" alt="" width="18" height="18">Where it stands</h3><span class="tiny muted">by Kais</span></div><p class="sup-p">${a.stand}</p><p class="tiny muted">${a.last}</p></div>
@@ -379,6 +379,8 @@ function supCanned(id) {
 act("supCanned", (b) => supCanned(b.dataset.id));
 
 const SUP_TINT = { "#3b82f6": "t-blue", "#f97316": "t-orange", "#8b5cf6": "t-violet", "#f59e0b": "t-amber", "#16a34a": "t-green", "#94a3b8": "t-slate", "#0ea5e9": "t-teal", "#64748b": "t-slate", "#ef4444": "t-red" };
+// "You was assigned" → "You were assigned"
+const supYou = (t) => t.replace(/^was /, "were ");
 // the ticket's activity log, built from its history and messages
 function supActivity(t) {
   return supMsgs(t.id).map((m) => {
