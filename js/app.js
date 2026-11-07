@@ -83,6 +83,9 @@ const SEEN = new Set();
 function skelKind(path) {
   if (/^(welcome|login|kais|search|clockin|feedback|settings|req\/|leave\/apply|compoff\/request|expenses\/(new|review|claim\/[^/]+\/(edit|split))|profile\/edit)/.test(path)) return null;
   if (path === "home") return "home";
+  if (path === "support") return "support";
+  if (/^support\/t\/[^/]+\/mail/.test(path)) return null;
+  if (/^support\/t\//.test(path)) return "ticket";
   if (/^(apps|leave\/balances|expenses)/.test(path)) return "grid";
   if (/^(post|request|people|profile|attendance)/.test(path)) return "detail";
   return "list";
@@ -93,7 +96,12 @@ function skeleton(kind) {
   const tile = () => `<div class="sk-tile"><i class="sk sk-ic"></i>${line("70%", 13)}${line("90%", 10)}${line("55%", 10)}</div>`;
   let body;
   if (kind === "home") body = `<div class="sk-hero"></div><div class="scroll" style="padding-top:18px"><div class="sk-card col"><div class="sk-qa">${'<span><i class="sk sk-ic"></i><i class="sk" style="width:44px;height:9px"></i></span>'.repeat(8)}</div></div><div class="sk-card col" style="height:230px">${line("40%", 13)}${line("70%", 18)}${line("100%", 40)}${line("100%", 8)}</div></div>`;
-  else if (kind === "grid") body = `<div class="scroll" style="padding-top:8px">${line("46%", 26)}<div style="height:10px"></div>${line("100%", 40)}<div class="sk-grid">${tile().repeat(4)}</div>${line("30%", 16)}<div class="sk-grid">${tile().repeat(2)}</div></div>`;
+  else if (kind === "support") {
+    const srow = () => `<div class="sk-srow"><i class="sk sk-bar"></i><div class="grow stack s6">${line("38%", 10)}${line("86%", 13)}${line("52%", 10)}</div></div>`;
+    body = `<div class="scroll" style="padding-top:8px"><div class="sk-card col">${line("36%", 14)}<div class="sk-tiles">${'<span><i class="sk" style="width:62%;height:10px"></i><i class="sk" style="width:34%;height:20px"></i></span>'.repeat(6)}</div>${line("100%", 8)}</div><div style="height:14px"></div>${line("42%", 18)}<div style="height:10px"></div>${line("100%", 40)}<div class="sk-card col sk-list">${srow().repeat(5)}</div></div>`;
+  } else if (kind === "ticket") {
+    body = `<div class="scroll" style="padding-top:4px">${line("100%", 40)}<div class="sk-card col" style="margin-top:12px"><div style="display:flex;gap:10px">${line("84px", 26)}${line("60px", 26)}</div>${line("88%", 18)}${line("60%", 18)}${line("46%", 11)}<div class="sk-rings">${'<span><i class="sk sk-ring"></i><i class="sk" style="width:60%;height:10px"></i></span>'.repeat(3)}</div></div><div class="sk-acts">${'<i class="sk"></i>'.repeat(4)}</div><div class="sk-card col">${line("34%", 14)}${line("100%", 11)}${line("92%", 11)}${line("70%", 11)}</div></div>`;
+  } else if (kind === "grid") body = `<div class="scroll" style="padding-top:8px">${line("46%", 26)}<div style="height:10px"></div>${line("100%", 40)}<div class="sk-grid">${tile().repeat(4)}</div>${line("30%", 16)}<div class="sk-grid">${tile().repeat(2)}</div></div>`;
   else if (kind === "detail") body = `<div class="scroll" style="padding-top:8px"><div class="sk-card col" style="align-items:center"><i class="sk sk-av lg"></i>${line("50%", 18)}${line("34%", 11)}</div>${line("100%", 54)}<div class="stack" style="margin-top:12px">${row().repeat(3)}</div></div>`;
   else body = `<div class="scroll" style="padding-top:8px">${line("100%", 40)}<div class="stack" style="margin-top:12px">${row().repeat(6)}</div></div>`;
   const top = kind === "home" ? "" : `<header class="top"><div class="pill"><i class="sk sk-circle"></i><div class="ttl"><i class="sk" style="width:120px;height:14px;display:inline-block"></i></div><i class="sk sk-circle"></i></div></header>`;
@@ -287,6 +295,7 @@ queueBar();
 // Phone back button / gesture (Android app): close what's on top first, then step back a screen,
 // and only leave the app from Home — like a native app.
 window.kebsBack = () => {
+  if (typeof closeImage === "function" && $(".imgv")) { closeImage(); return "handled"; }
   if (typeof sheets !== "undefined" && sheets.length) { closeSheet(); return "handled"; }
   if (typeof drawerEl !== "undefined" && drawerEl) { closeDrawer(); return "handled"; }
   const h = location.hash.split("?")[0];

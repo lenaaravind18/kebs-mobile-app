@@ -49,19 +49,68 @@ const rpRand = (seed) => { let h = 2166136261; for (const c of String(seed)) h =
 const rpBetween = (seed, a, b) => a + rpRand(seed) * (b - a);
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 const rpDelta = (v, good = "up") => { if (v == null) return ""; const up = v >= 0, ok = good === "up" ? up : !up; return `<span class="rp-delta ${ok ? "ok" : "bad"}">${up ? "▲" : "▼"} ${Math.abs(v)}%</span>`; };
-const rpKpi = (label, value, delta, good, sub) => `<div class="rp-kpi"><small>${label}</small><b class="num">${value}</b><span class="rp-kpi-f">${rpDelta(delta, good)}${sub ? `<span>${sub}</span>` : ""}</span></div>`;
+// an icon for each number, picked from its label
+const RP_KIC = [[/pipeline|revenue|forecast|per month|recognised/i, "rupee", "#3b82f6"], [/win rate/i, "award", "#16a34a"], [/lead/i, "target", "#8b5cf6"], [/closing/i, "calendar", "#0ea5e9"],
+  [/overdue|at risk|not submitted/i, "alert", "#ef4444"], [/unbilled/i, "receipt", "#f59e0b"], [/^billed/i, "receipt", "#3b82f6"], [/collected/i, "wallet", "#16a34a"],
+  [/available/i, "users", "#3b82f6"], [/billable|allocated vs|margin/i, "percent", "#16a34a"], [/un-allocated/i, "clock", "#f59e0b"], [/logged|hours/i, "clock", "#3b82f6"],
+  [/on time/i, "checkCircle", "#16a34a"], [/my status/i, "clipboard", "#8b5cf6"], [/^active/i, "briefcase", "#3b82f6"], [/over budget/i, "flame", "#f97316"],
+  [/account/i, "building", "#64748b"], [/bench/i, "users", "#f59e0b"], [/rolling/i, "history", "#8b5cf6"], [/demand/i, "target", "#16a34a"], [/^allocated/i, "users", "#16a34a"]];
+const rpKic = (label) => { const m = RP_KIC.find(([re]) => re.test(label)) || [0, "chart", "#64748b"]; return `<i class="rp-kic" style="--k:${m[2]}">${I(m[1])}</i>`; };
+const rpKpi = (label, value, delta, good, sub) => `<div class="rp-kpi"><small>${rpKic(label)}<span>${label}</span></small><b class="num">${value}</b><span class="rp-kpi-f">${rpDelta(delta, good)}${sub ? `<span>${sub}</span>` : ""}</span></div>`;
 function rpHbars(rows, { fmt = (v) => v } = {}) {
   const max = Math.max(...rows.map((r) => r.v), 1);
   return `<div class="rp-hbars">${rows.map((r) => `<div class="rp-hb"><span class="rp-hb-l"><span class="ell">${esc(r.l)}</span><b>${fmt(r.v)}</b></span><span class="rp-hb-t"><i style="width:${r.v ? Math.max(3, (r.v / max) * 100) : 0}%;background:${r.c || "color-mix(in srgb, var(--accent) 72%, var(--panel))"}"></i></span>${r.s ? `<small class="muted">${r.s}</small>` : ""}</div>`).join("")}</div>`;
 }
+let RP_N = 0;
 function rpDonut(parts, center, sub) {
-  const shown = parts.filter((p) => p.v > 0), tot = shown.reduce((a, p) => a + p.v, 0) || 1, R = 46, SW = 14, C = 2 * Math.PI * R, GAP = shown.length > 1 ? 3 : 0;
+  const shown = parts.filter((p) => p.v > 0), tot = shown.reduce((a, p) => a + p.v, 0) || 1, R = 46, SW = 15, C = 2 * Math.PI * R, GAP = shown.length > 1 ? 3 : 0;
   let off = 0;
-  const segs = shown.map((p) => { const L = (p.v / tot) * C, s0 = off + (GAP ? SW / 2 + GAP / 2 : 0); off += L; return `<circle cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" stroke-linecap="round" style="stroke:${p.c}" stroke-dasharray="${Math.max(0.1, GAP ? L - SW - GAP : L).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-s0).toFixed(2)}" transform="rotate(-90 60 60)"/>`; }).join("");
-  return `<div class="rp-donut"><div class="rp-donut-c"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/>${segs}</svg><span><b>${center}</b><small>${sub}</small></span></div>
-    <div class="rp-legend">${parts.map((p) => `<span><i style="background:${p.c}"></i><span class="grow ell">${esc(p.l)}</span><b>${p.f ?? p.v}</b></span>`).join("")}</div></div>`;
+  const segs = shown.map((p, i) => {
+    const L = (p.v / tot) * C, s0 = off + (GAP ? SW / 2 + GAP / 2 : 0), a = ((off + L / 2) / C) * 2 * Math.PI - Math.PI / 2; off += L;
+    const x = (50 + Math.cos(a) * 44).toFixed(1), y = (50 + Math.sin(a) * 44).toFixed(1), side = Math.cos(a) >= 0 ? "r" : "l";
+    return `<circle class="rp-seg${i ? "" : " on"}" data-act="rpSeg" data-i="${i}" data-x="${x}" data-y="${y}" data-side="${side}" data-l="${esc(p.l)}" data-f="${esc(String(p.f ?? p.v))}" data-p="${Math.round((p.v / tot) * 100)}" data-c="${p.c}" cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" stroke-linecap="round" style="stroke:${p.c}" stroke-dasharray="${Math.max(0.1, GAP ? L - SW - GAP : L).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-s0).toFixed(2)}" transform="rotate(-90 60 60)"/>`;
+  }).join("");
+  const first = shown[0], a0 = first ? ((first.v / tot) * Math.PI) - Math.PI / 2 : 0;
+  const call = first ? rpCallout({ x: (50 + Math.cos(a0) * 44).toFixed(1), y: (50 + Math.sin(a0) * 44).toFixed(1), side: Math.cos(a0) >= 0 ? "r" : "l", l: esc(first.l), f: esc(String(first.f ?? first.v)), p: Math.round((first.v / tot) * 100), c: first.c }) : "";
+  return `<div class="rp-donut"><div class="rp-donut-c"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/>${segs}</svg><span><b>${center}</b><small>${sub}</small></span>${call}</div>
+    <div class="rp-legend">${parts.map((p) => { const i = shown.indexOf(p); return `<button type="button" class="${i === 0 ? "on" : ""}" ${i < 0 ? "disabled" : `data-act="rpSeg" data-i="${i}"`}><i style="background:${p.c}"></i><span class="ell">${esc(p.l)}</span><b>${p.f ?? p.v}</b></button>`; }).join("")}</div></div>`;
 }
-const rpCard = (title, body, aside = "") => `<div class="sec"><h2>${title}</h2>${aside}</div><div class="card rp-card">${body}</div>`;
+const rpCallout = (d) => `<span class="rp-call ${d.side}" style="left:${d.x}%;top:${d.y}%"><span><i style="background:${d.c}"></i>${d.l}</span><b>${d.f}</b><small>${d.p}%</small></span>`;
+act("rpSeg", (b) => {
+  const box = b.closest(".rp-donut"), i = b.dataset.i, seg = box && box.querySelector(`.rp-seg[data-i="${i}"]`); if (!seg) return;
+  box.querySelectorAll(".on").forEach((e) => e.classList.remove("on"));
+  seg.classList.add("on"); box.querySelector(`.rp-legend [data-i="${i}"]`)?.classList.add("on");
+  box.querySelector(".rp-call")?.remove(); box.querySelector(".rp-donut-c").insertAdjacentHTML("beforeend", rpCallout(seg.dataset));
+  try { navigator.vibrate?.(6); } catch {}
+});
+// smooth line chart (KEBS reports): series [{ v: [..|null], c, dash, label, area }]
+const rpNice = (x) => { const p = 10 ** Math.floor(Math.log10(x || 1)), f = x / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
+function rpLine({ series, labels, fmt = (v) => v, height = 160 }) {
+  const id = "rpl" + ++RP_N, W = 320, H = height, L = 40, Rt = 12, T = 14, B = 24, iw = W - L - Rt, ih = H - T - B, n = labels.length;
+  const all = series.flatMap((x) => x.v.filter((v) => v != null)), step = rpNice((Math.max(...all, 1) || 1) / 4), max = step * Math.max(1, Math.ceil(Math.max(...all, 1) / step));
+  const X = (i) => L + (n > 1 ? (i * iw) / (n - 1) : iw / 2), Y = (v) => T + ih - (v / max) * ih;
+  const curve = (pts) => pts.map((p, i) => { if (!i) return `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; const p0 = pts[i - 2] || pts[i - 1], p1 = pts[i - 1], p3 = pts[i + 1] || p;
+    const c1 = [p1[0] + (p[0] - p0[0]) / 6, Math.min(T + ih, p1[1] + (p[1] - p0[1]) / 6)], c2 = [p[0] - (p3[0] - p1[0]) / 6, Math.min(T + ih, p[1] - (p3[1] - p1[1]) / 6)];
+    return `C${c1.map((v) => v.toFixed(1)).join(" ")} ${c2.map((v) => v.toFixed(1)).join(" ")} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; }).join(" ");
+  const grid = [0, 1, 2, 3, 4].map((k) => { const v = (max / 4) * k, y = Y(v).toFixed(1); return `<line x1="${L}" x2="${W - Rt}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${(+y + 3.5).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`; }).join("");
+  const every = Math.ceil(n / 6), xl = labels.map((l, i) => (i % every === 0 || i === n - 1) && !(i === n - 1 && i % every && i - Math.floor(i / every) * every < every / 2) ? `<text x="${X(i).toFixed(1)}" y="${H - 6}" text-anchor="middle">${esc(l)}</text>` : "").join("");
+  const lines = series.map((sr, si) => {
+    const pts = sr.v.map((v, i) => (v == null ? null : [X(i), Y(v)])).filter(Boolean); if (!pts.length) return "";
+    const d = curve(pts), last = pts[pts.length - 1];
+    const area = sr.area ? `<path class="rp-ln-a" d="${d} L${last[0].toFixed(1)} ${T + ih} L${pts[0][0].toFixed(1)} ${T + ih} Z" fill="url(#${id}g${si})"/>` : "";
+    const dots = sr.dash ? "" : pts.map((p, i) => `<circle class="rp-ln-d${i === pts.length - 1 ? " last" : ""}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i === pts.length - 1 ? 4.5 : 2.6}" style="--c:${sr.c}"/>`).join("");
+    return `<defs><linearGradient id="${id}g${si}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sr.c}" stop-opacity=".26"/><stop offset="1" stop-color="${sr.c}" stop-opacity="0"/></linearGradient></defs>${area}<path class="rp-ln${sr.dash ? " dash" : ""}" d="${d}" style="stroke:${sr.c}"/>${dots}`;
+  }).join("");
+  const lastS = series.find((x) => !x.dash) || series[0], lv = [...lastS.v].reverse().find((v) => v != null);
+  const legend = series.length > 1 ? `<div class="rp-lg">${series.map((x) => `<span><i class="${x.dash ? "dash" : ""}" style="--c:${x.c}"></i>${esc(x.label)}</span>`).join("")}</div>` : "";
+  return `<div class="rp-line"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(lastS.label || "Trend")}, latest ${esc(String(fmt(lv ?? 0)))}"><g class="rp-ln-g">${grid}${xl}</g>${lines}</svg>${legend}</div>`;
+}
+// an icon for each card title
+const RP_CIC = [[/bench|rolling/i, "users", "#f59e0b"], [/billable|utilisation|capacity/i, "chart", "#3b82f6"], [/budget/i, "wallet", "#f97316"], [/collected|overdue invoice/i, "wallet", "#16a34a"],
+  [/funnel|lead/i, "target", "#8b5cf6"], [/hours/i, "clock", "#3b82f6"], [/leave/i, "calendar", "#0ea5e9"], [/pipeline|deals/i, "briefcase", "#3b82f6"], [/timesheet status|not submitted/i, "clipboard", "#8b5cf6"],
+  [/unbilled|ubr/i, "receipt", "#f59e0b"], [/forecast|actual|account/i, "rupee", "#16a34a"], [/projects/i, "briefcase", "#0d9488"]];
+const rpCic = (t) => { const m = RP_CIC.find(([re]) => re.test(t)); return m ? `<i class="rp-kic" style="--k:${m[2]}">${I(m[1])}</i>` : ""; };
+const rpCard = (title, body, aside = "") => `<div class="card rp-card"><div class="rp-ch"><h3>${rpCic(title)}${title}</h3>${aside}</div>${body}</div>`;
 const rpInsight = (lines) => `<div class="rp-insight"><img src="kais.svg" alt=""><div><b>Kais read-out</b>${lines.filter(Boolean).map((l) => `<p>${l}</p>`).join("")}</div></div>`;
 // a short list (top 5) with "See all" opening the full list in a sheet
 const RP_LISTS = {};
@@ -162,6 +211,7 @@ function rpUtil(r) {
       rpKpi("Logged", rpH(u.logged), null, "up", `${pct(u.logged, u.alloc)}% of allocated`)],
     insight: [`<b>${pct(u.billed, u.avail)}%</b> of available hours were billed.`, `${esc(low.name)} has the lowest billed utilisation (${pct(low.billed, low.avail)}%) — ${rpH(low.un)} un-allocated.`],
     body: [rpCard("Capacity", rpDonut([{ l: "Billed", v: u.billed, c: "var(--ok)", f: rpH(u.billed) }, { l: "Allocated, not billed", v: u.alloc - u.billed, c: "#3b82f6", f: rpH(u.alloc - u.billed) }, { l: "Un-allocated", v: u.un, c: "#94a3b8", f: rpH(u.un) }], `${pct(u.billed, u.avail)}%`, "billed")),
+      rpCard("Billed utilisation trend", rpLine({ labels: r.labels, fmt: (v) => `${Math.round(v)}%`, series: [{ label: "Billed", c: "var(--accent)", area: true, v: r.labels.map((l, i) => Math.round(rpBetween(r.seed + l + "ut", 58, 78))) }] })),
       rpCard("Billed utilisation by region", rpHbars([...u.regions].sort((a, b) => b.billed / b.avail - a.billed / a.avail).map((x) => ({ l: x.name, v: pct(x.billed, x.avail), c: rangeColor(x.billed / x.avail / 0.8), s: `${x.hc} people · ${rpH(x.un)} un-allocated` })), { fmt: (v) => `${v}%` }))],
     cols: ["Region", "Available", "Allocated", "Logged", "Billed", "Un-allocated"], rows: u.regions.map((x) => [x.name, rpH(x.avail), rpH(x.alloc), rpH(x.logged), rpH(x.billed), rpH(x.un)]),
   };
@@ -192,7 +242,7 @@ function rpTs(r) {
     kpis: [rpKpi("Hours booked", rpH(t.booked), Math.round(rpBetween(r.seed + "k1", -3, 8)), "up", `of ${rpH(t.cap)} capacity${r.partial ? " so far" : ""}`), rpKpi("Billable", `${pct(t.bill, t.booked)}%`, Math.round(rpBetween(r.seed + "k2", -2, 6)), "up", rpH(t.bill)),
       rpKpi("Submitted on time", `${ontime}%`, Math.round(rpBetween(r.seed + "k3", -5, 5)), "up"), rpKpi(t.mine ? "My status" : "Not submitted", t.mine ? t.people[0].status : t.unsub.length, null, "down", t.mine ? "" : plural(t.people.length, "person"))],
     insight: t.mine ? [`You booked <b>${rpH(t.booked)}</b>, ${pct(t.bill, t.booked)}% billable.`] : [t.unsub.length ? `<b>${plural(t.unsub.length, "person")}</b> haven’t submitted — you can remind them below.` : "Everyone has submitted their timesheets.", `Billable mix is ${pct(t.bill, t.booked)}%.`],
-    body: [rpCard("Hours booked", capsuleBars({ values: t.trend, labels: r.labels, goal: Math.round(t.perLabel), goalLabel: "Capacity", fmt: (v) => rpH(v), height: 120, active: Math.max(0, t.done - 1), future: r.labels.map((_, i) => i).filter((i) => i >= t.done) })),
+    body: [rpCard("Hours booked", rpLine({ labels: r.labels, fmt: (v) => rpH(v), series: [{ label: "Booked", c: "var(--accent)", area: true, v: t.trend.map((v, i) => (i < t.done ? v : null)) }, { label: "Capacity", c: "#94a3b8", dash: true, v: r.labels.map(() => Math.round(t.perLabel)) }] })),
       rpCard("Timesheet status", rpDonut(t.statuses.map(([l, v]) => ({ l, v, c: SC[l] })), t.people.length, t.mine ? "timesheet" : "people")),
       t.mine ? "" : rpList("unsub", "Not submitted", t.unsub.map((p) => ({ lead: rpAv(p.id), t: esc(p.id === "me" ? "You" : person(p.id).name), s: `${p.aid} · ${p.status}`, v: rpH(p.booked) })), { empty: "Everyone has submitted — nice.", action: t.unsub.length ? `<button class="btn primary block rp-act" data-act="rpRemind" data-n="${t.unsub.length}">${I("bell")}Remind ${plural(t.unsub.length, "person")}</button>` : "" }),
       rpCard("Billable vs non-billable", rpDonut([{ l: "Billable", v: t.bill, c: "var(--ok)", f: rpH(t.bill) }, { l: "Non-billable", v: t.booked - t.bill, c: "#94a3b8", f: rpH(t.booked - t.bill) }], `${pct(t.bill, t.booked)}%`, "billable")),
@@ -228,6 +278,7 @@ function rpSales(r) {
       rpKpi("Lead → deal", `${pct(deals.length, leads.length + deals.length)}%`, null, "up", "conversion"), rpKpi("Closing in 30 days", rpL(open.filter((d) => d.close <= D.add(D.today(), 30)).reduce((a, d) => a + d.value, 0)), null, "up", plural(open.filter((d) => d.close <= D.add(D.today(), 30)).length, "deal"))],
     insight: [`Biggest drop-off is from <b>${funnel[1][1] - funnel[2][1] > funnel[2][1] - funnel[3][1] ? "Qualified to Proposal" : "Proposal to Won"}</b>.`, `${plural(open.filter((d) => d.close < D.today()).length, "deal")} are past their close date.`],
     body: [rpCard("Conversion funnel", `<div class="rp-funnel">${funnel.map(([l, v], i) => `<div class="rp-fn"><span class="rp-fn-bar" style="width:${Math.max(18, pct(v, funnel[0][1]))}%"><b>${v}</b></span><span class="rp-fn-l">${l}${i ? `<small>${pct(v, funnel[i - 1][1])}% of previous</small>` : ""}</span></div>`).join("")}</div>`),
+      rpCard("Lead conversion", rpLine({ labels: r.labels, fmt: (v) => `${Math.round(v)}%`, series: [{ label: "Conversion", c: "#14b8a6", area: true, v: r.labels.map((l, i) => Math.round(rpBetween(r.seed + l + "cv", 8, 22) + i * 0.8)) }] }), `<span class="tiny muted">lead → deal</span>`),
       rpCard("Pipeline by stage", rpHbars(CRM_OPEN.map((s) => { const ds = open.filter((d) => d.stage === s); return { l: stageName(s), v: ds.reduce((a, d) => a + d.value, 0), c: STAGE_C[s], s: plural(ds.length, "deal") }; }), { fmt: rpL })),
       rpList("deals", "Top open deals", [...open].sort((a, b) => b.value - a.value).map((d) => ({ lead: `<i class="crm-sdot" style="background:${STAGE_C[d.stage]};margin:0 9px"></i>`, t: esc(d.name), s: `${esc(d.company)} · ${stageName(d.stage)}`, v: rpL(d.value), go: `#/crm/deal/${d.id}` })), { empty: "No open deals.", emptyIcon: "target" })],
     cols: ["Deal", "Company", "Stage", "Value", "Close"], rows: deals.map((d) => [d.name, d.company, stageName(d.stage), rpL(d.value), D.short(d.close)]),
@@ -253,7 +304,7 @@ function rpRev(r) {
       : [rpKpi("Revenue", rpL(v.actual), Math.round(rpBetween(r.seed + "g", -3, 14)), "up", "vs last period"), rpKpi("vs forecast", `${pct(v.actual, v.forecast)}%`, null, "up", `of ${rpL(v.forecast)}`),
         rpKpi("Recognised", rpL(v.recognized), null, "up", `${rpL(v.actual - v.recognized)} not yet`), rpKpi("Top account", `${pct(v.accounts[0].v, v.actual)}%`, null, "down", esc(v.accounts[0].l))],
     insight: r.future ? [`<b>${rpL(v.forecast)}</b> forecast for ${esc(r.label.toLowerCase())}.`] : [`Revenue is ${ahead ? "on or ahead of" : "behind"} forecast so far (${pct(v.actual, v.forecast)}% of the period’s forecast).`, `${esc(v.accounts[0].l)} brings ${pct(v.accounts[0].v, v.actual)}% of revenue.`],
-    body: [rpCard(r.future ? "Forecast" : "Actual vs forecast", `${capsuleBars({ values: r.future ? v.forecastSeries : v.actualSeries, labels: r.labels, goal: Math.round(v.forecast / v.forecastSeries.length), goalLabel: "Forecast", fmt: rpL, height: 120, future: r.future ? [] : r.labels.map((_, i) => i).filter((i) => i >= v.done) })}`),
+    body: [rpCard(r.future ? "Forecast" : "Actual vs forecast", rpLine({ labels: r.labels, fmt: rpL, series: r.future ? [{ label: "Forecast", c: "var(--accent)", area: true, v: v.forecastSeries }] : [{ label: "Actual", c: "var(--accent)", area: true, v: v.actualSeries.map((x, i) => (i < v.done ? x : null)) }, { label: "Forecast", c: "#94a3b8", dash: true, v: v.forecastSeries }] })),
       rpList("acc", "By account", v.accounts.map((x) => ({ lead: `<span class="av sm crm-av t-slate">${esc(initials(x.l))}</span>`, t: esc(x.l), s: r.future ? "forecast" : `${pct(x.v, x.f)}% of forecast`, v: rpL(r.future ? x.f : x.v) })))],
     cols: ["Account", r.future ? "Forecast" : "Revenue", "Forecast"], rows: v.accounts.map((x) => [x.l, rpL(r.future ? x.f : x.v), rpL(x.f)]),
   };

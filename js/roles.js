@@ -10,9 +10,10 @@ const ROLES = {
   rep: { name: "Sales rep", icon: "phone", sub: "Your deals, today’s follow-ups and new leads", mods: ["projects", "crm"], inbox: [] },
   sales: { name: "Sales manager", icon: "target", sub: "Team pipeline, deals at risk and approvals", mods: ["projects", "crm"], inbox: ["expense", "leave"] },
   csuite: { name: "C-suite", icon: "chart", sub: "Company at a glance and high-value approvals", mods: ["projects", "crm"], inbox: "*" },
+  support: { name: "Support agent", icon: "ticket", sub: "Customer tickets, SLAs, replies and status updates", mods: ["support"], inbox: [] },
   admin: { name: "Admin", icon: "shield", sub: "Users, roles, policies and announcements", mods: ["projects"], inbox: [] },
 };
-const ROLE_ORDER = ["super", "employee", "pm", "am", "rep", "sales", "csuite", "admin"];
+const ROLE_ORDER = ["super", "employee", "pm", "am", "rep", "sales", "csuite", "support", "admin"];
 const role = () => (ROLES[S.settings?.role] ? S.settings.role : "super");
 const roleDef = () => ROLES[role()];
 const can = (mod) => roleDef().mods === "*" || roleDef().mods.includes(mod);
@@ -127,7 +128,7 @@ act("adminSoon", (b) => toast(`${b.dataset.t} is part of the admin console — c
 
 // the role block sits right under Quick access
 function roleLead() {
-  const lead = { pm: pmWidget, am: amWidget, rep: repWidget, sales: salesWidget, csuite: csuiteWidget, admin: adminWidget }[role()];
+  const lead = { pm: pmWidget, am: amWidget, rep: repWidget, sales: salesWidget, csuite: csuiteWidget, admin: adminWidget, support: () => (typeof supWidget === "function" ? supWidget() : "") }[role()];
   return lead ? `<div class="role-lead">${lead()}</div>` : "";
 }
 // Home: super user keeps today's layout; other roles get their own block first

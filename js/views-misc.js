@@ -136,7 +136,7 @@ route("settings/theme", () => {
     ${ac !== "orange" || st !== "classic" || S.settings.corners === "sharp" ? `<button class="link" style="align-self:center" data-act="themeReset">Reset to KEBS default</button>` : ""}
   </div>`);
 });
-act("setTheme", (b) => { S.settings.theme = b.dataset.v; save(); rerender(); });
+act("setTheme", (b) => { S.settings.theme = b.dataset.v; S.settings.themeSet = true; save(); rerender(); });
 act("setAccent", (b) => { S.settings.accent = b.dataset.v; save(); rerender(); toast(`${THEME_COLORS.find((c) => c[0] === b.dataset.v)[1]} theme on`); });
 act("setStyle", (b) => { S.settings.style = b.dataset.v; save(); rerender(); });
 act("setCorners", (b) => { S.settings.corners = b.dataset.v; save(); rerender(); });

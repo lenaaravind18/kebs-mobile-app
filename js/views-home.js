@@ -154,7 +154,7 @@ act("clockToggle", () => {
 act("resumeShift", () => { S.att.today.outTs = null; save(); rerender(); toast("Shift resumed"); });
 act("themeQuick", () => {
   const dark = document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-  S.settings.theme = dark ? "light" : "dark"; save(); rerender();
+  S.settings.theme = dark ? "light" : "dark"; S.settings.themeSet = true; save(); rerender();
 });
 act("offWeek", () => openSheet({ title: "Off this week", body: `<div class="list">${S.offThisWeek.list.map((o) => `<button class="li" data-go="#/people/${o.id}">${avatar(o.id)}<span class="grow"><span class="t" style="display:block">${esc(person(o.id).name)}</span><span class="s">${D.nice(o.date)} · Casual leave</span></span><span class="chev">${I("chevR")}</span></button>`).join("")}</div>` }));
 

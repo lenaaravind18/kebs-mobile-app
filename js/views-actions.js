@@ -10,6 +10,7 @@ const MORE_ACTIONS = [
   { id: "approvals", label: "Approvals", cat: "Approvals", go: "#/inbox", ms: ["inbox", "#4C8BF5", "#1A56C4", "#BBD3FB", "#7AA7F2"] },
   { id: "requests", label: "My requests", cat: "Raise Request", go: "#/requests", ms: ["file", "#20B2A6", "#0B7A70", "#B5ECE6", "#64CFC4"] },
   { id: "reports", label: "Reports", cat: "Reports", go: "#/reports", need: "reports" },
+  { id: "support", label: "Support desk", cat: "Helpdesk", go: "#/support", need: "support", ms: ["ticket", "#0EA5E9", "#0369A1", "#BAE6FD", "#7DD3FC"] },
   { id: "announce", label: "Announcements", cat: "Company", go: "#/announcements", ms: ["megaphone", "#FF8A3D", "#E2531F", "#FFD2B3", "#FFA66E"] },
   { id: "askkais", label: "Ask Kais", cat: "Company", act: "kais", ms: ["sparkles", "#F25A4F", "#C62828", "#FBC3BE", "#F0857C"] },
 ];
@@ -18,6 +19,7 @@ const ACTION_CATS = ["Attendance", "Leave Management", "Raise Request", "Timeshe
 function allActions() {
   return [...QUICK_ACTIONS, ...MORE_ACTIONS].filter((a) => {
     if (a.need === "crm") return typeof can !== "function" || can("crm");
+    if (a.need === "support") return typeof can !== "function" || can("support");
     if (a.need === "reports") return typeof RPT === "undefined" || Object.keys(RPT).some(rptAllowed);
     return true;
   });

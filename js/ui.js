@@ -32,6 +32,45 @@ const emptyMini = (icon, text, extra = "") => `<div class="empty-mini"><span cla
 const statusChip = (s) => ({ pending: `<span class="chip warn">Pending</span>`, approved: `<span class="chip ok">Approved</span>`, rejected: `<span class="chip bad">Rejected</span>`, withdrawn: `<span class="chip">Withdrawn</span>`, draft: `<span class="chip">Not submitted</span>`, open: `<span class="chip acc">Open</span>`, resolved: `<span class="chip ok">Resolved</span>` }[s] || `<span class="chip">${esc(s)}</span>`);
 const fmtSize = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1e3)) + " KB");
 
+// ── full-screen image viewer (chat photos, ticket attachments) ──
+// X / Back / Esc / swipe down closes; double-tap zooms; drag pans when zoomed. actions: [{ icon, label, run }]
+let IMGV_KEY = null;
+function openImage({ src, name = "", sub = "", actions = [] }) {
+  closeImage(true);
+  const v = document.createElement("div");
+  v.className = "imgv"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", name || "Image");
+  v.innerHTML = `<div class="imgv-top"><button type="button" class="imgv-b" data-v="x" aria-label="Close">${I("x")}</button>
+      <div class="imgv-t"><b class="ell">${esc(name)}</b>${sub ? `<small class="ell">${esc(sub)}</small>` : ""}</div>
+      ${actions.map((a, i) => `<button type="button" class="imgv-b" data-v="${i}" aria-label="${esc(a.label)}">${I(a.icon)}</button>`).join("")}</div>
+    <div class="imgv-stage"><img src="${src}" alt="${esc(name)}" draggable="false"></div><p class="imgv-hint">Double-tap to zoom · swipe down to close</p>`;
+  ($("#shell") || document.body).append(v);
+  requestAnimationFrame(() => v.classList.add("on"));
+  const img = v.querySelector("img"), stage = v.querySelector(".imgv-stage");
+  let z = 1, tx = 0, ty = 0, dy = 0, lastTap = 0, p = null, moved = false;
+  const apply = (anim) => { img.style.transition = anim ? "transform .22s ease" : "none"; img.style.transform = z > 1 ? `translate(${tx}px, ${ty}px) scale(${z})` : `translateY(${dy}px)`; };
+  v.addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (!b) return; if (b.dataset.v === "x") closeImage(); else actions[Number(b.dataset.v)]?.run(); });
+  stage.addEventListener("pointerdown", (e) => { p = { x: e.clientX, y: e.clientY, tx, ty }; moved = false; try { stage.setPointerCapture(e.pointerId); } catch {} });
+  stage.addEventListener("pointermove", (e) => {
+    if (!p) return; const ddx = e.clientX - p.x, ddy = e.clientY - p.y; if (Math.abs(ddx) + Math.abs(ddy) > 6) moved = true;
+    if (z > 1) { tx = p.tx + ddx; ty = p.ty + ddy; } else { dy = Math.max(0, ddy); v.style.setProperty("--fade", String(Math.max(0.25, 1 - dy / 360))); }
+    apply(false);
+  });
+  stage.addEventListener("pointerup", () => {
+    if (!p) return; p = null;
+    if (z === 1) { if (dy > 110) { closeImage(); return; } dy = 0; v.style.removeProperty("--fade"); apply(true); }
+    if (!moved) { const now = Date.now(); if (now - lastTap < 300) { z = z > 1 ? 1 : 2.5; tx = ty = 0; apply(true); lastTap = 0; } else lastTap = now; }
+  });
+  IMGV_KEY = (e) => { if (e.key === "Escape") closeImage(); };
+  document.addEventListener("keydown", IMGV_KEY);
+  setTimeout(() => v.querySelector('[data-v="x"]')?.focus(), 50);
+}
+function closeImage(now) {
+  const v = $(".imgv"); if (!v) return;
+  if (IMGV_KEY) document.removeEventListener("keydown", IMGV_KEY), (IMGV_KEY = null);
+  if (now) return v.remove();
+  v.classList.remove("on"); setTimeout(() => v.remove(), 200);
+}
+
 // ── sheets ──
 const sheets = [];
 function openSheet({ title = "", body = "", foot = "", cls = "", raw = null, onMount, onClose }) {

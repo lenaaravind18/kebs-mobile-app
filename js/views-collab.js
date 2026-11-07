@@ -102,7 +102,7 @@ function pcThreadHtml(p) {
     const meta = `<span class="pc-bt${m.text ? "" : " solo"}">${m.edited ? "edited · " : ""}${pcTime(m.ts)}${mine ? `<i class="pc-tick${seen ? " seen" : ""}" aria-label="${seen ? "Seen" : "Sent"}">${seen ? PC_TICK2 : PC_TICK1}</i>` : ""}</span>`;
     out += `<div class="pc-msg ${mine ? "me" : ""} ${cont ? "cont" : ""}" data-id="${m.id}">
       <span class="pc-swr" aria-hidden="true">${I("reply")}</span>
-      ${mine ? "" : endGroup ? avatar(m.who, "sm") : `<span class="pc-av-sp"></span>`}
+      ${endGroup ? avatar(m.who, "sm") : `<span class="pc-av-sp"></span>`}
       <div class="pc-col">
         <div class="pc-bub ${m.failed ? "failed" : ""}" data-m="${m.id}" tabindex="0" aria-label="Message from ${esc(pcFirst(m.who))}. Press and hold for reactions, swipe right to reply">
           ${!mine && !cont ? `<b class="pc-bn" style="color:${PC_NAME_TINT[person(m.who).tint] || "var(--accent)"}">${esc(person(m.who).name)}${person(m.who).role ? `<span class="pc-role"> · ${esc(person(m.who).role)}</span>` : ""}</b>` : ""}
@@ -446,7 +446,14 @@ function pcFileSheet(m, f) {
       closeSheet(s); toast(f.src ? `Saved ${f.name}` : `${f.name} will download when it’s synced from the server`, f.src ? "ok" : "info");
     } }); } });
 }
-act("pcView", (b) => { const m = pcOf(PC.pid).msgs.find((x) => x.id === b.dataset.m); if (m) pcFileSheet(m, m.files[Number(b.dataset.i)]); });
+act("pcView", (b) => {
+  const m = pcOf(PC.pid).msgs.find((x) => x.id === b.dataset.m), f = m && m.files[Number(b.dataset.i)]; if (!f) return;
+  if (!f.src) return pcFileSheet(m, f);
+  openImage({ src: f.src, name: f.name, sub: `${m.who === "me" ? "You" : person(m.who).name} · ${D.short(D.iso(m.ts))}, ${pcTime(m.ts)}`, actions: [
+    { icon: "download", label: "Download", run() { const a = document.createElement("a"); a.href = f.src; a.download = f.name; a.click(); toast(`Saved ${f.name}`); } },
+    { icon: "info", label: "Details", run() { closeImage(); pcFileSheet(m, f); } },
+  ] });
+});
 act("pcFile", (b) => { const m = pcOf(PC.pid).msgs.find((x) => x.id === b.dataset.m); if (m) pcFileSheet(m, m.files[Number(b.dataset.i)]); });
 act("pcFiles", () => {
   const c = pcOf(PC.pid), all = c.msgs.flatMap((m) => (m.files || []).map((f, i) => ({ m, f, i }))).reverse();
