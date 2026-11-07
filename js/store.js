@@ -173,7 +173,7 @@ function seed() {
 
   return {
     v: 1, authed: false, email: "",
-    settings: { theme: "dark", lang: "en", secure: false },
+    settings: { theme: "light", lang: "en", secure: false },
     me: { id: "me", first: "Lena", middle: "Aravind", last: "S", display: "Aravind", role: "Product Designer", dept: "Design", loc: "Chennai", company: "Prima Technologies Pvt Ltd", domain: "csdemo.prima.com",
       empId: "KB-2041", manager: "pr", joined: D.add(today, -880), dob: "2002-02-19", marital: "Single", gender: "Male", phone: "+91 98400 12345", tint: "t-blue", intro: "" },
     quick: [...QUICK_SUGGESTED],
@@ -193,7 +193,8 @@ let S;
 try { S = JSON.parse(localStorage.getItem(STORE_KEY)); } catch { S = null; }
 if (!S || S.v !== 1) S = seed();
 // dark is the default look: move anyone still on the old automatic default (who never picked a theme) to dark, once
-if (!S.settings.darkDefault) { if (S.settings.theme === "auto" && !S.settings.themeSet) S.settings.theme = "dark"; S.settings.darkDefault = true; }
+// light is the default theme; people who picked a theme themselves (themeSet) keep it
+if (!S.settings.lightDefault) { if (!S.settings.themeSet) S.settings.theme = "light"; S.settings.lightDefault = true; }
 if (!S.mig1) { // older saves: sample timesheet entries had no comments, which blocked weekly submit
   Object.values(S.ts.entries).flat().forEach((e) => { if (e.mins && !e.comment) e.comment = "Progress update"; });
   S.mig1 = true;
