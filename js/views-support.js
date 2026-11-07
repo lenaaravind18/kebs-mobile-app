@@ -53,7 +53,16 @@ const MONTHS_S = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
 const supTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const supDur = (ms) => { const m = Math.round(ms / 60000); return m < 60 ? `${Math.max(1, m)}m` : m < 48 * 60 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`; };
 const supHue = (s) => Math.round(supR(s) * 360);
-const supAv = (name, cls = "") => `<span class="sup-av ${cls}" style="--h:${supHue(name)}" aria-hidden="true">${esc(initials(name || "?"))}</span>`;
+// avatars use the app's own avatar component: a photo where we have one, otherwise the app's tinted initials
+const SUP_PHOTO = { "Aravind S": "sj", "Harish Babu": "vi", "Naveen Prakash": "vj", "Suresh Kannan": "pr", "Deepa Krishnan": "as", "Janani Mohan": "sl", "Revathi Sundar": "rb", "Uma Shankar": "dr",
+  "Arjun Mehta": "jr", "Rohit Sharma": "jh", "Karthik Nair": "ww", "Varun Gupta": "jre", "Priya Raman": "pb" };
+const SUP_TINTS = ["t-blue", "t-violet", "t-teal", "t-amber", "t-green", "t-orange", "t-red", "t-slate"];
+const supAv = (name, cls = "") => {
+  name = name || "?";
+  const ph = name === supMe() ? "me" : SUP_PHOTO[name];
+  if (ph) return `<span class="av photo sup-av2 ${cls}" style="--av:url(assets/avatars/${ph}.jpg?v=3)" role="img" aria-label="${esc(name)}"></span>`;
+  return `<span class="av tint-dot sup-av2 ${cls} ${SUP_TINTS[Math.floor(supR(name) * SUP_TINTS.length)]}" style="background:var(--t)" role="img" aria-label="${esc(name)}">${esc(initials(name))}</span>`;
+};
 // add working hours (Mon–Fri, 09:00–17:00)
 function supAddWork(ts, h) {
   let d = new Date(ts), left = h * 60;
@@ -705,7 +714,7 @@ route("support/c/:ck/:name", ({ ck, name }, q) => {
   return `<div class="screen">${topbar("Details", { right: `<button class="ib" data-act="supReqMail" data-ck="${ck}" data-n="${esc(who)}" aria-label="Email ${esc(who)}">${I("mail")}</button>` })}
     <div class="scroll"><div class="stack" style="padding-top:4px">
       <div class="sup-prof">${supAv(who, "xl")}<h2>${esc(who)}</h2><p class="muted">${esc(mail)}</p>
-        <div class="sup-prof-a"><a class="ib" href="mailto:${esc(mail)}" aria-label="Email">${I("mail")}</a><a class="ib" href="tel:${phone.replace(/\s/g, "")}" aria-label="Call">${I("phone")}</a></div></div>
+        <div class="hrow sup-prof-a2" style="justify-content:center;margin-top:14px"><a class="ib contact-btn" href="mailto:${esc(mail)}" aria-label="Email ${esc(who)}">${I("mail")}</a><a class="ib contact-btn" href="tel:${phone.replace(/\s/g, "")}" aria-label="Call ${esc(who)}">${I("call")}</a></div></div>
       <div class="card rp-card"><div class="rp-ch"><h3>${I("ticket")}Ticket summary</h3></div>
         <div class="sup-csg">${stat("inbox", "Open", open.length, "#3b82f6")}${stat("clock", "On hold", open.filter((t) => t.status === "On Hold").length, "#f59e0b")}${stat("alert", "Overdue", open.filter(supBreached).length, "#ef4444")}
           ${stat("ticket", "All tickets", mine.length, "var(--ink-2)")}<div class="sup-cs wide" style="--c:var(--ok)"><span>Happiness rating</span><span class="sup-hap">${I("sparkles")}<span class="sup-bar"><i style="width:${happy}%"></i></span><b class="num">${happy}%</b></span></div></div></div>

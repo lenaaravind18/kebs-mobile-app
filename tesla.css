@@ -3774,3 +3774,31 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* activity: breathing room above the time line */
 .sup-feed .sup-ftime { display: block; margin-top: 6px; }
 .sup-feed .fd-t + .sup-ftime { margin-top: 4px; }
+/* support avatars on the app's .av component: sizes per place */
+.av.sup-av2 { flex: none; font-weight: 700; }
+.av.sup-av2.xs { width: 24px; height: 24px; font-size: 11px; }
+.av.sup-av2.pc, .pc-msg > .av.sup-av2.pc { width: 28px; height: 28px; font-size: 11px; }
+.av.sup-av2.md { width: 42px; height: 42px; font-size: 15px; }
+.av.sup-av2.fdav { width: 40px; height: 40px; font-size: 14px; }
+.av.sup-av2.xl { width: 84px; height: 84px; font-size: 28px; box-shadow: 0 0 0 4px var(--panel), 0 10px 26px -10px rgba(0, 0, 0, .3); }
+.ol-chip .av.sup-av2.xs { width: 24px; height: 24px; font-size: 11px; }
+.ol-sug .av.sup-av2.xs { width: 30px; height: 30px; font-size: 11px; }
+.sup-own .av.sup-av2.xs { width: 24px; height: 24px; }
+/* requester page: email / call as plain icon + label actions (no background) */
+.sup-prof-a { gap: 28px; margin-top: 14px; }
+.sup-prof-a a { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 52px; padding: 4px 6px; border-radius: 12px; color: var(--accent); background: none !important; }
+.sup-prof-a a .i { width: 24px; height: 24px; }
+.sup-prof-a a span { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.sup-prof-a a:active { background: var(--panel-2) !important; }
+.sup-prof-a a, .sup-prof-a a:hover { text-decoration: none !important; }
+.sup-prof-a a .i { color: var(--accent) !important; }
+/* requester details: left-aligned labels, links without underline */
+.sup-kv > span { text-align: left; width: 128px; }
+.sup-kv a { text-decoration: none; font-weight: 600; }
+/* secondary buttons keep a border (outline / ghost), app-wide */
+.btn.outline, .card .btn.outline, .crm-dhero .btn.outline, .sheet .btn.outline, .btn.ghost {
+  background: var(--panel) !important; color: var(--ink) !important;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 16%, transparent) !important; }
+.btn.outline:active, .btn.ghost:active { background: var(--panel-2) !important; }
+:root[data-theme="dark"] :is(.btn.outline, .card .btn.outline, .sheet .btn.outline, .btn.ghost) { background: transparent !important; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .18) !important; }
+.sup-prof-a2 { gap: 14px; } .sup-prof-a2 .contact-btn { text-decoration: none; }
