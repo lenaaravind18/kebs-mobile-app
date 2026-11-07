@@ -3047,3 +3047,17 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .nb-card { background: linear-gradient(110deg, #f6d2b0 0%, #e2d6d9 48%, #cdd6e3 100%) !important; }
 :root[data-theme="dark"] .nb-card { background: linear-gradient(110deg, #4a3016 0%, #1f2026 45%, #26303d 100%) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nb-card { background: linear-gradient(110deg, #4a3016 0%, #1f2026 45%, #26303d 100%) !important; } }
+
+/* header search follows the theme: dark field in dark mode (no bright white bar), soft white in light mode */
+:root[data-theme="dark"] .hero-ask { background: #22262e !important; box-shadow: 0 2px 10px -4px rgba(0, 0, 0, .5) !important; color: #c9ccd3 !important; }
+:root[data-theme="dark"] .hero-ask input { color: #f5f5f7 !important; }
+:root[data-theme="dark"] .hero-ask input::placeholder { color: #9aa0ab !important; }
+:root[data-theme="dark"] .hero-ask .go { color: #c9ccd3 !important; }
+:root[data-theme="dark"] .hero-ask .go:active { background: rgba(255, 255, 255, .08) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: #22262e !important; box-shadow: 0 2px 10px -4px rgba(0, 0, 0, .5) !important; color: #c9ccd3 !important; } :root:not([data-theme="light"]) .hero-ask input { color: #f5f5f7 !important; } :root:not([data-theme="light"]) .hero-ask input::placeholder { color: #9aa0ab !important; } :root:not([data-theme="light"]) .hero-ask .go { color: #c9ccd3 !important; } }
+:root:not([data-theme="dark"]) .hero-ask { background: rgba(255, 255, 255, .94) !important; }
+/* light mode: header search gets a soft tint of the theme colour instead of plain white */
+:root:not([data-theme="dark"]) .hero-ask { background: color-mix(in srgb, var(--accent) 11%, #ffffff) !important; box-shadow: 0 2px 10px -5px rgba(0, 0, 0, .18) !important; }
+:root:not([data-theme="dark"]) .hero-ask input::placeholder { color: color-mix(in srgb, var(--accent) 30%, #3f3f46) !important; }
+:root:not([data-theme="dark"]) .hero-ask .go { color: color-mix(in srgb, var(--accent) 30%, #3f3f46) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: #22262e !important; } :root:not([data-theme="light"]) .hero-ask input::placeholder, :root:not([data-theme="light"]) .hero-ask .go { color: #9aa0ab !important; } }
