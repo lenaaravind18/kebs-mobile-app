@@ -24,6 +24,8 @@
 
         </activity>
 
+        <receiver android:name=".NotifyReceiver" android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -45,4 +47,5 @@
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
     </queries>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

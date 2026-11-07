@@ -389,7 +389,8 @@ function pcRespond(p, m) {
       const here = hpath(location.hash) === p.path;
       if (here) c.read = Date.now();
       save(); pcRedraw(false, true);
-      if (!here) actionToast(`${pcFirst(who)} replied in ${p.name}`, "Open", () => go(`#/${p.path}`));
+      if (typeof kebsNotify === "function") kebsNotify({ cat: "chat", title: `${person(who).name} replied in ${p.name}`, body: reply, route: `#/${p.path}`, quietOn: p.path, who });
+      else if (!here) actionToast(`${pcFirst(who)} replied in ${p.name}`, "Open", () => go(`#/${p.path}`));
     }, 1600 + Math.random() * 1200);
   }, 900);
 }

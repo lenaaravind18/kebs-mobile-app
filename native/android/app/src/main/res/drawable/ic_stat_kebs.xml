@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar icon for KEBS notifications: a single-colour bell (Android tints it) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2.5c-3.31,0 -6,2.69 -6,6v3.6l-1.64,3.28A1,1 0,0 0,5.25 17h13.5a1,1 0,0 0,0.89 -1.45L18,12.1V8.5c0,-3.31 -2.69,-6 -6,-6zM9.5,18.5a2.5,2.5 0,0 0,5 0h-5z" />
+</vector>

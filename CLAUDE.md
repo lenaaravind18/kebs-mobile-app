@@ -27,6 +27,9 @@ Live: https://kebs-mobile-app.vercel.app · Repo: github.com/lenaaravind18/kebs-
 - `MainActivity.java` bridge `window.KebsNative`: insets(), setBars(), versionCode(), installUpdate(url),
   speech (startListening/stopListening/abortListening/speak/stopSpeaking), back gesture → `window.kebsBack()`,
   app lock biometricStatus() / authenticate(title, subtitle, id) → `kebsauth` event (BiometricPrompt, PIN fallback).
+- Notifications: `Notifier.java` (channel per category, grouped stack, tap opens `route`), `NotifyReceiver.java` (scheduled reminders via AlarmManager).
+  Bridge: notifyStatus(), requestNotify() → `kebsnotify` event, notify(id, cat, title, body, route), syncSchedule(json), takeLaunchRoute().
+  Web side `js/notify.js`: `kebsNotify({cat, title, body, route, quietOn})` → banner in the foreground, system notification in the background, plus Alerts; Settings → Notifications.
 - Web app lock: `js/device-auth.js` (`DeviceAuth`) uses the native prompt in the app, WebAuthn in browsers.
 - Built by GitHub Actions (`.github/workflows/android.yml`) on any push touching `native/**`; signed with repo
   secrets `KEBS_KEYSTORE_B64`, `KEBS_STORE_PASSWORD`, `KEBS_KEY_ALIAS`, `KEBS_KEY_PASSWORD`; publishes a release

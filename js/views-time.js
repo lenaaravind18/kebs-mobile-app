@@ -5,7 +5,7 @@ const tileBtn = (icon, tint, t, s, attr) => `<button class="card tile" ${attr}><
 function reqCard(r) {
   const T2 = REQ_TYPES[r.type];
   const label = r.type === "leave" ? LEAVE_TYPES.find((l) => l.id === r.leaveType)?.name || "Leave" : T2.name;
-  return `<button class="card hrow" data-go="#/request/${r.id}"><span class="li" style="padding:0;border:0"><span class="ic tint ${T2.tint}">${I(T2.icon)}</span></span><span class="grow"><span class="small muted" style="display:block">${esc(label)}</span><b>${D.range(r.from, r.to)}</b> <span class="small muted">(${r.dayType === "half" ? "½ day" : plural(D.days(r.from, r.to), "day")})</span></span>${statusChip(r.status)}</button>`;
+  return `<button class="card hrow" data-go="#/request/${r.id}"><span class="li" style="padding:0;border:0"><span class="ic tint ${T2.tint}">${I(r.type === "leave" ? leaveIcon(r.leaveType) : T2.icon)}</span></span><span class="grow"><span class="small muted" style="display:block">${esc(label)}</span><b>${D.range(r.from, r.to)}</b> <span class="small muted">(${r.dayType === "half" ? "½ day" : plural(D.days(r.from, r.to), "day")})</span></span>${statusChip(r.status)}</button>`;
 }
 
 // ── My Apps ──

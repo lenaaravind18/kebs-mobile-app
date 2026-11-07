@@ -80,7 +80,7 @@ function confirmSheet({ eyebrow = "", text, ok = "Confirm", danger = false, onOk
 function pickOption({ title, options, value, onPick }) {
   const s = openSheet({
     title,
-    body: `<div class="list">${options.map((o) => `<button class="opt-row" data-s="pick" data-v="${esc(o.v)}">${o.icon ? `<span class="ic">${I(o.icon)}</span>` : ""}<span class="grow"><span class="b">${esc(o.label)}</span>${o.sub ? `<span class="small muted" style="display:block">${esc(o.sub)}</span>` : ""}</span>${o.v === value ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`,
+    body: `<div class="list">${options.map((o) => `<button class="opt-row" data-s="pick" data-v="${esc(o.v)}">${o.icon ? `<span class="ic"${o.tint ? ` style="color:var(--c-${o.tint})"` : ""}>${I(o.icon)}</span>` : ""}<span class="grow"><span class="b">${esc(o.label)}</span>${o.sub ? `<span class="small muted" style="display:block">${esc(o.sub)}</span>` : ""}</span>${o.v === value ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>`,
     onMount(el) { onS(el, { pick(b) { closeSheet(s); onPick(b.dataset.v); } }); },
   });
 }

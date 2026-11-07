@@ -53,6 +53,9 @@ public class MainActivity extends BridgeActivity {
     private String pendingLang = null;
     private String lastUtterance = null;
     private static final int REQ_MIC = 7101;
+    private static final int REQ_NOTIFY = 7102;
+    // the screen a tapped notification wants to open (read by the page once it has loaded)
+    private String launchRoute = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,6 +74,8 @@ public class MainActivity extends BridgeActivity {
 
         final WebView web = getBridge().getWebView();
         webRef = web;
+        Notifier.ensureChannels(this);
+        launchRoute = routeOf(getIntent());
         tts = new TextToSpeech(this, (status) -> { if (status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("en", "IN")); });
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override public void onStart(String id) {}
@@ -163,9 +168,64 @@ public class MainActivity extends BridgeActivity {
         recognizer.startListening(i);
     }
 
+    private static String routeOf(Intent i) {
+        if (i == null) return null;
+        String r = i.getStringExtra("route");
+        return r != null && r.startsWith("#/") ? r : null;
+    }
+
+    // app already open: a tapped notification opens its screen straight away
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String r = routeOf(intent);
+        if (r == null || webRef == null) return;
+        final String js = "window.kebsOpen ? kebsOpen(" + JSONObject.quote(r) + ") : (location.hash = " + JSONObject.quote(r) + ")";
+        webRef.post(() -> webRef.evaluateJavascript(js, null));
+    }
+
+    private String notifyStatus() {
+        if (!androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+                return getSharedPreferences("kebs.notify", MODE_PRIVATE).getBoolean("asked", false) ? "denied" : "default";
+            return "denied";
+        }
+        return "granted";
+    }
+
+    private void notifyEmit(String state) {
+        if (webRef == null) return;
+        final String js = "window.dispatchEvent(new CustomEvent('kebsnotify',{detail:{state:" + JSONObject.quote(state) + "}}))";
+        webRef.post(() -> webRef.evaluateJavascript(js, null));
+    }
+
+    private void requestNotify() {
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            boolean asked = getSharedPreferences("kebs.notify", MODE_PRIVATE).getBoolean("asked", false);
+            if (!asked || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
+                getSharedPreferences("kebs.notify", MODE_PRIVATE).edit().putBoolean("asked", true).apply();
+                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.POST_NOTIFICATIONS }, REQ_NOTIFY);
+                return;
+            }
+        }
+        if (!"granted".equals(notifyStatus())) {
+            // blocked: send people to the app's notification settings
+            Intent s = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+            try { startActivity(s); } catch (Exception ignored) {}
+        }
+        notifyEmit(notifyStatus());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        notifyEmit(notifyStatus()); // the person may have changed it in Android settings
+    }
+
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
         super.onRequestPermissionsResult(code, perms, res);
+        if (code == REQ_NOTIFY) { notifyEmit(notifyStatus()); return; }
         if (code != REQ_MIC) return;
         String lang = pendingLang; pendingLang = null;
         if (res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED) listen(lang);
@@ -245,6 +305,27 @@ public class MainActivity extends BridgeActivity {
     }
 
     private class Bars {
+        // ── notifications ──
+        /** "granted", "default" (not asked yet) or "denied" */
+        @JavascriptInterface
+        public String notifyStatus() { return MainActivity.this.notifyStatus(); }
+
+        @JavascriptInterface
+        public void requestNotify() { runOnUiThread(MainActivity.this::requestNotify); }
+
+        @JavascriptInterface
+        public void notify(final int id, final String cat, final String title, final String body, final String route) {
+            Notifier.show(MainActivity.this, id, cat, title, body, route);
+        }
+
+        /** Replaces all scheduled reminders: JSON [{id, cat, title, body, route, at}] */
+        @JavascriptInterface
+        public void syncSchedule(final String json) { Notifier.syncSchedule(MainActivity.this, json); }
+
+        /** The screen a tapped notification opened the app for (once), or "" */
+        @JavascriptInterface
+        public String takeLaunchRoute() { String r = launchRoute; launchRoute = null; return r == null ? "" : r; }
+
         @JavascriptInterface
         public String biometricStatus() { return MainActivity.this.biometricStatus(); }
 

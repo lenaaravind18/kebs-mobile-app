@@ -304,7 +304,13 @@ function startReview(mode, files, extra = {}) {
   RV = { mode, items: files.map((f) => ({ ...kaisExtract(f), _p: true })), i: 0, ...extra };
   if (extra.append) return;
   go("#/expenses/review");
-  setTimeout(() => { RV?.items.forEach((r) => delete r._p); if (parseHash().path === "expenses/review") rerender(); }, 1500);
+  setTimeout(() => {
+    RV?.items.forEach((r) => delete r._p); if (parseHash().path === "expenses/review") rerender();
+    // tell people their receipts are read (a banner if they left the screen, a phone notification if they left the app)
+    if (typeof kebsNotify === "function" && RV) { const bad = RV.items.filter((r) => r._err).length, ok = RV.items.length - bad, tot = RV.items.reduce((a, r) => a + (r.inr || 0), 0);
+      kebsNotify(bad ? { cat: "expenses", title: bad === RV.items.length ? "Receipt couldn’t be read" : `${plural(bad, "receipt")} couldn’t be read`, body: "Retake the photo or enter the details yourself.", route: "#/expenses/review", quietOn: "expenses/review" }
+        : { cat: "expenses", title: "Expense analyzed successfully", body: `${plural(ok, "receipt")} read · ₹${Math.round(tot).toLocaleString("en-IN")} · ready to submit`, route: "#/expenses/review", quietOn: "expenses/review" }); }
+  }, 1500);
 }
 
 // ── Review receipt (Kais-parsed details) ──

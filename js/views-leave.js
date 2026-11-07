@@ -16,7 +16,7 @@ route("leave/apply", (_, q) => {
     </div>
     ${F.from ? rangeField("leaveDates", F.from, F.to, { dayType: F.dayType }) : ""}</div>
     ${F.from && days === 0 ? `<div class="banner warn">${I("info")}These dates fall on weekly offs — no leave will be deducted.</div>` : ""}
-    <div class="field"><span class="lbl">Leave type</span><button class="inp sel ${lt ? "" : "ph"}" data-act="leaveType"><span>${lt ? `${esc(lt.name)} · ${lt.available} available` : "Select leave type"}</span>${I("chevD")}</button></div>
+    <div class="field"><span class="lbl">Leave type</span><button class="inp sel lt-sel ${lt ? "" : "ph"}" data-act="leaveType">${lt ? `<span class="lt-ic" style="color:var(--c-${lt.tint})">${I(leaveIcon(lt.id))}</span>` : ""}<span class="grow">${lt ? `${esc(lt.name)} · ${lt.available} available` : "Select leave type"}</span>${I("chevD")}</button></div>
     ${lt && days > lt.available ? `<div class="banner bad">${I("alert")}Only ${lt.available} ${lt.name.toLowerCase()} day(s) left — you’re requesting ${days}.</div>` : ""}
     <div class="field"><label for="lv-n">Note to approver</label><textarea id="lv-n" class="inp" data-bind="reason" placeholder="Ex: Need to attend a family function.">${esc(F.reason)}</textarea></div>
     <div class="stack s6"><span class="lbl">Also on leave during this period</span>${alsoAway(F.from, F.to, "leave")}</div>
@@ -36,7 +36,7 @@ route("leave/apply", (_, q) => {
 });
 act("leaveQuick", (b) => { const d = b.dataset.v === "today" ? D.today() : D.add(D.today(), 1); Object.assign(DRAFT, { from: d, to: d, quick: b.dataset.v, dayType: "full" }); rerender(); });
 act("leaveDates", () => { const F = DRAFT; pickDates({ title: "Select dates", start: F.from, end: F.to, dayType: F.dayType, half: true, onDone({ start, end, dayType }) { Object.assign(F, { from: start, to: end, dayType, quick: "custom" }); rerender(); } }); });
-act("leaveType", () => pickOption({ title: "Leave type", value: DRAFT.leaveType, options: leaveBalances().map((b) => ({ v: b.id, label: b.name, sub: `${b.available} of ${b.total} available` })), onPick(v) { DRAFT.leaveType = v; rerender(); } }));
+act("leaveType", () => pickOption({ title: "Leave type", value: DRAFT.leaveType, options: leaveBalances().map((b) => ({ v: b.id, icon: leaveIcon(b.id), tint: b.tint, label: b.name, sub: b.total == null ? `${b.available} available` : `${b.available} of ${b.total} available` })), onPick(v) { DRAFT.leaveType = v; rerender(); } }));
 act("leaveNotify", () => pickPeople({ selected: DRAFT.notify, onDone(ids) { DRAFT.notify = ids; rerender(); } }));
 act("leaveSubmit", (b) => {
   if (b.disabled) return;
@@ -75,14 +75,14 @@ route("leave/balances", (_, q) => {
     <div class="card lb-hero">
       <div class="lb-donut modern">${donutSvg(bal, total)}<div><b>${avail}</b><small>days left</small></div></div>
       <div class="grow stack s6" style="min-width:0">
-        ${bal.map((b) => `<div class="lb-leg ${b.tint}"><i></i><span class="grow ell">${esc(b.name.replace(" Leave", "").replace(" Holiday", ""))}</span><b>${b.available}</b></div>`).join("")}
+        ${bal.map((b) => `<div class="lb-leg ${b.tint}"><span class="lb-leg-ic" style="color:var(--c-${b.tint})">${I(leaveIcon(b.id))}</span><span class="grow ell">${esc(b.name.replace(" Leave", "").replace(" Holiday", ""))}</span><b>${b.available}</b></div>`).join("")}
       </div>
     </div>
     <div class="hrow small muted" style="justify-content:space-between;margin:-6px 4px 0"><span>${used} of ${total} days used this year</span><span>Resets ${D.short(yearEnd)}</span></div>
     <button class="btn primary block" data-go="#/leave/apply">${I("plus")}Apply leave</button>
 
     <div class="lb-grid">${bal.map((b) => `<button class="lb-card ${b.tint}" data-go="#/leave/apply?type=${b.id}">
-        <span class="ring" style="--p:${(b.available / b.total) * 100};--t:var(--c-${b.tint})"><span class="i">${I(b.id === "compoff" ? "coffee" : b.id === "sick" ? "alert" : b.id === "floater" ? "sparkles" : "calendar")}</span></span>
+        <span class="ring" style="--p:${(b.available / b.total) * 100};--t:var(--c-${b.tint})"><span class="i">${I(leaveIcon(b.id))}</span></span>
         <span class="small b ell" style="display:block;margin-top:10px">${esc(b.name)}</span>
         <span class="lb-num"><b>${b.available}</b><small>of ${b.total} left</small></span>
         <span class="tiny muted">${b.used ? `${b.used} used` : "None used yet"}</span>

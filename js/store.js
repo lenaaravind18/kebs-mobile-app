@@ -12,6 +12,10 @@ const LEAVE_TYPES = [
   { id: "compoff", name: "Comp Off", total: null, tint: "t-amber" },
 ];
 
+// one icon per leave type (balances, the leave-type picker, request cards)
+const LEAVE_ICON = { casual: "coffee", sick: "heartPulse", earned: "plane", floater: "sparkles", compoff: "history" };
+const leaveIcon = (id) => LEAVE_ICON[id] || "calendar";
+
 const REQ_TYPES = {
   wfh: { name: "Work From Home", short: "WFH", icon: "home", tint: "t-orange" },
   partial: { name: "Partial Day", short: "Partial day", icon: "clock", tint: "t-violet" },
