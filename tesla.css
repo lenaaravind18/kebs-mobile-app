@@ -3202,3 +3202,17 @@ img[src="kais.svg"], .kais-orb { transition: filter .3s; }
 #netbar { top: auto !important; bottom: calc(var(--sab, 0px) + 92px); transform: translate(-50%, 160%); }
 #netbar.in { transform: translate(-50%, 0); }
 #netbar.out { transform: translate(-50%, 160%); }
+
+/* Kais logo follows the theme everywhere (also the big one on the Kais greeting, which has its own glow) */
+:root { --kais-f: hue-rotate(0deg); }
+:root[data-accent="blue"] { --kais-f: hue-rotate(200deg) saturate(1.05); }
+:root[data-accent="navy"] { --kais-f: hue-rotate(210deg) saturate(.9) brightness(.8); }
+:root[data-accent="green"] { --kais-f: hue-rotate(110deg) saturate(.95); }
+:root[data-accent="purple"] { --kais-f: hue-rotate(245deg); }
+:root[data-accent="teal"] { --kais-f: hue-rotate(150deg) saturate(.95); }
+:root[data-accent="rose"] { --kais-f: hue-rotate(-30deg); }
+:root[data-accent="graphite"] { --kais-f: grayscale(1) brightness(.85) contrast(1.1); }
+img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
+.kais-orb, img.kais-orb { filter: var(--kais-f) drop-shadow(0 8px 16px color-mix(in srgb, var(--accent) 28%, transparent)) !important; }
+/* Kais keeps its own brand colours on every theme (only the glow and the chat around it follow the theme) */
+:root, :root[data-accent] { --kais-f: hue-rotate(0deg) !important; }
