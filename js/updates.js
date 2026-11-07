@@ -55,4 +55,45 @@
   }
   window.kebsNativeUpdate = () => checkNative(true); // e.g. the lock screen on an app too old for fingerprint unlock
   addEventListener("load", () => setTimeout(checkNative, 4000));
+
+  // ── Menu → Check for updates: one sheet that checks the web app and (in the Android app) the installed APK ──
+  const assets = (t) => (t.match(/(?:styles|extra|tesla)\.css\?v=\d+|js\/[\w-]+\.js\?v=\d+/g) || []).sort().join("|");
+  const localAssets = () => assets([...document.querySelectorAll("link[href], script[src]")].map((e) => e.getAttribute("href") || e.getAttribute("src")).join(" "));
+  window.kebsBuild = () => { const m = document.querySelector('link[href*="tesla.css"]')?.getAttribute("href").match(/v=(\d+)/); return m ? m[1] : "—"; };
+  window.kebsCheckUpdates = () => {
+    const N = window.KebsNative, native = !!(N && N.versionCode);
+    const s = openSheet({ title: "Software update", body: `<div class="upd2" data-u></div>`, foot: `<div data-f></div>`,
+      onMount(el) {
+        const box = el.querySelector("[data-u]"), foot = el.querySelector("[data-f]");
+        const ver = () => `<div class="upd2-ver"><span>App${native ? ` · build ${N.versionCode()}` : " · web"}</span><span>Web build ${esc(kebsBuild())}</span></div>`;
+        const show = (ic, cls, title, text, btns = "") => { box.innerHTML = `<span class="upd2-ic ${cls}">${ic}</span><h3>${title}</h3><p class="muted">${text}</p>${ver()}`; foot.innerHTML = btns; };
+        const run = async () => {
+          show(`<span class="upd2-spin"></span>`, "busy", "Checking for updates…", "Looking for a newer version of KEBS.");
+          if (!navigator.onLine || (typeof NET !== "undefined" && NET.state === "offline")) return show(I("wifiOff"), "warn", "You’re offline", "Connect to Wi-Fi or mobile data to check for updates.", `<button class="btn primary block" data-s="retry">${I("refresh")}Try again</button>`);
+          try {
+            const started = Date.now();
+            const [web, rel] = await Promise.all([
+              fetch("index.html?check=" + Date.now(), { cache: "no-store" }).then((r) => (r.ok ? r.text() : Promise.reject())),
+              native ? fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { cache: "no-store" }).then((r) => r.json()).catch(() => null) : Promise.resolve(null),
+            ]);
+            await new Promise((x) => setTimeout(x, Math.max(0, 700 - (Date.now() - started)))); // let "Checking…" register
+            S.settings.lastUpdateCheck = Date.now(); save();
+            const webNew = assets(web) !== localAssets();
+            const code = rel ? parseInt((rel.tag_name || "").replace(/\D+/g, ""), 10) : 0, apk = rel && (rel.assets || []).find((a) => /\.apk$/i.test(a.name));
+            const appNew = native && code && apk && code > N.versionCode();
+            if (appNew) return show(I("download"), "new", "App update available", `KEBS ${esc(rel.name || "")} is ready. It installs over this version and keeps your data.${webNew ? " The latest screens come with it." : ""}`,
+              `<button class="btn primary block" data-s="apk">${I("download")}Download &amp; install</button>`), (el._apk = apk.browser_download_url);
+            if (webNew) return show(I("sparkles"), "new", "A new version is ready", "KEBS has new features and fixes. Updating takes a second and keeps everything you’ve saved.", `<button class="btn primary block" data-s="reload">${I("refresh")}Update now</button>`);
+            show(I("checkCircle"), "ok", "You’re up to date", `KEBS is on the latest version. Checked just now.`, `<button class="btn outline block" data-s="close">Done</button>`);
+          } catch { show(I("alert"), "bad", "Couldn’t check for updates", "Something went wrong reaching KEBS. Try again in a moment.", `<button class="btn primary block" data-s="retry">${I("refresh")}Try again</button>`); }
+        };
+        onS(el, {
+          retry: run, close() { closeSheet(s); },
+          reload(b) { b.disabled = true; b.textContent = "Updating…"; setTimeout(() => location.reload(), 300); },
+          apk(b) { b.disabled = true; b.textContent = "Downloading…"; try { N.installUpdate(el._apk); } catch {} toast("Downloading the update — Android will ask you to install it", "info"); setTimeout(() => closeSheet(s), 1200); },
+        });
+        run();
+      } });
+  };
+  act("checkUpdates", () => { if (typeof closeDrawer === "function") closeDrawer(); setTimeout(kebsCheckUpdates, 180); });
 })();

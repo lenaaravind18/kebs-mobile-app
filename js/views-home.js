@@ -371,6 +371,7 @@ act("drawer", () => {
       ${row("lock", "Secure your KEBS app", S.settings.secure ? "Enabled" : "Disabled", `data-go="#/settings/secure"`)}
       ${row("msg", "Send feedback", "Give your valuable feedback", `data-go="#/feedback"`)}
       ${row("palette", "Theme", { auto: "Automatic", light: "Light mode", dark: "Dark mode" }[S.settings.theme], `data-go="#/settings/theme"`)}
+      ${row("download", "Check for updates", S.settings.lastUpdateCheck ? `Last checked ${D.ago(S.settings.lastUpdateCheck) === "now" ? "just now" : D.ago(S.settings.lastUpdateCheck) + " ago"}` : `Web build ${typeof kebsBuild === "function" ? kebsBuild() : ""}`, `data-act="checkUpdates"`)}
       ${row("logout", "Logout", esc(S.email || "demo.kebs.app"), `data-act="logout"`)}
     </div>
     <div class="drawer-foot"><span class="hrow" style="gap:8px"><img src="icon.svg" alt="" style="width:30px;height:30px;border-radius:9px"><span class="logo-word" style="font-size:24px">KEBS<span>.</span></span></span><span class="tiny faint">v3.18 · 49803</span></div>`;

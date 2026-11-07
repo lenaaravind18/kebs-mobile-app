@@ -3216,3 +3216,20 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .kais-orb, img.kais-orb { filter: var(--kais-f) drop-shadow(0 8px 16px color-mix(in srgb, var(--accent) 28%, transparent)) !important; }
 /* Kais keeps its own brand colours on every theme (only the glow and the chat around it follow the theme) */
 :root, :root[data-accent] { --kais-f: hue-rotate(0deg) !important; }
+
+/* software update sheet */
+.upd2 { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 6px 4px 2px; }
+.upd2-ic { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--panel-2); color: var(--ink-2); margin-bottom: 6px; }
+.upd2-ic .i { width: 30px; height: 30px; }
+.upd2-ic.ok { background: color-mix(in srgb, var(--ok) 14%, var(--panel)); color: var(--ok); }
+.upd2-ic.new { background: var(--accent-soft); color: var(--accent); }
+.upd2-ic.warn { background: color-mix(in srgb, var(--warn) 16%, var(--panel)); color: var(--warn); }
+.upd2-ic.bad { background: color-mix(in srgb, var(--danger) 14%, var(--panel)); color: var(--danger); }
+.upd2 h3 { font: 700 19px/1.3 var(--font); letter-spacing: -.3px; }
+.upd2 p { font-size: 14px; line-height: 1.45; max-width: 300px; }
+.upd2-ver { display: flex; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.upd2-ver span + span::before { content: "·"; margin-right: 8px; }
+.upd2-spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--accent) 20%, transparent); border-top-color: var(--accent); animation: updSpin .8s linear infinite; }
+@keyframes updSpin { to { transform: rotate(360deg); } }
+/* the network bar steps aside while a sheet is open */
+#shell:has(#layer .sheet) #netbar { opacity: 0 !important; pointer-events: none !important; }
