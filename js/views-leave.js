@@ -43,7 +43,7 @@ act("leaveSubmit", (b) => {
   const F = DRAFT;
   if (S.requests.some((r) => r.type === "leave" && ["pending", "approved"].includes(r.status) && r.from <= F.to && r.to >= F.from)) return toast("You already have leave on these dates", "bad");
   const r = { id: uid(), type: "leave", leaveType: F.leaveType, from: F.from, to: F.to, dayType: F.dayType, reason: F.reason.trim(), notify: F.notify, attachments: [], comments: [], status: "pending", created: Date.now(), activity: [{ text: "Request raised by you", ts: Date.now(), kind: "on" }] };
-  S.requests.push(r); save(); swap(`#/request/${r.id}?new=1`);
+  S.requests.push(r); save(); requestDone(r);
 });
 
 route("leave/balances", (_, q) => {
@@ -127,7 +127,7 @@ act("compoffDetach", (b) => { DRAFT.attachments.splice(Number(b.dataset.i), 1); 
 act("compoffSubmit", (b) => {
   if (b.disabled) return;
   const F = DRAFT, r = { id: uid(), type: "compoff", from: F.from, to: F.to, dayType: "full", reason: F.reason.trim(), attachments: F.attachments, notify: [], comments: [], status: "pending", created: Date.now(), activity: [{ text: "Request raised by you", ts: Date.now(), kind: "on" }] };
-  S.requests.push(r); save(); swap(`#/request/${r.id}?new=1`);
+  S.requests.push(r); save(); requestDone(r);
 });
 
 route("holidays", (_, q) => {

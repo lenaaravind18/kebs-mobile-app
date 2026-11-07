@@ -242,7 +242,9 @@ act("tsSubmit", (b) => {
   if (S.ts.running) { const e = Object.values(S.ts.entries).flat().find((x) => x.id === S.ts.running.id); if (e) e.mins = liveMins(e); S.ts.running = null; }
   r.status = "pending"; r.submittedAt = Date.now(); r.days = [...DRAFT.sel]; r.rejected = 0;
   (r.log ||= []).push({ text: "Submitted for approval", ts: Date.now(), kind: "on" });
-  save(); rerender(); toast("Weekly timesheet submitted");
+  save(); rerender();
+  const mins = r.days.reduce((a, d) => a + sumMins(tsList(d)), 0);
+  successSheet({ title: "Timesheet submitted", sub: `Sent to ${esc(person(S.me.manager || "pr").name)} for approval.`, rows: [["Week", `${D.short(w)} – ${D.short(D.add(w, 6))}`], ["Days", plural(r.days.length, "day")], ["Hours", fmtMin(mins)]] });
 });
 act("tsUnsubmit", (b) => confirmSheet({ eyebrow: "Unsubmit", text: "Are you sure you want to unsubmit this timesheet?", ok: "Yes, unsubmit", danger: true, onOk() {
   const r = ensureWeek(b.dataset.w); r.status = "draft"; (r.log ||= []).push({ text: "Unsubmitted by you", ts: Date.now(), kind: "bad" }); save(); DRAFT = null; rerender(); toast("Timesheet unsubmitted successfully!");

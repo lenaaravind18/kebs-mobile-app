@@ -687,6 +687,24 @@ act("spSubmit", (b) => {
 // demo reset re-creates the claims sample data
 { const base = resetDemo; resetDemo = function () { base(); const x = seedClaims(); S.receipts = x.receipts; S.claims = x.claims; delete S.expenses; delete S.bills; save(); }; }
 
+// success sheet (PhonePe-style): the animated tick, a title, one line, a short summary and Done
+function successSheet({ title, sub = "", rows = [], cta = "Done", go = null, alt = null }) {
+  try { navigator.vibrate?.([18, 40, 28]); } catch {}
+  const s = openSheet({ title: "", cls: "ok-sheet", body: `<div class="ok-box">${successTick()}<h2>${title}</h2>${sub ? `<p class="muted">${sub}</p>` : ""}
+      ${rows.length ? `<div class="ok-rows">${rows.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>` : ""}</div>`,
+    foot: alt ? `<div class="row-btns"><button class="btn outline" style="flex:1" data-s="alt">${alt.label}</button><button class="btn primary" style="flex:1" data-s="ok">${cta}</button></div>` : `<button class="btn primary block" data-s="ok">${cta}</button>`,
+    onMount(el) { onS(el, { ok() { closeSheet(s); if (go) go(); }, alt() { closeSheet(s); alt.go?.(); } }); } });
+  return s;
+}
+// a request just went in: open it and celebrate
+function requestDone(r) {
+  swap(`#/request/${r.id}`);
+  const T2 = REQ_TYPES[r.type] || { short: "Request" }, lt = r.type === "leave" && LEAVE_TYPES.find((l) => l.id === r.leaveType);
+  const days = r.dayType === "half" ? 0.5 : D.workdays(r.from, r.to);
+  setTimeout(() => successSheet({ title: `${lt ? lt.name : T2.short} request submitted`, sub: `Sent to ${esc(person(S.me.manager || "pr").name)} for approval. We’ll let you know when it’s decided.`,
+    rows: [["Dates", r.from === r.to ? D.nice(r.from) : D.range(r.from, r.to)], ...(r.type === "leave" || r.type === "compoff" || r.type === "wfh" ? [["Days", plural(days, "day")]] : []), ["Status", "Pending approval"]] }), 220);
+}
+
 // animated success tick (claim submitted): circle pops, check draws, rings ripple, confetti bursts
 function successTick() {
   const bits = Array.from({ length: 12 }, (_, i) => `<i style="--a:${i * 30}deg;--d:${(i % 3) * 0.04}s;--c:${["#22c55e", "#f97316", "#facc15", "#3b82f6"][i % 4]}"></i>`).join("");

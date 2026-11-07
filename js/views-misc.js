@@ -84,8 +84,11 @@ act("ixTab", (b) => swap(`#/inbox?tab=${b.dataset.v}`));
 act("ixSort", () => pickOption({ title: "Sort by", value: INBOX_SORT, options: [{ v: "date", label: "Most recent" }, { v: "amount", label: "Highest value" }], onPick(v) { INBOX_SORT = v; rerender(); } }));
 function ixDecide(ids, verdict, reason) {
   const n = ids.length;
+  const who = S.inbox.filter((x) => ids.includes(x.id)).map((x) => x.who);
   S.inbox = S.inbox.filter((x) => !ids.includes(x.id)); save(); rerender();
-  toast(`${plural(n, "request")} ${verdict}${reason ? "" : ""}`, verdict === "approved" ? "ok" : "info");
+  if (verdict !== "approved") return toast(`${plural(n, "request")} ${verdict}`, "info");
+  const names = [...new Set(who)].map((id) => person(id).name.split(" ")[0]);
+  successSheet({ title: n === 1 ? "Request approved" : `${n} requests approved`, sub: `${names.slice(0, 2).join(" and ")}${names.length > 2 ? ` and ${names.length - 2} more` : ""} will be notified.`, rows: [["Left in your inbox", plural(inboxList().length, "request")]], cta: inboxList().length ? "Back to inbox" : "Done" });
 }
 act("ixBulk", (b) => { const ids = b.dataset.ids.split(","); confirmSheet({ eyebrow: "Bulk approve", text: `Approve <b>${plural(ids.length, "routine request")}</b> verified by Kais?`, ok: "Approve all", onOk: () => ixDecide(ids, "approved") }); });
 act("ixOpen", (b) => {

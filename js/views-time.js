@@ -313,5 +313,5 @@ act("reqSubmit", (b) => {
   if (type === "partial") Object.assign(r, { partialType: F.partialType, lateBy: F.lateBy, dayType: "half" });
   if (type === "regularize") Object.assign(r, { regType: F.regType, inTime: F.inTime, outTime: F.outTime });
   S.requests.push(r); save(); DRAFT = null;
-  swap(`#/request/${r.id}?new=1`);
+  requestDone(r);
 });
