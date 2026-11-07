@@ -3723,3 +3723,19 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .sup-grp { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -.2px; }
 .sup-grp span { font-weight: 500; color: var(--ink-2); } .sup-grp .i { width: 14px; height: 14px; color: var(--ink-3); }
 .sup-sum3 .sup-s3-h { padding-bottom: 12px; }
+/* support header: two separate round buttons with room between them */
+.top .pill > .ib.sup-hb + .ib.sup-hb { margin-left: 10px; }
+/* support: views filter as a round button at the end of the search bar */
+.sup-srch { display: flex; align-items: center; gap: 8px; }
+.sup-srch .searchbox { flex: 1; min-width: 0; margin: 0; }
+.sup-vbtn { position: relative; flex: none; width: 46px !important; height: 46px !important; border-radius: 50% !important; background: var(--panel) !important; box-shadow: var(--elev); color: var(--ink-2); }
+.sup-vbtn .i { width: 20px; height: 20px; }
+.sup-vbtn.on { color: var(--accent); }
+.sup-vbtn.on::after { content: ""; position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--panel); }
+/* support summary: even padding, a real end spacer for the scrolling chips, soft edge fades */
+.sup-sum3 { padding: 14px 0 !important; }
+.sup-sum3 .sup-s3-h { padding: 0 16px 12px; }
+.sup-s3-chips { gap: 8px; padding: 0 0 0 16px; scroll-padding-inline: 16px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 28px), transparent); }
+.sup-s3-chips::after { content: ""; flex: none; width: 16px; }
+.sup-chip { height: 36px; padding: 0 14px; }

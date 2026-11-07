@@ -187,14 +187,15 @@ route("support", (_, q) => {
   const mineGroups = view === "mine" ? [["Breaching in under 2 hours", list.filter((t) => supSla(t).tone !== "breached" && t.due && t.due - Date.now() < 2 * 3600e3 && t.status !== "On Hold")], ["Already breached", list.filter(supBreached)]] : [];
   const rest = view === "mine" ? list.filter((t) => !mineGroups.some(([, g]) => g.includes(t))) : list;
   const block = (title, arr) => arr.length ? `${title ? `<div class="sup-gh">${title}<span>${arr.length}</span></div>` : ""}<div class="card sup-list">${arr.map(supRow).join("")}</div>` : "";
-  return `<div class="screen">${topbar("Support desk", { sub: `${cust ? SUP_CUST[cust].name : "KEBS Support"}${per !== "all" ? ` · ${perLabel}` : ""}`, right: `<span class="sup-tbtns"><button class="ib" data-act="supPer" aria-label="Period: ${perLabel}">${I("calendar")}</button><button class="ib" data-act="supCust" aria-label="Customer: ${cust ? SUP_CUST[cust].name : "All customers"}">${I("building")}</button></span>` })}
+  return `<div class="screen">${topbar("Support desk", { sub: `${cust ? SUP_CUST[cust].name : "KEBS Support"}${per !== "all" ? ` · ${perLabel}` : ""}`, right: `<button class="ib sup-hb" data-act="supPer" aria-label="Period: ${perLabel}">${I("calendar")}</button><button class="ib sup-hb" data-act="supCust" aria-label="Customer: ${cust ? SUP_CUST[cust].name : "All customers"}">${I("building")}</button>` })}
     <div class="scroll"><div class="stack" style="padding-top:4px">
       <div class="card sup-sum3">
         <div class="sup-s3-h"><button class="sup-grp" data-act="supGroup" aria-label="Group the cards by: ${G.label}">Tickets <span>by ${G.label.toLowerCase()}</span>${I("chevD")}</button><span><i class="sup-s3-dot"></i>SLA met <b>${met}%</b></span></div>
         <div class="sup-s3-chips" role="tablist" aria-label="Tickets by ${G.label}">${chip("", "All", base.length)}${groups.map(([v, n]) => chip(v, G.name(v), n, G.color(v))).join("")}</div>
       </div>
-      ${filterHead(SUP_VIEWS.find((v) => v[0] === view)?.[1] || "Open tickets", "supView", view, SUP_VIEWS.map(([v, l, ic]) => [v, l, ic, cnt(v)]), "Show tickets")}
-      <label class="searchbox">${I("search")}<input data-sq placeholder="Search ID, title, requester, app" value="${esc(SUP_Q)}" enterkeyhint="search" autocomplete="off"></label>
+      ${(filterHead("", "supView", view, SUP_VIEWS.map(([v, l, ic]) => [v, l, ic, cnt(v)]), "Show tickets"), "")}
+      <div class="sup-srch"><label class="searchbox">${I("search")}<input data-sq placeholder="Search ${esc((SUP_VIEWS.find((v) => v[0] === view)?.[1] || "Open tickets").toLowerCase())}" aria-label="Search tickets by ID, title, requester or app" value="${esc(SUP_Q)}" enterkeyhint="search" autocomplete="off"></label>
+        <button class="ib sup-vbtn ${view !== "open" ? "on" : ""}" data-act="fhPick" data-k="supView" aria-label="Show: ${esc(SUP_VIEWS.find((v) => v[0] === view)?.[1] || "Open tickets")}">${I("filter")}</button></div>
       ${list.length ? (view === "mine" ? mineGroups.map(([t, g]) => block(t, g)).join("") + block(mineGroups.some(([, g]) => g.length) ? "Everything else open" : "", rest) : block("", list)) : emptyState(["ticket"], view === "breached" ? "Nothing has breached" : "No tickets here", view === "mine" ? "Your queue is clear. Pick up an unassigned ticket?" : "Try another view or customer.", view === "mine" ? `<button class="btn primary" data-act="supView" data-v="unassigned">See unassigned</button>` : "")}
       <div class="sup-none" hidden>${emptyMini("search", "No tickets match. Try another word.")}</div>
     </div></div></div>`;
