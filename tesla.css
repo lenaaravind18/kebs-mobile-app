@@ -3802,3 +3802,11 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .btn.outline:active, .btn.ghost:active { background: var(--panel-2) !important; }
 :root[data-theme="dark"] :is(.btn.outline, .card .btn.outline, .sheet .btn.outline, .btn.ghost) { background: transparent !important; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .18) !important; }
 .sup-prof-a2 { gap: 14px; } .sup-prof-a2 .contact-btn { text-decoration: none; }
+/* onboarding: room between the logo row and the floating cards */
+.obx-head { margin-bottom: 22px; }
+/* onboarding slide 3: "4 ready" as a small white badge card */
+.obx-ready { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px !important; border-radius: 999px !important; }
+.obx-rn { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; font-weight: 800; color: #fff; background: var(--btn-grad); box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--accent) 70%, transparent); }
+.obx-ready b { display: block; font-size: 13px; line-height: 1.1; }
+.obx-ready small { display: block; font-size: 11px; line-height: 1.2; color: var(--ink-3); }
+[data-k="2"] .p4.obx-ready { right: 2%; top: -6%; }

@@ -70,7 +70,7 @@ const OB5 = [
       <div class="obx obx-req p1"><span class="obx-label">Expense</span>${AV("dr", "sq")}<span class="grow"><b>Client lunch</b><small>Darlene · Food</small><em>${I("checkCircle")}Matches policy</em></span><span class="obx-acts"><i>${I("x")}</i><i>${I("check")}</i></span></div>
       <div class="obx obx-req p2 hi">${AV("jr", "sq")}<span class="grow"><b>Leave · 2 days</b><small>Jack Ryan · Casual</small><em>${I("checkCircle")}No clashes</em></span><span class="obx-acts"><i>${I("x")}</i><i class="go">${I("check")}</i></span></div>
       <div class="obx obx-req p3">${AV("vi", "sq")}<span class="grow"><b>Timesheet · 40h</b><small>Vineeth · Week 45</small><em>${I("checkCircle")}All days logged</em></span><span class="obx-acts"><i>${I("x")}</i><i>${I("check")}</i></span></div>
-      <div class="obx-chip k p4">${I("sparkles")}<b>4 ready</b></div><i class="obx-dash p5"></i>` },
+      <div class="obx obx-ready p4"><span class="obx-rn">4</span><span><b>Ready</b><small>to approve</small></span></div><i class="obx-dash p5"></i>` },
   { title: "Ask Kais<br>anything", body: "Your assistant applies leave, files claims and finds answers — just ask.",
     art: () => `
       <div class="obx-bub me p1">Apply leave for tomorrow</div>
