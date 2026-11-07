@@ -3070,3 +3070,10 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 .hero-ask .go:active { background: rgba(255, 255, 255, .18) !important; }
 :root[data-theme="dark"] .hero-ask { background: rgba(255, 255, 255, .12) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: rgba(255, 255, 255, .12) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18) !important; } :root:not([data-theme="light"]) .hero-ask input::placeholder, :root:not([data-theme="light"]) .hero-ask .go { color: rgba(255, 255, 255, .92) !important; } }
+
+/* pipeline stage chips: the selected one is clearly filled (ink), the rest stay quiet */
+.crm-sc.on, :root[data-theme="dark"] .crm-sc.on { background: var(--ink) !important; box-shadow: none !important; }
+.crm-sc.on .crm-sc-t { color: var(--bg) !important; }
+.crm-sc.on .crm-sc-v { color: color-mix(in srgb, var(--bg) 72%, transparent) !important; }
+.crm-sc.on .crm-sdot { box-shadow: 0 0 0 2px color-mix(in srgb, var(--bg) 35%, transparent); }
+.crm-sc:not(.on) .crm-sc-t { color: var(--ink-2); }
