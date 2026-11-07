@@ -134,8 +134,28 @@ function supData() {
 const supT = (id) => supData().tickets.find((t) => t.id === id);
 const supMsgs = (id) => (supData().msgs[id] ||= []);
 
-function supList(view, cust) {
-  const me = supMe(), all = supData().tickets.filter((t) => !cust || t.cust === cust), open = all.filter((t) => SUP_OPEN.includes(t.status));
+// period filter (like the web dashboard's date presets): tickets created since the start of the period
+const SUP_PERIODS = [["all", "All time"], ["today", "Today"], ["7d", "Last 7 days"], ["30d", "Last 30 days"], ["month", "This month"], ["quarter", "This quarter"]];
+function supSince(p) {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  if (p === "today") return d.getTime();
+  if (p === "7d") return d.getTime() - 6 * 864e5;
+  if (p === "30d") return d.getTime() - 29 * 864e5;
+  if (p === "month") return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+  if (p === "quarter") return new Date(d.getFullYear(), Math.floor(d.getMonth() / 3) * 3, 1).getTime();
+  return 0;
+}
+// "Tickets by …" grouping for the summary chips (same choices as the web dashboard)
+const SUP_GROUPS = {
+  status: { label: "Status", get: (t) => t.status, values: () => SUP_ST, color: (v) => SUP_STC[v], name: (v) => v },
+  priority: { label: "Priority", get: (t) => t.pri, values: () => SUP_PRI, color: (v) => SUP_PRC[v], name: (v) => v },
+  type: { label: "Type", get: (t) => t.type, values: () => ["Issue", "Data Request"], color: (v) => (v === "Issue" ? "#ef4444" : "#3b82f6"), name: (v) => v },
+  module: { label: "Module", get: (t) => t.module, values: () => SUP_MODS, color: () => "", name: (v) => v },
+  assignee: { label: "Assignee", get: (t) => t.owner || "Unassigned", values: () => [supMe(), ...SUP_AGENTS, "Unassigned"], color: () => "", name: (v) => (v === supMe() ? "You" : v) },
+};
+const supInScope = (t, cust, p) => (!cust || t.cust === cust) && (!p || p === "all" || t.created >= supSince(p));
+function supList(view, cust, p) {
+  const me = supMe(), all = supData().tickets.filter((t) => supInScope(t, cust, p)), open = all.filter((t) => SUP_OPEN.includes(t.status));
   const list = { open, mine: open.filter((t) => t.owner === me), breached: open.filter(supBreached), today: open.filter(supToday), unassigned: open.filter((t) => !t.owner),
     done: all.filter((t) => !SUP_OPEN.includes(t.status)), all }[view] || open;
   const rank = (t) => ({ breached: 0, soon: 1, ok: 2, hold: 3, none: 4, met: 5, missed: 5 }[supSla(t).tone]);
@@ -156,33 +176,26 @@ const supRow = (t) => { const sla = supSla(t);
 let SUP_Q = "";
 route("support", (_, q) => {
   if (typeof can === "function" && !can("support")) return roleLocked("Support desk");
-  const view = q.v || "open", cust = q.c || "", all = supData().tickets.filter((t) => !cust || t.cust === cust);
+  const view = q.v || "open", cust = q.c || "", per = q.p || "all", all = supData().tickets.filter((t) => supInScope(t, cust, per));
   const open = all.filter((t) => SUP_OPEN.includes(t.status)), br = open.filter(supBreached).length, today = open.filter(supToday).length, hold = open.filter((t) => t.status === "On Hold").length;
   const issuesDone = all.filter((t) => t.type === "Issue" && t.resolvedAt), met = issuesDone.length ? Math.round((issuesDone.filter((t) => t.resolvedAt <= t.due).length / issuesDone.length) * 100) : 100;
-  const list = supList(view, cust), cnt = (v) => supList(v, cust).length;
-  const tile = (v, icon, label, n, c, extra = "") => `<button class="sup-tile ${view === v ? "on" : ""}" data-act="supView" data-v="${v}" style="--c:${c}"><span class="sup-tl">${I(icon)}${label}</span><b class="num">${n}</b>${extra}</button>`;
-  const byPri = SUP_PRI.map((p) => [p, open.filter((t) => t.pri === p).length]);
+  const base = supList(view, cust, per), cnt = (v) => supList(v, cust, per).length, perLabel = SUP_PERIODS.find((x) => x[0] === per)[1];
+  const grp = SUP_GROUPS[q.g] ? q.g : "status", G = SUP_GROUPS[grp], gv = q.gv || "";
+  const list = gv ? base.filter((t) => G.get(t) === gv) : base;
+  const groups = G.values().map((v) => [v, base.filter((t) => G.get(t) === v).length]).filter(([, n]) => n);
+  const chip = (v, label, n, c) => `<button class="sup-chip ${gv === v ? "on" : ""}" role="tab" aria-selected="${gv === v}" data-act="supGV" data-v="${esc(v)}">${c ? `<i style="background:${c}"></i>` : ""}${esc(label)} <b>${n}</b></button>`;
   const mineGroups = view === "mine" ? [["Breaching in under 2 hours", list.filter((t) => supSla(t).tone !== "breached" && t.due && t.due - Date.now() < 2 * 3600e3 && t.status !== "On Hold")], ["Already breached", list.filter(supBreached)]] : [];
   const rest = view === "mine" ? list.filter((t) => !mineGroups.some(([, g]) => g.includes(t))) : list;
   const block = (title, arr) => arr.length ? `${title ? `<div class="sup-gh">${title}<span>${arr.length}</span></div>` : ""}<div class="card sup-list">${arr.map(supRow).join("")}</div>` : "";
-  return `<div class="screen">${topbar("Support desk", { sub: cust ? SUP_CUST[cust].name : "KEBS Support", right: `<button class="ib" data-act="supCust" aria-label="Choose customer">${I("building")}</button>` })}
+  return `<div class="screen">${topbar("Support desk", { sub: `${cust ? SUP_CUST[cust].name : "KEBS Support"}${per !== "all" ? ` · ${perLabel}` : ""}`, right: `<span class="sup-tbtns"><button class="ib" data-act="supPer" aria-label="Period: ${perLabel}">${I("calendar")}</button><button class="ib" data-act="supCust" aria-label="Customer: ${cust ? SUP_CUST[cust].name : "All customers"}">${I("building")}</button></span>` })}
     <div class="scroll"><div class="stack" style="padding-top:4px">
-      <div class="card sup-sum">
-        <div class="sup-sum-h"><h3>Ticket summary</h3><span class="tiny muted">${plural(all.length, "ticket")}</span></div>
-        <div class="sup-tiles">
-          ${tile("open", "inbox", "Open", open.length, "#3b82f6")}
-          ${tile("today", "clock", "Due today", today, "#f97316")}
-          ${tile("breached", "alert", "Breached", br, "#ef4444")}
-          ${tile("unassigned", "users", "Unassigned", open.filter((t) => !t.owner).length, "#8b5cf6")}
-          ${tile("mine", "user", "My queue", open.filter((t) => t.owner === supMe()).length, "#0ea5e9")}
-          <div class="sup-tile wide" style="--c:var(--ok)"><span class="sup-tl">${I("award")}SLA met</span><span class="sup-bar"><i style="width:${met}%"></i></span><b class="num">${met}%</b></div>
-        </div>
-        <div class="sup-pri">${byPri.map(([p, n]) => `<i style="flex:${n || 0.001};--c:${SUP_PRC[p]}"></i>`).join("")}</div>
-        <div class="sup-pri-l">${byPri.map(([p, n]) => `<span><i style="--c:${SUP_PRC[p]}"></i>${p} <b>${n}</b></span>`).join("")}</div>
+      <div class="card sup-sum3">
+        <div class="sup-s3-h"><button class="sup-grp" data-act="supGroup" aria-label="Group the cards by: ${G.label}">Tickets <span>by ${G.label.toLowerCase()}</span>${I("chevD")}</button><span><i class="sup-s3-dot"></i>SLA met <b>${met}%</b></span></div>
+        <div class="sup-s3-chips" role="tablist" aria-label="Tickets by ${G.label}">${chip("", "All", base.length)}${groups.map(([v, n]) => chip(v, G.name(v), n, G.color(v))).join("")}</div>
       </div>
       ${filterHead(SUP_VIEWS.find((v) => v[0] === view)?.[1] || "Open tickets", "supView", view, SUP_VIEWS.map(([v, l, ic]) => [v, l, ic, cnt(v)]), "Show tickets")}
       <label class="searchbox">${I("search")}<input data-sq placeholder="Search ID, title, requester, app" value="${esc(SUP_Q)}" enterkeyhint="search" autocomplete="off"></label>
-      ${list.length ? (view === "mine" ? mineGroups.map(([t, g]) => block(t, g)).join("") + block(mineGroups.some(([, g]) => g.length) ? "Everything else open" : "", rest) : block("", list)) : emptyState(["checkCircle"], view === "breached" ? "Nothing has breached" : "No tickets here", view === "mine" ? "Your queue is clear. Pick up an unassigned ticket?" : "Try another view or customer.", view === "mine" ? `<button class="btn primary" data-act="supView" data-v="unassigned">See unassigned</button>` : "")}
+      ${list.length ? (view === "mine" ? mineGroups.map(([t, g]) => block(t, g)).join("") + block(mineGroups.some(([, g]) => g.length) ? "Everything else open" : "", rest) : block("", list)) : emptyState(["ticket"], view === "breached" ? "Nothing has breached" : "No tickets here", view === "mine" ? "Your queue is clear. Pick up an unassigned ticket?" : "Try another view or customer.", view === "mine" ? `<button class="btn primary" data-act="supView" data-v="unassigned">See unassigned</button>` : "")}
       <div class="sup-none" hidden>${emptyMini("search", "No tickets match. Try another word.")}</div>
     </div></div></div>`;
 }, {
@@ -196,7 +209,18 @@ route("support", (_, q) => {
   },
 });
 const supQ = () => new URLSearchParams((location.hash.split("?")[1]) || "");
-act("supView", (b) => { const q = supQ(); q.set("v", b.dataset.v); swap(`#/support?${q}`); });
+act("supView", (b) => { const q = supQ(); q.set("v", b.dataset.v); q.delete("gv"); swap(`#/support?${q}`); });
+act("supGV", (b) => { const q = supQ(); b.dataset.v ? q.set("gv", b.dataset.v) : q.delete("gv"); swap(`#/support?${q}`); });
+act("supGroup", () => {
+  const q = supQ(), cur = SUP_GROUPS[q.get("g")] ? q.get("g") : "status";
+  pickOption({ title: "Group the cards by", value: cur, options: Object.entries(SUP_GROUPS).map(([k, g]) => ({ v: k, label: g.label })),
+    onPick: (v) => { v === "status" ? q.delete("g") : q.set("g", v); q.delete("gv"); swap(`#/support?${q}`); } });
+});
+act("supPer", () => {
+  const q = supQ(), cur = q.get("p") || "all";
+  pickOption({ title: "Period", value: cur, options: SUP_PERIODS.map(([v, l]) => ({ v, label: l, icon: "calendar", sub: `${supData().tickets.filter((t) => supInScope(t, q.get("c") || "", v)).length} tickets` })),
+    onPick: (v) => { v === "all" ? q.delete("p") : q.set("p", v); swap(`#/support?${q}`); } });
+});
 act("supCust", () => {
   const q = supQ(), cur = q.get("c") || "";
   pickOption({ title: "Customer", value: cur, options: [{ v: "", label: "All customers", icon: "globe" }, ...Object.entries(SUP_CUST).map(([k, c]) => ({ v: k, label: c.name, icon: "building", sub: `${supData().tickets.filter((t) => t.cust === k && SUP_OPEN.includes(t.status)).length} open` }))],
