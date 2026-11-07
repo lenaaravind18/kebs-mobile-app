@@ -3061,3 +3061,12 @@ img.emo { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0
 :root:not([data-theme="dark"]) .hero-ask input::placeholder { color: color-mix(in srgb, var(--accent) 30%, #3f3f46) !important; }
 :root:not([data-theme="dark"]) .hero-ask .go { color: color-mix(in srgb, var(--accent) 30%, #3f3f46) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: #22262e !important; } :root:not([data-theme="light"]) .hero-ask input::placeholder, :root:not([data-theme="light"]) .hero-ask .go { color: #9aa0ab !important; } }
+
+/* header search: frosted transparent glass (both themes) */
+.hero-ask, :root[data-theme="dark"] .hero-ask, :root:not([data-theme="dark"]) .hero-ask { background: rgba(255, 255, 255, .2) !important; backdrop-filter: blur(14px) saturate(140%) !important; -webkit-backdrop-filter: blur(14px) saturate(140%) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .34), 0 4px 14px -8px rgba(0, 0, 0, .25) !important; color: #fff !important; }
+.hero-ask input, :root[data-theme="dark"] .hero-ask input { color: #fff !important; font-weight: 500 !important; text-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+.hero-ask input::placeholder, :root[data-theme="dark"] .hero-ask input::placeholder, :root:not([data-theme="dark"]) .hero-ask input::placeholder { color: rgba(255, 255, 255, .95) !important; font-weight: 500 !important; }
+.hero-ask > .i, .hero-ask .go, :root[data-theme="dark"] .hero-ask .go, :root:not([data-theme="dark"]) .hero-ask .go { color: #fff !important; }
+.hero-ask .go:active { background: rgba(255, 255, 255, .18) !important; }
+:root[data-theme="dark"] .hero-ask { background: rgba(255, 255, 255, .12) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18) !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-ask { background: rgba(255, 255, 255, .12) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18) !important; } :root:not([data-theme="light"]) .hero-ask input::placeholder, :root:not([data-theme="light"]) .hero-ask .go { color: rgba(255, 255, 255, .92) !important; } }
