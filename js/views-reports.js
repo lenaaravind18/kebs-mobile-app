@@ -57,33 +57,41 @@ const RP_KIC = [[/pipeline|revenue|forecast|per month|recognised/i, "rupee", "#3
   [/account/i, "building", "#64748b"], [/bench/i, "users", "#f59e0b"], [/rolling/i, "history", "#8b5cf6"], [/demand/i, "target", "#16a34a"], [/^allocated/i, "users", "#16a34a"]];
 const rpKic = (label) => { const m = RP_KIC.find(([re]) => re.test(label)) || [0, "chart", "#64748b"]; return `<i class="rp-kic" style="--k:${m[2]}">${I(m[1])}</i>`; };
 const rpKpi = (label, value, delta, good, sub) => `<div class="rp-kpi"><small>${rpKic(label)}<span>${label}</span></small><b class="num">${value}</b><span class="rp-kpi-f">${rpDelta(delta, good)}${sub ? `<span>${sub}</span>` : ""}</span></div>`;
+// horizontal bars: a row with `go` opens that place; any other row highlights on tap
 function rpHbars(rows, { fmt = (v) => v } = {}) {
   const max = Math.max(...rows.map((r) => r.v), 1);
-  return `<div class="rp-hbars">${rows.map((r) => `<div class="rp-hb"><span class="rp-hb-l"><span class="ell">${esc(r.l)}</span><b>${fmt(r.v)}</b></span><span class="rp-hb-t"><i style="width:${r.v ? Math.max(3, (r.v / max) * 100) : 0}%;background:${r.c || "color-mix(in srgb, var(--accent) 72%, var(--panel))"}"></i></span>${r.s ? `<small class="muted">${r.s}</small>` : ""}</div>`).join("")}</div>`;
+  return `<div class="rp-hbars">${rows.map((r) => `<button type="button" class="rp-hb ${r.go ? "go" : ""}" ${r.go ? `data-go="${r.go}"` : `data-act="rpHb"`}>
+    <span class="rp-hb-l"><span class="ell">${esc(r.l)}</span><b>${fmt(r.v)}</b>${r.go ? I("chevR") : ""}</span>
+    <span class="rp-hb-t"><i style="width:${r.v ? Math.max(3, (r.v / max) * 100) : 0}%;background:${r.c || "color-mix(in srgb, var(--accent) 72%, var(--panel))"}"></i></span>${r.s ? `<small class="muted">${r.s}</small>` : ""}</button>`).join("")}</div>`;
 }
+act("rpHb", (b) => { const box = b.closest(".rp-hbars"), on = !b.classList.contains("on"); box.querySelectorAll(".rp-hb").forEach((x) => x.classList.toggle("on", on && x === b)); box.classList.toggle("sel", on); });
+
+// donut: tap a slice or a legend item to see it in the centre; tap it again for the total
 let RP_N = 0;
 function rpDonut(parts, center, sub) {
   const shown = parts.filter((p) => p.v > 0), tot = shown.reduce((a, p) => a + p.v, 0) || 1, R = 46, SW = 15, C = 2 * Math.PI * R, GAP = shown.length > 1 ? 3 : 0;
   let off = 0;
   const segs = shown.map((p, i) => {
-    const L = (p.v / tot) * C, s0 = off + (GAP ? SW / 2 + GAP / 2 : 0), a = ((off + L / 2) / C) * 2 * Math.PI - Math.PI / 2; off += L;
-    const x = (50 + Math.cos(a) * 44).toFixed(1), y = (50 + Math.sin(a) * 44).toFixed(1), side = Math.cos(a) >= 0 ? "r" : "l";
-    return `<circle class="rp-seg${i ? "" : " on"}" data-act="rpSeg" data-i="${i}" data-x="${x}" data-y="${y}" data-side="${side}" data-l="${esc(p.l)}" data-f="${esc(String(p.f ?? p.v))}" data-p="${Math.round((p.v / tot) * 100)}" data-c="${p.c}" cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" stroke-linecap="round" style="stroke:${p.c}" stroke-dasharray="${Math.max(0.1, GAP ? L - SW - GAP : L).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-s0).toFixed(2)}" transform="rotate(-90 60 60)"/>`;
+    const L = (p.v / tot) * C, s0 = off + (GAP ? SW / 2 + GAP / 2 : 0); off += L;
+    return `<circle class="rp-seg" data-act="rpSeg" data-i="${i}" data-l="${esc(p.l)}" data-f="${esc(String(p.f ?? p.v))}" data-p="${Math.round((p.v / tot) * 100)}" data-c="${p.c}" cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" stroke-linecap="round" style="stroke:${p.c}" stroke-dasharray="${Math.max(0.1, GAP ? L - SW - GAP : L).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-s0).toFixed(2)}" transform="rotate(-90 60 60)"><title>${esc(p.l)}: ${esc(String(p.f ?? p.v))}</title></circle>`;
   }).join("");
-  const first = shown[0], a0 = first ? ((first.v / tot) * Math.PI) - Math.PI / 2 : 0;
-  const call = first ? rpCallout({ x: (50 + Math.cos(a0) * 44).toFixed(1), y: (50 + Math.sin(a0) * 44).toFixed(1), side: Math.cos(a0) >= 0 ? "r" : "l", l: esc(first.l), f: esc(String(first.f ?? first.v)), p: Math.round((first.v / tot) * 100), c: first.c }) : "";
-  return `<div class="rp-donut"><div class="rp-donut-c"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/>${segs}</svg><span><b>${center}</b><small>${sub}</small></span>${call}</div>
-    <div class="rp-legend">${parts.map((p) => { const i = shown.indexOf(p); return `<button type="button" class="${i === 0 ? "on" : ""}" ${i < 0 ? "disabled" : `data-act="rpSeg" data-i="${i}"`}><i style="background:${p.c}"></i><span class="ell">${esc(p.l)}</span><b>${p.f ?? p.v}</b></button>`; }).join("")}</div></div>`;
+  return `<div class="rp-donut" data-tc="${esc(String(center))}" data-ts="${esc(String(sub))}"><div class="rp-donut-c"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke-width="${SW}" style="stroke:var(--panel-2)"/>${segs}</svg><span class="rp-dc"><b>${center}</b><small>${sub}</small></span></div>
+    <div class="rp-legend">${parts.map((p) => { const i = shown.indexOf(p); return `<button type="button" ${i < 0 ? "disabled" : `data-act="rpSeg" data-i="${i}"`} aria-pressed="false"><i style="background:${p.c}"></i><span class="ell">${esc(p.l)}</span><b>${p.f ?? p.v}</b></button>`; }).join("")}</div></div>`;
 }
-const rpCallout = (d) => `<span class="rp-call ${d.side}" style="left:${d.x}%;top:${d.y}%"><span><i style="background:${d.c}"></i>${d.l}</span><b>${d.f}</b><small>${d.p}%</small></span>`;
 act("rpSeg", (b) => {
   const box = b.closest(".rp-donut"), i = b.dataset.i, seg = box && box.querySelector(`.rp-seg[data-i="${i}"]`); if (!seg) return;
-  box.querySelectorAll(".on").forEach((e) => e.classList.remove("on"));
-  seg.classList.add("on"); box.querySelector(`.rp-legend [data-i="${i}"]`)?.classList.add("on");
-  box.querySelector(".rp-call")?.remove(); box.querySelector(".rp-donut-c").insertAdjacentHTML("beforeend", rpCallout(seg.dataset));
+  const off = seg.classList.contains("on");
+  box.querySelectorAll(".on").forEach((e) => e.classList.remove("on")); box.querySelectorAll(".rp-legend button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+  const dc = box.querySelector(".rp-dc");
+  if (off) { box.classList.remove("sel"); dc.innerHTML = `<b>${box.dataset.tc}</b><small>${box.dataset.ts}</small>`; return; }
+  box.classList.add("sel"); seg.classList.add("on");
+  const lg = box.querySelector(`.rp-legend [data-i="${i}"]`); lg?.classList.add("on"); lg?.setAttribute("aria-pressed", "true");
+  const d = seg.dataset; dc.innerHTML = `<b>${d.f}</b><small><i style="background:${d.c}"></i>${d.l} · ${d.p}%</small>`;
   try { navigator.vibrate?.(6); } catch {}
 });
+
 // smooth line chart (KEBS reports): series [{ v: [..|null], c, dash, label, area }]
+// touch or drag across it to read any point; it starts on the latest one
 const rpNice = (x) => { const p = 10 ** Math.floor(Math.log10(x || 1)), f = x / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
 function rpLine({ series, labels, fmt = (v) => v, height = 160 }) {
   const id = "rpl" + ++RP_N, W = 320, H = height, L = 40, Rt = 12, T = 14, B = 24, iw = W - L - Rt, ih = H - T - B, n = labels.length;
@@ -98,13 +106,37 @@ function rpLine({ series, labels, fmt = (v) => v, height = 160 }) {
     const pts = sr.v.map((v, i) => (v == null ? null : [X(i), Y(v)])).filter(Boolean); if (!pts.length) return "";
     const d = curve(pts), last = pts[pts.length - 1];
     const area = sr.area ? `<path class="rp-ln-a" d="${d} L${last[0].toFixed(1)} ${T + ih} L${pts[0][0].toFixed(1)} ${T + ih} Z" fill="url(#${id}g${si})"/>` : "";
-    const dots = sr.dash ? "" : pts.map((p, i) => `<circle class="rp-ln-d${i === pts.length - 1 ? " last" : ""}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i === pts.length - 1 ? 4.5 : 2.6}" style="--c:${sr.c}"/>`).join("");
+    const dots = sr.dash ? "" : pts.map((p) => `<circle class="rp-ln-d" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" style="--c:${sr.c}"/>`).join("");
     return `<defs><linearGradient id="${id}g${si}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sr.c}" stop-opacity=".26"/><stop offset="1" stop-color="${sr.c}" stop-opacity="0"/></linearGradient></defs>${area}<path class="rp-ln${sr.dash ? " dash" : ""}" d="${d}" style="stroke:${sr.c}"/>${dots}`;
   }).join("");
-  const lastS = series.find((x) => !x.dash) || series[0], lv = [...lastS.v].reverse().find((v) => v != null);
+  // data for the touch read-out
+  const data = { W, T, B: T + ih, xs: labels.map((_, i) => +X(i).toFixed(1)), labels, s: series.map((sr) => ({ l: sr.label || "", c: sr.c, ys: sr.v.map((v) => (v == null ? null : +Y(v).toFixed(1))), fs: sr.v.map((v) => (v == null ? null : String(fmt(v)))) })) };
+  const lastS = series.find((x) => !x.dash) || series[0], li = lastS.v.reduce((a, v, i) => (v != null ? i : a), 0);
+  const hl = data.s.map((s, k) => `<circle class="rp-hl" data-k="${k}" r="5" style="--c:${s.c}" ${s.ys[li] == null ? `visibility="hidden"` : `cx="${data.xs[li]}" cy="${s.ys[li]}"`}/>`).join("");
   const legend = series.length > 1 ? `<div class="rp-lg">${series.map((x) => `<span><i class="${x.dash ? "dash" : ""}" style="--c:${x.c}"></i>${esc(x.label)}</span>`).join("")}</div>` : "";
-  return `<div class="rp-line"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(lastS.label || "Trend")}, latest ${esc(String(fmt(lv ?? 0)))}"><g class="rp-ln-g">${grid}${xl}</g>${lines}</svg>${legend}</div>`;
+  return `<div class="rp-line" data-rp="${esc(JSON.stringify(data))}"><div class="rp-lwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(lastS.label || "Trend")}, latest ${esc(String(fmt(lastS.v[li] ?? 0)))}. Touch the chart to read other points."><g class="rp-ln-g">${grid}${xl}</g>${lines}
+      <line class="rp-guide" x1="${data.xs[li]}" x2="${data.xs[li]}" y1="${T}" y2="${T + ih}"/>${hl}</svg>${rpTip(data, li)}</div>${legend}</div>`;
 }
+function rpTip(d, i) {
+  const left = (d.xs[i] / d.W) * 100, flip = left > 58;
+  return `<div class="rp-tip ${flip ? "l" : ""}" style="left:${left.toFixed(1)}%"><b>${esc(d.labels[i])}</b>${d.s.filter((s) => s.fs[i] != null).map((s) => `<span><i style="background:${s.c}"></i>${d.s.length > 1 ? `${esc(s.l)} ` : ""}<em>${esc(s.fs[i])}</em></span>`).join("")}</div>`;
+}
+let RP_DRAG = null;
+function rpLineAt(box, clientX) {
+  const d = box._rp || (box._rp = JSON.parse(box.dataset.rp)), svg = box.querySelector("svg"), r = svg.getBoundingClientRect();
+  const vx = ((clientX - r.left) / r.width) * d.W;
+  let i = -1, best = 1e9;
+  d.xs.forEach((x, k) => { const dd = Math.abs(x - vx); if (dd < best && d.s.some((s) => s.ys[k] != null)) { best = dd; i = k; } });
+  if (i < 0 || box._ri === i) return; box._ri = i;
+  const g = svg.querySelector(".rp-guide"); g.setAttribute("x1", d.xs[i]); g.setAttribute("x2", d.xs[i]);
+  svg.querySelectorAll(".rp-hl").forEach((c) => { const s = d.s[c.dataset.k], y = s.ys[i]; if (y == null) c.setAttribute("visibility", "hidden"); else { c.removeAttribute("visibility"); c.setAttribute("cx", d.xs[i]); c.setAttribute("cy", y); } });
+  box.querySelector(".rp-tip").outerHTML = rpTip(d, i);
+  try { navigator.vibrate?.(3); } catch {}
+}
+document.addEventListener("pointerdown", (e) => { const b = e.target.closest(".rp-line[data-rp]"); if (!b) return; RP_DRAG = b; b.classList.add("live"); rpLineAt(b, e.clientX); });
+document.addEventListener("pointermove", (e) => { if (RP_DRAG) rpLineAt(RP_DRAG, e.clientX); });
+const rpLineEnd = () => { RP_DRAG?.classList.remove("live"); RP_DRAG = null; };
+document.addEventListener("pointerup", rpLineEnd); document.addEventListener("pointercancel", rpLineEnd);
 // an icon for each card title
 const RP_CIC = [[/bench|rolling/i, "users", "#f59e0b"], [/billable|utilisation|capacity/i, "chart", "#3b82f6"], [/budget/i, "wallet", "#f97316"], [/collected|overdue invoice/i, "wallet", "#16a34a"],
   [/funnel|lead/i, "target", "#8b5cf6"], [/hours/i, "clock", "#3b82f6"], [/leave/i, "calendar", "#0ea5e9"], [/pipeline|deals/i, "briefcase", "#3b82f6"], [/timesheet status|not submitted/i, "clipboard", "#8b5cf6"],
@@ -261,7 +293,7 @@ function rpProj(r) {
     kpis: [rpKpi("Active", act.length, null, "up", `${rows.filter((v) => v.x.status === "done").length} completed`), rpKpi("At risk", risky.length, null, "down", risky.length ? "need attention" : "all on track"),
       rpKpi("Avg margin", `${avgM}%`, Math.round(rpBetween(r.seed + "m", -4, 5)), "up", "client projects"), rpKpi("Over budget", rows.filter((v) => v.used > 1).length, null, "down", `${rows.filter((v) => v.used != null).length} with budgets`)],
     insight: risky.length ? [`<b>${risky.length}</b> project${risky.length > 1 ? "s are" : " is"} at risk: ${risky.map((v) => esc(pjName(v.x))).slice(0, 2).join(", ")}.`, withM.length ? `Lowest margin: ${esc(pjName(withM.sort((a, b) => a.margin - b.margin)[0].x))} (${withM[0].margin}%).` : ""] : ["Every active project is on track."],
-    body: [rpCard("Budget used", rpHbars(rows.filter((v) => v.used != null).sort((a, b) => b.used - a.used).map((v) => ({ l: pjName(v.x), v: Math.round(v.used * 100), c: rangeColor(v.used, "low"), s: `${v.hrs}h of ${v.x.budget}h` })), { fmt: (v) => `${v}%` })),
+    body: [rpCard("Budget used", rpHbars(rows.filter((v) => v.used != null).sort((a, b) => b.used - a.used).map((v) => ({ l: pjName(v.x), v: Math.round(v.used * 100), c: rangeColor(v.used, "low"), s: `${v.hrs}h of ${v.x.budget}h`, go: `#/projects/${v.x.id}` })), { fmt: (v) => `${v}%` })),
       rpList("proj", "Projects", rows.sort((a, b) => (b.risk ? 1 : 0) - (a.risk ? 1 : 0)).map((v) => ({ lead: `<span class="pj-ic tint ${v.x.tint}">${I(pjIcon(v.x))}</span>`, t: esc(pjName(v.x)), s: `${Math.round(v.prog * 100)}% done · ${v.margin != null ? `${v.margin}% margin` : "internal"}`, v: v.x.status === "done" ? "Done" : v.x.status === "hold" ? "On hold" : v.risk ? `<span class="rp-bad">At risk</span>` : "On track", go: `#/projects/${v.x.id}` })))],
     cols: ["Project", "Progress", "Hours", "Margin", "Status"], rows: rows.map((v) => [pjName(v.x), `${Math.round(v.prog * 100)}%`, `${v.hrs}h`, v.margin != null ? `${v.margin}%` : "—", v.x.status === "done" ? "Completed" : v.x.status === "hold" ? "On hold" : v.risk ? "At risk" : "On track"]),
   };
@@ -279,7 +311,7 @@ function rpSales(r) {
     insight: [`Biggest drop-off is from <b>${funnel[1][1] - funnel[2][1] > funnel[2][1] - funnel[3][1] ? "Qualified to Proposal" : "Proposal to Won"}</b>.`, `${plural(open.filter((d) => d.close < D.today()).length, "deal")} are past their close date.`],
     body: [rpCard("Conversion funnel", `<div class="rp-funnel">${funnel.map(([l, v], i) => `<div class="rp-fn"><span class="rp-fn-bar" style="width:${Math.max(18, pct(v, funnel[0][1]))}%"><b>${v}</b></span><span class="rp-fn-l">${l}${i ? `<small>${pct(v, funnel[i - 1][1])}% of previous</small>` : ""}</span></div>`).join("")}</div>`),
       rpCard("Lead conversion", rpLine({ labels: r.labels, fmt: (v) => `${Math.round(v)}%`, series: [{ label: "Conversion", c: "#14b8a6", area: true, v: r.labels.map((l, i) => Math.round(rpBetween(r.seed + l + "cv", 8, 22) + i * 0.8)) }] }), `<span class="tiny muted">lead → deal</span>`),
-      rpCard("Pipeline by stage", rpHbars(CRM_OPEN.map((s) => { const ds = open.filter((d) => d.stage === s); return { l: stageName(s), v: ds.reduce((a, d) => a + d.value, 0), c: STAGE_C[s], s: plural(ds.length, "deal") }; }), { fmt: rpL })),
+      rpCard("Pipeline by stage", rpHbars(CRM_OPEN.map((s) => { const ds = open.filter((d) => d.stage === s); return { l: stageName(s), v: ds.reduce((a, d) => a + d.value, 0), c: STAGE_C[s], s: plural(ds.length, "deal"), go: `#/crm?tab=pipeline&stage=${s}` }; }), { fmt: rpL })),
       rpList("deals", "Top open deals", [...open].sort((a, b) => b.value - a.value).map((d) => ({ lead: `<i class="crm-sdot" style="background:${STAGE_C[d.stage]};margin:0 9px"></i>`, t: esc(d.name), s: `${esc(d.company)} · ${stageName(d.stage)}`, v: rpL(d.value), go: `#/crm/deal/${d.id}` })), { empty: "No open deals.", emptyIcon: "target" })],
     cols: ["Deal", "Company", "Stage", "Value", "Close"], rows: deals.map((d) => [d.name, d.company, stageName(d.stage), rpL(d.value), D.short(d.close)]),
   };

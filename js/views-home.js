@@ -2,30 +2,22 @@
 
 // ── Login ──
 route("login", () => `
-  <div class="screen obx-screen obx-login">
-    <header class="obx-head"><span class="obx-logo">${KEBS_MARK}<b>KEBS<i>.</i></b></span></header>
-    <div class="obx-stage" aria-hidden="true"><div class="obx-map"></div>
-      <svg class="obx-path" viewBox="0 0 320 200" preserveAspectRatio="none"><path d="M8 150 C 70 40, 150 190, 210 90 S 300 30, 316 60"/></svg>
-      <div class="obx-art" data-k="login">
-        <span class="obx-av p1 obx-ring" style="background-image:url(assets/avatars/me.jpg?v=3)"></span>
-        <div class="obx obx-tag p2"><span class="obx-ok">${I("check")}</span><span><b>Clocked in</b> · 09:28 AM</span></div>
-        <div class="obx obx-ready p3"><span class="obx-rn">3</span><span><b>Approvals</b><small>waiting for you</small></span></div>
-        <i class="obx-dots o p4"></i><i class="obx-dash p5"></i><i class="obx-dot p6"></i>
-      </div></div>
-    <div class="obx-copy obx-lcopy">
-      <h1>Welcome to KEBS</h1>
-      <p>Sign in with your work account to see your day, team and approvals.</p>
-      <form class="obx-lform" data-form="login" novalidate>
-        <label class="obx-in">${I("mail")}<input type="email" name="email" placeholder="name@company.com" autocomplete="email" value="${esc(S.email)}" aria-label="Work email"></label>
+  <div class="screen"><div class="login">
+    <div class="login-hero"><span class="login-mark" aria-hidden="true">${KEBS_MARK}</span><img class="login-ill ill-l" src="assets/ob/signin.svg" alt="A person standing next to a phone showing a sign-in screen" draggable="false"><img class="login-ill ill-d" src="assets/ob/dark/signin.svg" alt="" aria-hidden="true" draggable="false"></div>
+    <h1>Welcome to KEBS!</h1>
+    <p class="sub">Manage tasks, delegate jobs, business clutter-free!</p>
+    <div class="stack">
+      <button class="btn outline block" data-act="sso"><span class="ms"><i></i><i></i><i></i><i></i></span>Sign in with Office 365</button>
+      <div class="or">Or, sign in with your email ID</div>
+      <form class="stack" data-form="login" novalidate>
+        <input class="inp" type="email" name="email" placeholder="name@example.com" autocomplete="email" value="${esc(S.email)}" aria-label="Work email">
         <span class="err" data-err hidden>Enter a valid work email address.</span>
-        <button class="obx-cta" type="submit">Sign in</button>
+        <button class="btn primary block" type="submit">Sign in</button>
       </form>
-      <div class="obx-or"><span>or</span></div>
-      <button class="obx-sso" data-act="sso"><span class="ms"><i></i><i></i><i></i><i></i></span>Continue with Microsoft 365</button>
-      <button class="obx-skip2" data-act="replayIntro">${I("sparkles")}See what KEBS can do</button>
-      <p class="obx-note">Demo workspace · your data stays on this device</p>
     </div>
-  </div>`);
+    <button class="link" style="align-self:center;margin-top:18px" data-act="replayIntro">${I("sparkles")} See what KEBS can do</button>
+    <p class="tiny faint" style="text-align:center;margin-top:auto;padding-top:18px">Demo workspace · your data stays on this device</p>
+  </div></div>`);
 
 function signIn(email) {
   S.authed = true; S.email = email; save();
