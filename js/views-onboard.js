@@ -56,7 +56,7 @@ const OB5 = [
       <div class="obx-chip p2"><span><b>12</b><small>Dec</small></span><span><b>4</b><small>days</small></span></div>
       <div class="obx obx-list p3">${[["coffee", "t-blue", "Casual leave", "2 days · 24 Dec"], ["sparkles", "t-violet", "Floater holiday", "1 day · 1 Jan"], ["plane", "t-green", "Earned leave", "5 days · 4 Mar"], ["home", "t-orange", "Work from home", "1 day · 19 Jul"]]
         .map(([ic, t, a, b]) => `<div class="obx-li"><span class="obx-ic" style="color:var(--c-${t})">${I(ic)}</span><span><b>${a}</b><small>${b}</small></span></div>`).join("")}</div>
-      ${AV("me", "p4 ring")}<i class="obx-dots p5"></i><i class="obx-dash p6"></i><i class="obx-dot p7"></i>` },
+      ${AV("me", "p4 obx-ring")}<i class="obx-dots p5"></i><i class="obx-dash p6"></i><i class="obx-dot p7"></i>` },
   { title: "Your team,<br>close by", body: "See who’s in, who’s away and chat with your project team in one place.",
     art: () => `
       <div class="obx-photo p1 sm">${AV("sl")}<span class="obx-badge">${AV("sl", "xs")}</span></div>
@@ -73,22 +73,23 @@ const OB5 = [
       <div class="obx obx-ready p4"><span class="obx-rn">4</span><span><b>Ready</b><small>to approve</small></span></div><i class="obx-dash p5"></i>` },
   { title: "Ask Kais<br>anything", body: "Your assistant applies leave, files claims and finds answers — just ask.",
     art: () => `
-      <div class="obx-bub me p1">Apply leave for tomorrow</div>
-      <div class="obx obx-kais p2"><img src="kais.svg" alt=""><span class="grow"><b>Casual leave · ${D.f(D.add(D.today(), 1), { weekday: "short", day: "numeric", month: "short" })}</b><small>Sent to Prasanna R for approval</small></span><span class="obx-ok">${I("check")}</span></div>
-      <div class="obx-bub me p3">Scan this bill</div>
-      <div class="obx obx-kais p4"><img src="kais.svg" alt=""><span class="grow"><b>Uber · ₹507</b><small>Travel · ready to submit</small></span></div>
-      <img class="obx-orb p5" src="kais.svg" alt=""><i class="obx-dots p6"></i>` },
+      <div class="obx-me p1"><span class="obx-bub me">Apply leave for tomorrow</span><span class="obx-av xs2" style="background-image:url(assets/avatars/me.jpg?v=3)"></span></div>
+      <div class="obx-kme p2"><span class="obx-kav"><img src="kais.svg" alt=""></span><div class="obx obx-kais"><span class="grow"><b>Casual leave · ${D.f(D.add(D.today(), 1), { weekday: "short", day: "numeric", month: "short" })}</b><small>Sent to Prasanna R for approval</small></span><span class="obx-ok">${I("check")}</span></div></div>
+      <div class="obx-me p3"><span class="obx-bub me">Scan this bill</span><span class="obx-av xs2" style="background-image:url(assets/avatars/me.jpg?v=3)"></span></div>
+      <div class="obx-kme p4"><span class="obx-kav"><img src="kais.svg" alt=""></span><div class="obx obx-kais"><span class="grow"><b>Uber · ₹507</b><small>Travel · ready to submit</small></span></div></div>
+      <i class="obx-dots p6"></i>` },
 ];
 
 route("welcome", () => {
   const s = OB5[OB_I] || OB5[(OB_I = 0)];
   return `<div class="screen obx-screen" data-ob data-step="${OB_I}">
-    <header class="obx-head"><span class="obx-logo">${KEBS_MARK}<b>KEBS<i>.</i></b></span>${OB_I < OB5.length - 1 ? `<button class="obx-skip" data-act="obDone">Skip</button>` : ""}</header>
+    <header class="obx-head"><span class="obx-logo">${KEBS_MARK}<b>KEBS<i>.</i></b></span></header>
     <div class="obx-stage" aria-hidden="true"><div class="obx-map"></div><svg class="obx-path" viewBox="0 0 320 260" preserveAspectRatio="none"><path d="M10 190 C 70 60, 150 250, 210 120 S 300 40, 316 70"/></svg><div class="obx-art" data-k="${OB_I}">${s.art()}</div></div>
     <div class="obx-copy">
       <h1>${s.title}</h1><p>${s.body}</p>
       <div class="obx-dotsnav" role="tablist" aria-label="Slides">${OB5.map((_, i) => `<button class="${i === OB_I ? "on" : ""}" data-act="obGo" data-i="${i}" aria-label="Slide ${i + 1}" aria-selected="${i === OB_I}"></button>`).join("")}</div>
       <button class="obx-cta" data-act="${OB_I < OB5.length - 1 ? "obNext" : "obDone"}">${OB_I < OB5.length - 1 ? "Continue" : "Get started"}</button>
+      <button class="obx-skip2" data-act="obDone" ${OB_I < OB5.length - 1 ? "" : "style=\"visibility:hidden\" tabindex=\"-1\" aria-hidden=\"true\""}>Skip</button>
     </div>
   </div>`;
 }, {
