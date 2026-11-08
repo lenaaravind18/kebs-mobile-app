@@ -19,6 +19,10 @@ Live: https://kebs-mobile-app.vercel.app · Repo: github.com/lenaaravind18/kebs-
 - `js/native-speech.js`: maps Android native speech (KebsNative bridge) to SpeechRecognition / speechSynthesis.
 - Local preview: `node server.mjs` (port 5270).
 
+## Claude skills
+- Project skills live in `.claude/skills/` (load automatically); index and sources in `SKILLS.md`. Account-only skills are listed there too.
+- Before adding a skill from GitHub: check its license and read it for scripts, hooks and network calls (see "Looked at and not installed" in SKILLS.md).
+
 ## Deploy (only when the user says "ship it")
 - `git push origin main` then `npx vercel --prod --yes` (project is linked via `.vercel/`, never commit `.vercel` or `.env`).
 - Commit author email: slenaaravind@kaartech.com.
