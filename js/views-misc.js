@@ -30,7 +30,7 @@ function flagDetails(x) {
 function flagCard(x) {
   const f = flagDetails(x), failed = f.checks.filter((c) => !c[1]).length;
   return `<div class="fc">
-    <div class="hrow"><span class="fc-ic fc-kais"><img src="kais.svg" alt="" width="22" height="22"></span><span class="grow"><b style="display:block">Kais flagged this request</b><span class="small">${esc(x.flag)}</span></span><span class="chip ${f.sev === "High" ? "bad" : f.sev === "Medium" ? "warn" : ""}">${f.sev}</span></div>
+    <div class="hrow"><span class="fc-ic fc-kais"><img src="kais.svg" alt="" width="22" height="22"></span><span class="grow"><b style="display:block">Kais flagged this request</b><span class="small fc-why">${I("alert")}${esc(x.flag)}</span></span><span class="chip ${f.sev === "High" ? "bad" : f.sev === "Medium" ? "warn" : ""}">${f.sev}</span></div>
     <div class="fc-sum small">${failed} of ${f.checks.length} policy checks failed</div>
     <div class="fc-more" hidden>
       <div class="fc-sec"><span class="eyebrow">Policy rule</span><p class="small">${esc(f.rule)}</p></div>

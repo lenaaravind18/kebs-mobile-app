@@ -3907,3 +3907,6 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .ix-bk img { width: 28px; height: 28px; }
 .fc-ic.fc-kais { background: none !important; box-shadow: none !important; width: 28px; height: 28px; }
 .fc-ic.fc-kais img { width: 26px; height: 26px; }
+/* flagged request: warning icon on the reason line */
+.fc-why { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+.fc-why .i { width: 15px; height: 15px; flex: none; }
