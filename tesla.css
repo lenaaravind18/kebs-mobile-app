@@ -3905,3 +3905,5 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .ix-hreason p { margin-top: 4px; font-size: 14px; line-height: 1.5; }
 .ix-bk { background: none; width: 30px; height: 30px; }
 .ix-bk img { width: 28px; height: 28px; }
+.fc-ic.fc-kais { background: none !important; box-shadow: none !important; width: 28px; height: 28px; }
+.fc-ic.fc-kais img { width: 26px; height: 26px; }
