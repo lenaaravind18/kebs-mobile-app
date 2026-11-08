@@ -3878,3 +3878,30 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .rp-tip span { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); }
 .rp-tip span i { width: 7px; height: 7px; border-radius: 50%; } .rp-tip em { font-style: normal; font-weight: 700; color: var(--ink); }
 .rp-line.live .rp-tip { box-shadow: 0 10px 26px -8px rgba(16, 24, 40, .4), 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+/* "Kais flagged" card: the Kais logo on a soft tile instead of the red sparkle */
+.fc-ic.fc-kais { background: var(--panel) !important; box-shadow: 0 2px 8px -3px rgba(0, 0, 0, .18); }
+.fc-ic.fc-kais img { width: 22px; height: 22px; }
+/* ══ Inbox: bulk approvals card, review sheet, approval history ══ */
+.ix-bulk { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; padding: 16px !important; }
+.ix-bh { display: flex; align-items: center; gap: 12px; }
+.ix-bk { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--panel-2); flex: none; }
+.ix-bh b { display: block; font-size: 15.5px; } .ix-bh small { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.ix-bl { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--panel-2); }
+.ix-br { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink-2); }
+.ix-br .av { width: 28px; height: 28px; font-size: 11px; } .ix-br b { color: var(--ink); font-weight: 600; } .ix-br .num { font-weight: 700; color: var(--ink); }
+.ix-bsl { display: flex; flex-direction: column; gap: 8px; }
+.ix-bsr { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 14px; text-align: left; background: var(--panel-2); box-shadow: inset 0 0 0 1.5px transparent; transition: box-shadow .15s, opacity .15s; opacity: .6; }
+.ix-bsr.on { opacity: 1; background: var(--panel); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ok) 55%, transparent); }
+.ix-bsr b { display: block; font-size: 14px; } .ix-bsr small { display: block; font-size: 12px; color: var(--ink-3); } .ix-bsr .num { flex: none; font-size: 14px; }
+.ix-ck { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 25%, transparent); color: transparent; }
+.ix-ck .i { width: 14px; height: 14px; } .ix-bsr.on .ix-ck { background: var(--ok); box-shadow: none; color: #fff; }
+.ix-hday { margin: 10px 4px 0; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.ix-hr { display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left; }
+.ix-hr b.ell { display: block; font-size: 15px; } .ix-hr small { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.ix-hr em { display: block; margin-top: 4px; font-style: normal; font-size: 12.5px; color: var(--ink-2); }
+.ix-hr .num { flex: none; font-size: 15px; }
+.ix-hv { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; font-size: 12.5px; font-weight: 700; }
+.ix-hv .i { width: 14px; height: 14px; } .ix-hv.approved { color: var(--ok); } .ix-hv.rejected { color: var(--danger); }
+.ix-hreason p { margin-top: 4px; font-size: 14px; line-height: 1.5; }
+.ix-bk { background: none; width: 30px; height: 30px; }
+.ix-bk img { width: 28px; height: 28px; }

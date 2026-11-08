@@ -30,7 +30,7 @@ function flagDetails(x) {
 function flagCard(x) {
   const f = flagDetails(x), failed = f.checks.filter((c) => !c[1]).length;
   return `<div class="fc">
-    <div class="hrow"><span class="fc-ic">${I("sparkles")}</span><span class="grow"><b style="display:block">Kais flagged this request</b><span class="small">${esc(x.flag)}</span></span><span class="chip ${f.sev === "High" ? "bad" : f.sev === "Medium" ? "warn" : ""}">${f.sev}</span></div>
+    <div class="hrow"><span class="fc-ic fc-kais"><img src="kais.svg" alt="" width="22" height="22"></span><span class="grow"><b style="display:block">Kais flagged this request</b><span class="small">${esc(x.flag)}</span></span><span class="chip ${f.sev === "High" ? "bad" : f.sev === "Medium" ? "warn" : ""}">${f.sev}</span></div>
     <div class="fc-sum small">${failed} of ${f.checks.length} policy checks failed</div>
     <div class="fc-more" hidden>
       <div class="fc-sec"><span class="eyebrow">Policy rule</span><p class="small">${esc(f.rule)}</p></div>
@@ -63,8 +63,12 @@ route("inbox", (_, q) => {
     <div class="big-title"><h1>My inbox</h1><p>${inboxList().length ? `${plural(inboxList().length, "request")} waiting on you` : "Nothing waiting on you"}</p></div>
     ${seg([["all", `All (${count("all")})`], ["expense", `Expense (${count("expense")})`], ["timesheet", `Timesheet (${count("timesheet")})`], ["leave", `Leave (${count("leave")})`]], tab, "ixTab")}
     <div class="scroll">
-      <div class="hrow" style="margin-bottom:12px"><label class="searchbox grow">${I("search")}<input data-ixq value="${esc(q.q || "")}" placeholder="Search name / cost center"></label><button class="ib" data-act="ixSort" aria-label="Sort">${I("filter")}${INBOX_SORT !== "date" ? `<span class="dot"></span>` : ""}</button></div>
-      ${routine.length ? `<div class="card bulk stack" style="margin-bottom:12px"><div class="hrow"><span class="i" style="color:var(--accent)">${I("sparkles")}</span><b class="grow">Bulk approvals</b><span class="chip solid-ok">${routine.length} ready</span></div><span class="small muted">Kais Assistant has verified ${plural(routine.length, "routine request")} that match your approval patterns.</span><button class="btn primary sm" style="align-self:flex-start" data-act="ixBulk" data-ids="${routine.map((x) => x.id).join(",")}">Approve all</button></div>` : ""}
+      <div class="hrow" style="margin-bottom:12px"><label class="searchbox grow">${I("search")}<input data-ixq value="${esc(q.q || "")}" placeholder="Search name / cost center"></label><button class="ib" data-act="ixSort" aria-label="Sort">${I("filter")}${INBOX_SORT !== "date" ? `<span class="dot"></span>` : ""}</button><button class="ib" data-go="#/inbox/history" aria-label="Approval history">${I("history")}</button></div>
+      ${routine.length ? `<div class="card ix-bulk">
+        <div class="ix-bh"><span class="ix-bk"><img src="kais.svg" alt="" width="24" height="24"></span><span class="grow" style="min-width:0"><b>${plural(routine.length, "request")} ready to approve</b><small>Verified by Kais · match your approval patterns</small></span></div>
+        <div class="ix-bl">${routine.slice(0, 3).map((x) => `<div class="ix-br">${avatar(x.who, "sm")}<span class="grow ell"><b>${esc(person(x.who).name)}</b> · ${({ expense: "Expense", timesheet: "Timesheet", leave: "Leave" })[x.kind]}</span><b class="num">${ixMain(x)}</b></div>`).join("")}${routine.length > 3 ? `<small class="muted">and ${routine.length - 3} more</small>` : ""}</div>
+        <div class="row-btns"><button class="btn outline" style="flex:1" data-act="ixBulk" data-ids="${routine.map((x) => x.id).join(",")}">Review</button><button class="btn primary" style="flex:1" data-act="ixBulk" data-all="1" data-ids="${routine.map((x) => x.id).join(",")}">${I("check")}Approve all</button></div>
+      </div>` : ""}
       <div class="stack" data-lazy="6">${list.map((x) => `<button class="card ix stack s6" data-act="ixOpen" data-id="${x.id}">
         <div class="hrow">${avatar(x.who)}<span class="grow"><b style="display:block">${esc(person(x.who).name)}</b><span class="tiny muted hrow">${I("building")}KEBS India</span></span><b class="num">${ixMain(x)}</b></div>
         <div class="divider" style="margin:4px 0"></div>
@@ -84,13 +88,70 @@ act("ixTab", (b) => swap(`#/inbox?tab=${b.dataset.v}`));
 act("ixSort", () => pickOption({ title: "Sort by", value: INBOX_SORT, options: [{ v: "date", label: "Most recent" }, { v: "amount", label: "Highest value" }], onPick(v) { INBOX_SORT = v; rerender(); } }));
 function ixDecide(ids, verdict, reason) {
   const n = ids.length;
-  const who = S.inbox.filter((x) => ids.includes(x.id)).map((x) => x.who);
+  const done = S.inbox.filter((x) => ids.includes(x.id)), who = done.map((x) => x.who);
+  ixHist().unshift(...done.map((x) => ({ ...x, verdict, reason: reason || "", at: Date.now() }))); S.ixHistory = S.ixHistory.slice(0, 200);
   S.inbox = S.inbox.filter((x) => !ids.includes(x.id)); save(); rerender();
   if (verdict !== "approved") return toast(`${plural(n, "request")} ${verdict}`, "info");
   const names = [...new Set(who)].map((id) => person(id).name.split(" ")[0]);
   successSheet({ title: n === 1 ? "Request approved" : `${n} requests approved`, sub: `${names.slice(0, 2).join(" and ")}${names.length > 2 ? ` and ${names.length - 2} more` : ""} will be notified.`, rows: [["Left in your inbox", plural(inboxList().length, "request")]], cta: inboxList().length ? "Back to inbox" : "Done" });
 }
-act("ixBulk", (b) => { const ids = b.dataset.ids.split(","); confirmSheet({ eyebrow: "Bulk approve", text: `Approve <b>${plural(ids.length, "routine request")}</b> verified by Kais?`, ok: "Approve all", onOk: () => ixDecide(ids, "approved") }); });
+// bulk approve: see exactly which requests are included and untick any you want to look at yourself
+const IX_KIND = { expense: "Expense", timesheet: "Timesheet", leave: "Leave" };
+act("ixBulk", (b) => {
+  const items = b.dataset.ids.split(",").map((id) => S.inbox.find((x) => x.id === id)).filter(Boolean), sel = new Set(items.map((x) => x.id));
+  const s = openSheet({ title: "Bulk approve", cls: "ix-bsheet",
+    body: `<p class="small muted" style="margin:-2px 0 12px">Kais checked these against policy and your past approvals. Untick any you want to review yourself.</p>
+      <div class="ix-bsl">${items.map((x) => `<button type="button" class="ix-bsr on" data-s="tg" data-id="${x.id}" aria-pressed="true">${avatar(x.who, "sm")}<span class="grow" style="min-width:0"><b class="ell">${esc(person(x.who).name)}</b><small class="ell">${IX_KIND[x.kind]} · ${ixMeta(x).replace(/<[^>]+>/g, "").trim()}</small></span><b class="num">${ixMain(x)}</b><span class="ix-ck">${I("check")}</span></button>`).join("")}</div>`,
+    foot: `<div class="row-btns"><button class="btn outline" style="flex:1" data-s="cancel">Cancel</button><button class="btn primary" style="flex:1.4" data-s="ok"></button></div>`,
+    onMount(el) {
+      const ok = el.querySelector('[data-s="ok"]'), sync = () => { ok.disabled = !sel.size; ok.textContent = sel.size ? `Approve ${sel.size}` : "Select requests"; };
+      sync();
+      onS(el, {
+        tg(r) { const id = r.dataset.id, on = !sel.has(id); on ? sel.add(id) : sel.delete(id); r.classList.toggle("on", on); r.setAttribute("aria-pressed", String(on)); sync(); },
+        cancel() { closeSheet(s); },
+        ok() { if (!sel.size) return; closeSheet(s); ixDecide([...sel], "approved"); },
+      });
+    } });
+});
+
+// ── approval history: everything you approved or rejected ──
+function ixHist() {
+  if (!S.ixHistory) {
+    const H = 3600e3, now = Date.now();
+    S.ixHistory = [
+      { id: "h1", kind: "expense", who: "pb", amount: 2450, cat: "Travel", icon: "plane", verdict: "approved", reason: "", at: now - 5 * H },
+      { id: "h2", kind: "timesheet", who: "jr", hours: 40, week: -1, proj: "Zifo Analytics", verdict: "approved", reason: "", at: now - 26 * H },
+      { id: "h3", kind: "leave", who: "vi", days: 2, off: 6, ltype: "Casual", verdict: "rejected", reason: "Overlaps the release week — can we move it by a few days?", at: now - 30 * H },
+      { id: "h4", kind: "expense", who: "sl", amount: 6800, cat: "Food & Beverages", icon: "utensils", verdict: "approved", reason: "", at: now - 3 * 24 * H },
+      { id: "h5", kind: "timesheet", who: "ww", hours: 62, week: -2, proj: "CKTKEBS", verdict: "rejected", reason: "62 hours is over the weekly cap. Please split overtime into the OT code.", at: now - 4 * 24 * H },
+    ];
+    save();
+  }
+  return S.ixHistory;
+}
+route("inbox/history", (_, q) => {
+  const f = q.f || "all", all = ixHist(), list = all.filter((x) => f === "all" || x.verdict === f);
+  let lastDay = "";
+  const rows = list.map((x, i) => {
+    const day = D.iso(x.at), head = day !== lastDay ? `<div class="ix-hday">${D.diff(day, D.today()) < 2 ? dayLabel(day) : D.nice(day)}</div>` : ""; lastDay = day;
+    return `${head}<button class="card ix-hr" data-act="ixHistOpen" data-i="${all.indexOf(x)}">${avatar(x.who)}<span class="grow" style="min-width:0"><b class="ell">${esc(person(x.who).name)}</b><small class="ell">${IX_KIND[x.kind]} · ${ixMeta(x).replace(/<[^>]+>/g, "").trim()}</small>
+      <span class="ix-hv ${x.verdict}">${I(x.verdict === "approved" ? "checkCircle" : "x")}${x.verdict === "approved" ? "Approved" : "Rejected"} · ${D.time(x.at)}</span>${x.reason ? `<em class="ell">“${esc(x.reason)}”</em>` : ""}</span><b class="num">${ixMain(x)}</b></button>`;
+  }).join("");
+  return `<div class="screen">${topbar("Approval history", { sub: `${all.filter((x) => x.verdict === "approved").length} approved · ${all.filter((x) => x.verdict === "rejected").length} rejected` })}
+    <div class="scroll"><div class="stack" style="padding-top:4px">
+      ${filterHead("Your decisions", "ixHistF", f, [["all", "All decisions", "list", all.length], ["approved", "Approved", "checkCircle", all.filter((x) => x.verdict === "approved").length], ["rejected", "Rejected", "x", all.filter((x) => x.verdict === "rejected").length]], "Show")}
+      ${list.length ? `<div class="stack s8">${rows}</div>` : emptyState(["history"], "Nothing here yet", "Requests you approve or reject show up here so you can look back at them.")}
+    </div></div></div>`;
+}, { parent: "#/inbox" });
+act("ixHistF", (b) => swap(`#/inbox/history${b.dataset.v === "all" ? "" : `?f=${b.dataset.v}`}`));
+act("ixHistOpen", (b) => {
+  const x = ixHist()[Number(b.dataset.i)]; if (!x) return;
+  openSheet({ title: IX_KIND[x.kind] + (x.kind === "leave" ? " request" : x.kind === "expense" ? " claim" : ""),
+    body: `<div class="stack"><div class="hrow">${avatar(x.who, "lg")}<span class="grow"><b style="display:block;font-size:17px">${esc(person(x.who).name)}</b><span class="small muted">${esc(person(x.who).role || "")} · KEBS India</span></span></div>
+      <div class="card"><div class="kv"><span>${x.kind === "expense" ? "Amount" : x.kind === "timesheet" ? "Hours" : "Duration"}</span><span>${ixMain(x)}</span></div><div class="kv"><span>Details</span><span class="small">${ixMeta(x).replace(/<[^>]+>/g, "").trim()}</span></div>
+        <div class="kv"><span>Decision</span><span class="ix-hv ${x.verdict}">${x.verdict === "approved" ? "Approved" : "Rejected"}</span></div><div class="kv"><span>Decided</span><span>${D.nice(D.iso(x.at))}, ${D.time(x.at)}</span></div></div>
+      ${x.reason ? `<div class="card ix-hreason"><small class="muted">Your comment</small><p>${esc(x.reason)}</p></div>` : ""}</div>` });
+});
 act("ixOpen", (b) => {
   const x = S.inbox.find((i) => i.id === b.dataset.id); if (!x) return;
   const title = { expense: "Expense claim", timesheet: "Timesheet", leave: "Leave request" }[x.kind];
