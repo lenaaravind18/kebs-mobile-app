@@ -4024,3 +4024,8 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 :root[data-theme="dark"] .hero-mark { color: #ff9a72 !important; opacity: .14 !important; }
 :root[data-theme="dark"] .hero .hero-pattern { opacity: .25 !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-mark { color: #ff9a72 !important; opacity: .14 !important; } :root:not([data-theme="light"]) .hero .hero-pattern { opacity: .25 !important; } }
+/* lighter KEBS mark on the soft header */
+:root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero-mark { opacity: .1 !important; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero-mark { opacity: .1 !important; } }
+:root[data-theme="dark"] .hero-mark { opacity: .08 !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-mark { opacity: .08 !important; } }
