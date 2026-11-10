@@ -4004,3 +4004,7 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* one primary button per screen: secondary actions use a soft orange tint */
 .btn.tint { background: color-mix(in srgb, var(--accent) 10%, var(--panel)) !important; color: var(--accent) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent) !important; }
 .btn.tint .i { color: var(--accent); }
+
+/* soft header must outrank the accent-colour header rule (orange accent only) */
+:root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero { background: radial-gradient(85% 115% at 10% -25%, #ffb38f 0%, rgba(255,179,143,0) 68%), radial-gradient(85% 115% at 100% -15%, #ffc4a6 0%, rgba(255,196,166,0) 70%), linear-gradient(180deg, #ffe2d4 0%, #fff0e8 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; color: var(--ink) !important; --bar: #ffd2bd; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero { background: radial-gradient(85% 115% at 10% -25%, #ffb38f 0%, rgba(255,179,143,0) 68%), radial-gradient(85% 115% at 100% -15%, #ffc4a6 0%, rgba(255,196,166,0) 70%), linear-gradient(180deg, #ffe2d4 0%, #fff0e8 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; color: var(--ink) !important; --bar: #ffd2bd; } }
