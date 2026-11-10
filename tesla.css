@@ -4008,3 +4008,19 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* soft header must outrank the accent-colour header rule (orange accent only) */
 :root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero { background: radial-gradient(85% 115% at 10% -25%, #ffb38f 0%, rgba(255,179,143,0) 68%), radial-gradient(85% 115% at 100% -15%, #ffc4a6 0%, rgba(255,196,166,0) 70%), linear-gradient(180deg, #ffe2d4 0%, #fff0e8 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; color: var(--ink) !important; --bar: #ffd2bd; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero { background: radial-gradient(85% 115% at 10% -25%, #ffb38f 0%, rgba(255,179,143,0) 68%), radial-gradient(85% 115% at 100% -15%, #ffc4a6 0%, rgba(255,196,166,0) 70%), linear-gradient(180deg, #ffe2d4 0%, #fff0e8 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; color: var(--ink) !important; --bar: #ffd2bd; } }
+
+/* Soft header: bring back the KEBS mark, grid lines and pattern, tinted for the peach background */
+.hero::before { display: block !important; }
+.hero-mark { display: block !important; }
+.hero .hero-pattern { display: block !important; }
+:root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero-mark { color: #f0602e !important; opacity: .24 !important; }
+:root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero::before { opacity: .8 !important; background-image: linear-gradient(rgba(240,96,46,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(240,96,46,.2) 1px, transparent 1px) !important; }
+:root[data-theme="light"]:not([data-accent="navy"]):not([data-accent="graphite"]) .hero .hero-pattern { filter: none !important; opacity: .5 !important; mix-blend-mode: multiply; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero-mark { color: #f0602e !important; opacity: .24 !important; }
+  :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero::before { opacity: .8 !important; background-image: linear-gradient(rgba(240,96,46,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(240,96,46,.2) 1px, transparent 1px) !important; }
+  :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero .hero-pattern { filter: none !important; opacity: .5 !important; mix-blend-mode: multiply; }
+}
+:root[data-theme="dark"] .hero-mark { color: #ff9a72 !important; opacity: .14 !important; }
+:root[data-theme="dark"] .hero .hero-pattern { opacity: .25 !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-mark { color: #ff9a72 !important; opacity: .14 !important; } :root:not([data-theme="light"]) .hero .hero-pattern { opacity: .25 !important; } }
