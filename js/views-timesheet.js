@@ -26,6 +26,22 @@ function weekBanner(w) {
 }
 
 // ── Day view ──
+// week strip for the day view: pick any day of the week, see its logged hours at a glance
+function tsWeekStrip(d) {
+  const w = D.monday(d), today = D.today();
+  const hm = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`;
+  const label = (d === today ? "Today: " : "") + D.f(d, { weekday: "long", month: "short", day: "numeric" });
+  return `<div class="tsw">
+    <div class="tsw-top"><button class="tsw-pill" data-act="tsDay" data-d="${today}">${esc(label)}</button><span class="grow"></span>
+      <button class="tsw-arr" data-act="tsDay" data-d="${D.add(d, -7)}" aria-label="Previous week">${I("chevL")}</button>
+      <button class="tsw-arr" data-act="tsDay" data-d="${D.add(d, 7)}" aria-label="Next week">${I("chevR")}</button></div>
+    <div class="tsw-days">${weekDays(w).map((day) => {
+      const m = sumMins(tsList(day)), cls = [day === d ? "on" : "", day === today ? "today" : "", D.isWeekend(day) ? "off" : "", m ? "" : "zero"].join(" ");
+      return `<button class="tsw-day ${cls}" data-act="tsDay" data-d="${day}"><span class="tsw-dn">${D.f(day, { weekday: "short" }).toUpperCase()}</span><span class="tsw-num">${D.f(day, { day: "numeric" })}</span><span class="tsw-h">${hm(m)}</span></button>`;
+    }).join("")}</div>
+  </div>`;
+}
+
 route("ts", (_, q) => {
   const d = q.d || D.today(), w = D.monday(d), list = tsList(d), locked = isLocked(d);
   const isToday = d === D.today();
@@ -38,14 +54,15 @@ route("ts", (_, q) => {
   }).join("");
   return `<div class="screen has-foot">
     <header class="top"><div class="pill"><button class="ib" data-act="back" aria-label="Back">${I("back")}</button>
-      <div class="dateNav"><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, -1)}" aria-label="Previous day">${I("chevL")}</button><div style="text-align:center;min-width:0"><span class="eyebrow" style="display:block;font-size:11px">Timesheet</span><b>${D.nice(d)}</b></div><button class="ib sm acc" data-act="tsDay" data-d="${D.add(d, 1)}" aria-label="Next day">${I("chevR")}</button></div>
+      <b class="ttl">Timesheet</b>
       ${locked ? `<button class="ib" data-go="#/ts/history" aria-label="History">${I("history")}</button>` : `<button class="ib acc" data-act="tsAddMenu" data-d="${d}" aria-label="Add or copy tasks">${I("plus")}</button>`}</div></header>
     <div class="scroll"><div class="stack">
+      ${tsWeekStrip(d)}
       ${sum3(list)}
       ${weekBanner(w)}
       ${list.length ? `<div class="hrow" style="margin:8px 2px 0"><span class="eyebrow grow">${isToday ? "Today’s" : D.f(d, { weekday: "short" }) + "’s"} entries (${list.length})</span>${locked ? "" : `<button class="link danger" data-act="tsClear" data-d="${d}">Clear entries</button>`}</div><div class="card" style="padding-top:2px;padding-bottom:2px">${entries}</div>`
         : emptyState(["clipboard", "plus", "copy"], "Your task list is empty", D.isWeekend(d) ? "It’s a weekly off — add tasks only if you worked today." : "Copy last week’s tasks or add new ones.",
-          locked ? "" : `<div class="stack" style="margin-top:18px"><button class="btn primary block" data-act="tsCopy" data-d="${d}">${I("copy")}Copy last week tasks</button><button class="btn outline block" data-act="tsAdd" data-d="${d}">${I("plus")}Add tasks</button></div>`)}
+          locked ? "" : `<div class="stack" style="margin-top:18px"><button class="btn tint block" data-act="tsCopy" data-d="${d}">${I("copy")}Copy last week tasks</button><button class="btn outline block" data-act="tsAdd" data-d="${d}">${I("plus")}Add tasks</button></div>`)}
     </div></div>
     <div class="foot"><button class="btn ${weekRec(w).status === "draft" || weekRec(w).status === "rejected" ? "primary" : "ghost"} block" data-go="#/ts/week?w=${w}">${weekRec(w).status === "pending" || weekRec(w).status === "approved" ? "View week" : "Review & submit week"} · ${fmtH(weekMins(w))}</button>
       <button class="link" style="align-self:center" data-go="#/ts/history">${I("history")} Timesheet history</button></div>
