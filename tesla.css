@@ -4029,3 +4029,10 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-accent="navy"]):not([data-accent="graphite"]) .hero-mark { opacity: .1 !important; } }
 :root[data-theme="dark"] .hero-mark { opacity: .08 !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-mark { opacity: .08 !important; } }
+
+/* dark soft header: a warm orange wash at the top that fades into the page, like the light version */
+:root[data-theme="dark"] .hero { background: radial-gradient(85% 115% at 10% -25%, rgba(255,112,60,.55) 0%, rgba(255,112,60,0) 68%), radial-gradient(85% 115% at 100% -15%, rgba(255,140,90,.32) 0%, rgba(255,140,90,0) 70%), linear-gradient(180deg, #2b1910 0%, #181210 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; --bar: #3b2013; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero { background: radial-gradient(85% 115% at 10% -25%, rgba(255,112,60,.55) 0%, rgba(255,112,60,0) 68%), radial-gradient(85% 115% at 100% -15%, rgba(255,140,90,.32) 0%, rgba(255,140,90,0) 70%), linear-gradient(180deg, #2b1910 0%, #181210 55%, var(--bg) 100%) !important; border-radius: 0 !important; box-shadow: none !important; --bar: #3b2013; } }
+
+/* Kais side panel: agent rows show the name only */
+.ksb-row[data-k="agent"] .grow > small, .ksb-row[data-k="prompts"] .grow > small { display: none !important; }

@@ -39,6 +39,14 @@ Left out on purpose: `animate-expo`, `write-swift`, `ask-sonner`, `pick-ui-libra
 | `vercel-react-best-practices` | React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when  |
 | `vercel-react-native-skills` | React Native and Expo best practices for building performant mobile apps. Use |
 
+### From TerminalSkills (Apache-2.0)
+
+Source: [TerminalSkills/skills](https://github.com/TerminalSkills/skills/tree/main/skills/openscreen). Instructions only, no scripts.
+
+| Skill | What it does |
+|---|---|
+| `openscreen` | Record and polish product demos and tutorials with OpenScreen (open-source, no watermark): capture, zoom, trim, backgrounds, export. Install commands in it are for the OpenScreen app itself and only run if you ask. |
+
 ## On the Claude account only (not copied here)
 
 These come with the claude.ai account and sync automatically to any machine where it is signed in. They are not copied into this public repo because their licenses are proprietary or not stated.
@@ -126,6 +134,8 @@ These come with the claude.ai account and sync automatically to any machine wher
 | `xlsx` | Proprietary. LICENSE.txt has complete terms | Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user  |
 
 ## Looked at and not installed (Nov 2026)
+
+- `cli-anything-openscreen` (HKUDS/CLI-Anything, Apache-2.0): needs a pip package and ffmpeg to drive OpenScreen projects from the command line; the TerminalSkills guide was enough.
 
 | Repo | Why not |
 |---|---|
