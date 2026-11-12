@@ -4102,3 +4102,8 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* small avatars (manager chip, key-value rows): initials centred both ways, white on the tint */
 .pj-mgr .av, .av.xs, .av.sm { display: grid !important; place-items: center; justify-content: center; align-content: center; line-height: 1; letter-spacing: 0; }
 .pj-mgr .av { color: #fff; font-weight: 700; }
+/* Home header without the Ask Kais bar: the row only holds the avatar shown when the header collapses */
+.hero:not(.collapsed) .hero-row { display: none; }
+/* collapsed Home header: a plain search bar (opens Search) */
+.hero-search { border: 0; cursor: pointer; text-align: left; gap: 10px; font: inherit; }
+.hero-search .hs-ph { flex: 1; color: rgba(255, 255, 255, .88); font-size: 15px; }
