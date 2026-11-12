@@ -4069,3 +4069,36 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 :root[data-accent="sunshine"] { --btn-grad: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important; }
 :root[data-theme="dark"][data-accent="sunshine"] { --btn-grad: linear-gradient(135deg, color-mix(in srgb, #d97706 88%, #fff) 0%, #d97706 100%) !important; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"])[data-accent="sunshine"] { --btn-grad: linear-gradient(135deg, color-mix(in srgb, #d97706 88%, #fff) 0%, #d97706 100%) !important; } }
+/* ── KEBS live (real data from the KEBS API) ── */
+.kl-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted,#6b7280);white-space:nowrap}
+.kl-live i{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px color-mix(in srgb,#22c55e 22%,transparent)}
+.kl-bar{display:flex;align-items:center;gap:8px;margin:0 2px 12px}
+.kl-bar .link{display:inline-flex;align-items:center;gap:4px}
+.kl-bar .link svg{width:16px;height:16px}
+.kl-sub{margin:0;line-height:1.5}
+.kl-app .num{font-size:17px}
+.kl-skel{height:64px;background:linear-gradient(90deg,var(--card,#fff) 0%,color-mix(in srgb,var(--muted,#888) 12%,transparent) 50%,var(--card,#fff) 100%);background-size:200% 100%;animation:klsk 1.2s linear infinite}
+@keyframes klsk{to{background-position:-200% 0}}
+.kl-ex-st{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 8px;text-align:center}
+.kl-ex-st div{display:flex;flex-direction:column;gap:2px}
+.kl-ex-st b{font-size:20px}
+
+/* Saved claim badge: soft orange tint + hairline border (was grey fill with orange text) */
+.cdh.s-saved .cdh-badge { background: color-mix(in srgb, #f08a4b 14%, var(--panel)) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, #f08a4b 38%, transparent); color: #9a3412 !important; }
+:root[data-theme="dark"] .cdh.s-saved .cdh-badge { background: color-mix(in srgb, #f08a4b 20%, var(--panel)) !important; color: #f4a37a !important; }
+.kl-quick { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+.kl-quick .link { text-align: left; }
+.kl-acc.need { box-shadow: inset 0 0 0 1px color-mix(in srgb, #f08a4b 45%, transparent); }
+.kl-need { color: #c2410c; font-weight: 600; }
+:root[data-theme="dark"] .kl-need { color: #f4a37a; }
+/* busy pill while KEBS records a clock-in */
+.kl-busy { position: fixed; left: 50%; bottom: calc(110px + var(--sab, 0px)); transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 999px; background: var(--panel, #fff); color: var(--text, #111); box-shadow: 0 8px 28px rgba(0,0,0,.16); font-size: 14px; font-weight: 600; }
+.kl-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid color-mix(in srgb, #f08a4b 30%, transparent); border-top-color: #f08a4b; animation: klspin .8s linear infinite; }
+@keyframes klspin { to { transform: rotate(360deg); } }
+/* person in a key-value row (deal/project details): centred white initials, aligned with the name */
+.pj-kv-v .hrow { align-items: center; justify-content: flex-end; gap: 6px; }
+.pj-kv-v .av { flex: none; display: grid; place-items: center; color: #fff; line-height: 1; letter-spacing: 0; }
+.pj-kv-v .av.xs { width: 20px; height: 20px; font-size: 9px; font-weight: 700; }
+/* small avatars (manager chip, key-value rows): initials centred both ways, white on the tint */
+.pj-mgr .av, .av.xs, .av.sm { display: grid !important; place-items: center; justify-content: center; align-content: center; line-height: 1; letter-spacing: 0; }
+.pj-mgr .av { color: #fff; font-weight: 700; }

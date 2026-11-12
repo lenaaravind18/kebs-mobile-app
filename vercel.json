@@ -5,6 +5,12 @@
   "installCommand": "",
   "outputDirectory": ".",
   "cleanUrls": false,
+  "rewrites": [
+    {
+      "source": "/kebs-api/:path*",
+      "destination": "https://primadevprd.kebs.app/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

@@ -19,6 +19,13 @@ Live: https://kebs-mobile-app.vercel.app · Repo: github.com/lenaaravind18/kebs-
 - `js/native-speech.js`: maps Android native speech (KebsNative bridge) to SpeechRecognition / speechSynthesis.
 - Local preview: `node server.mjs` (port 5270).
 
+## Live KEBS data (`js/kebs-live.js`)
+- Signing in with a KEBS account (email → password sheet) switches the app to live data from `primadevprd.kebs.app`; "Use the demo workspace" keeps the sample data. Demo data is set aside in localStorage and restored on sign-out.
+- All calls go through the same-origin proxy `/kebs-api/*` → `https://primadevprd.kebs.app/api/*` (`vercel.json` rewrite, `server.mjs` locally) — the KEBS API sends no CORS headers.
+- The adapter fills the app's existing data shapes (S.claims, S.inbox, S.requests, S.ts, S.pj…) and wraps actions; screens stay the same. Live: auth, Home attendance + clock in/out, Inbox (homepage inbox config, expense approve/treasury verify), Expenses (exPrimary2), Leave (leaveapp), Projects (pm v2), Timesheet read-only.
+- Timesheet save/submit is blocked by KEBS's provenance guard (needs KEBS to register the app) — don't try to bypass it. App sign-out must not call KEBS `logOut` (it revokes the web session's refresh token too).
+- KEBS source (read-only reference): `C:\Users\LenaAravindS\kebs_repo\kebs-new` (Bitbucket kebsv3/kebs-new).
+
 ## Claude skills
 - Project skills live in `.claude/skills/` (load automatically); index and sources in `SKILLS.md`. Account-only skills are listed there too.
 - Before adding a skill from GitHub: check its license and read it for scripts, hooks and network calls (see "Looked at and not installed" in SKILLS.md).

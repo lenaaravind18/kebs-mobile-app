@@ -109,7 +109,7 @@ route("home", () => {
       <span class="hero-mark">${KEBS_MARK}</span>
       <div class="hero-greet"><button class="hero-av" data-act="drawer" aria-label="Open menu"><img class="hero-photo" src="assets/avatars/me.jpg?v=3" alt=""><span class="hero-menu" aria-hidden="true">${I("menu")}</span></button><div class="grow" style="min-width:0"><b class="ell"><span data-greet="${greetingKey()}">${T(greetingKey())}</span>, ${esc(S.me.display)}</b><small>${esc(typeof role === "function" && role() !== "super" ? `${roleDef().name} view` : S.me.role)}</small></div></div>
       <form class="hero-row" data-form="heroAsk"><button type="button" class="hero-av" data-act="drawer" aria-label="Open menu" tabindex="-1"><img class="hero-photo" src="assets/avatars/me.jpg?v=3" alt=""><span class="hero-menu" aria-hidden="true">${I("menu")}</span></button>
-        <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go mic" data-act="heroVoice" aria-label="Talk to Kais">${I("mic")}</button><button type="button" class="go" data-act="heroGo" aria-label="Search">${I("search")}</button></label></form>
+        <label class="hero-ask">${I("sparkles")}<input name="q" placeholder="Ask Kais" autocomplete="off" aria-label="Ask Kais" enterkeyhint="send"><button type="button" class="go mic" data-act="heroVoice" aria-label="Talk to Kais">${I("mic")}</button></label></form>
     </header>
     <div class="scroll home-scroll">
       ${typeof roleBanner === "function" ? roleBanner() : ""}
@@ -139,7 +139,7 @@ route("home", () => {
     inp.addEventListener("input", () => { const on = !!inp.value.trim(); go.classList.toggle("send", on); go.innerHTML = I(on ? "arrowUp" : "search"); go.setAttribute("aria-label", on ? "Ask Kais" : "Search"); });
   },
 });
-act("submit:heroAsk", (f) => { const q = f.q.value.trim(); if (q) openKais(q); else go("#/search"); });
+act("submit:heroAsk", (f) => { const q = f.q.value.trim(); openKais(q || undefined); });
 // voice: open Kais and go straight into voice mode
 act("heroVoice", () => { kaisNewChat(); save(); openKais(); setTimeout(() => ACTIONS.kaisVoice(), 380); });
 act("heroGo", (b) => { const q = b.closest("form").q.value.trim(); q ? openKais(q) : go("#/search"); });

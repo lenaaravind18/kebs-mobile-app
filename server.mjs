@@ -8,7 +8,20 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const port = Number(process.argv[2]) || Number(process.env.PORT) || 5270;
 const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".webmanifest": "application/manifest+json", ".mp4": "video/mp4" };
 
+// same proxy as vercel.json: /kebs-api/* → the KEBS API (keeps calls same-origin, so no CORS)
+const KEBS_API = "https://primadevprd.kebs.app/api/";
+async function proxy(req, res) {
+  const chunks = []; for await (const c of req) chunks.push(c);
+  const headers = {}; for (const k of ["content-type", "authorization", "accept"]) if (req.headers[k]) headers[k] = req.headers[k];
+  try {
+    const r = await fetch(KEBS_API + req.url.slice("/kebs-api/".length), { method: req.method, headers, body: ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks) });
+    res.writeHead(r.status, { "Content-Type": r.headers.get("content-type") || "application/json", "Cache-Control": "no-store" });
+    res.end(Buffer.from(await r.arrayBuffer()));
+  } catch (e) { res.writeHead(502, { "Content-Type": "application/json" }).end(JSON.stringify({ err: true, msg: "KEBS unreachable" })); }
+}
+
 http.createServer(async (req, res) => {
+  if (req.url.startsWith("/kebs-api/")) return proxy(req, res);
   let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
   if (p === "/") p = "/index.html";
   const file = normalize(join(root, p));
