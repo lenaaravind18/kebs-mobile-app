@@ -36,6 +36,7 @@ function parseHash() {
 function applyTheme() {
   const t = S.settings.theme, root = document.documentElement;
   if (t === "auto") delete root.dataset.theme; else root.dataset.theme = t;
+  if (typeof ACCENT_MOVED !== "undefined" && ACCENT_MOVED[S.settings.accent]) { S.settings.accent = ACCENT_MOVED[S.settings.accent]; save(); }
   const ac = S.settings.accent || "orange", st = S.settings.style || "classic";
   if (ac === "orange") delete root.dataset.accent; else root.dataset.accent = ac;
   if (st === "classic") delete root.dataset.style; else root.dataset.style = st;
