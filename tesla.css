@@ -4107,3 +4107,10 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* collapsed Home header: a plain search bar (opens Search) */
 .hero-search { border: 0; cursor: pointer; text-align: left; gap: 10px; font: inherit; }
 .hero-search .hs-ph { flex: 1; color: rgba(255, 255, 255, .88); font-size: 15px; }
+/* bottom bar: soft pill behind the active tab's icon (replaces the thin top line); Alerts shows a dot, Inbox keeps the count */
+.dock-btn.on::after { display: none !important; }
+.dock-btn.on { background: none !important; box-shadow: none !important; }
+.dock-btn.on::before { content: ""; position: absolute; top: 5px; left: 50%; width: 52px; height: 30px; margin-left: -26px; border-radius: 15px; background: color-mix(in srgb, var(--accent) 15%, transparent); z-index: 0; }
+.dock-btn > * { position: relative; z-index: 1; }
+.dock-btn .badge { z-index: 2; }
+.dock-btn .badge.dot { min-width: 0 !important; width: 9px !important; height: 9px !important; padding: 0 !important; top: 7px !important; left: calc(50% + 7px) !important; border-radius: 50% !important; box-shadow: 0 0 0 2px var(--panel); }
