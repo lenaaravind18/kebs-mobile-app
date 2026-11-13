@@ -4114,3 +4114,16 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .dock-btn > * { position: relative; z-index: 1; }
 .dock-btn .badge { z-index: 2; }
 .dock-btn .badge.dot { min-width: 0 !important; width: 9px !important; height: 9px !important; padding: 0 !important; top: 7px !important; left: calc(50% + 7px) !important; border-radius: 50% !important; box-shadow: 0 0 0 2px var(--panel); }
+/* bottom bar, reference style: 5 equal tabs (Kais is a normal tab), outline icons, active = accent colour only */
+.dock-btn.on::before { display: none !important; }
+.dock-btn.on { background: none !important; box-shadow: none !important; }
+.dock-btn.on, .dock-btn.on span { color: var(--accent) !important; }
+.dock-k img { width: 24px; height: 24px; display: block; filter: saturate(.9); }
+.dock-k:not(.on) img { opacity: .92; }
+/* Kais tab: the logo has built-in padding, so draw it larger than the 24px outline icons to read the same size */
+.dock-k img { width: 30px !important; height: 30px !important; margin: -3px 0; }
+/* Quick access without a card: the tiles already sit in their own circles */
+.home-scroll > .qa-card, .qa-card { background: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 2px 0 0 !important; }
+.qa-card .qa-head { padding: 0 2px 8px !important; }
+/* Quick access tile labels: medium weight, a touch softer, so the colourful icons lead */
+.qa-btn { font-weight: 500 !important; color: color-mix(in srgb, var(--text) 82%, transparent) !important; }

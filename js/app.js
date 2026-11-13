@@ -45,7 +45,7 @@ function applyTheme() {
 function dockHtml(on) {
   const b = (id, icon, href, label, badge) => `<button class="dock-btn ${on === id ? "on" : ""}" data-go="${href}" aria-label="${label}"${on === id ? ' aria-current="page"' : ""}>${I(on === id && FLUENT[icon + "F"] ? icon + "F" : icon)}<span>${label}</span>${badge === "dot" ? `<span class="badge dot" aria-label="New"></span>` : badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
   return b("home", "home", "#/home", T("home")) + b("inbox", "inbox", "#/inbox", T("inbox"), (typeof klOn === "function" && klOn() ? klInboxCount() : (typeof inboxList === "function" ? inboxList() : S.inbox).length))
-    + `<button class="dock-kais" data-act="kais" aria-label="Ask Kais Assistant"><img src="kais.svg" alt=""></button>`
+    + `<button class="dock-btn dock-k ${on === "kais" ? "on" : ""}" data-act="kais" aria-label="Kais"><img src="kais.svg" alt="" width="24" height="24"><span>Kais</span></button>`
     + b("notifs", "bell", "#/notifs", T("alerts"), (typeof klOn === "function" && klOn() ? 0 : unreadCount()) ? "dot" : 0) + b("apps", "grid", "#/apps", T("apps"));
 }
 function lockView() {
