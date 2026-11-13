@@ -365,7 +365,6 @@ act("drawer", () => {
   const row = (icon, t, s, attr) => `<button class="li" ${attr}><span class="ic">${I(icon)}</span><span class="grow"><span class="t" style="display:block">${t}</span><span class="s">${s}</span></span></button>`;
   el.innerHTML = `<div class="drawer-top"><span class="hero-pattern" aria-hidden="true"></span><button class="li" data-go="#/profile" style="border:0">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
     <div class="list">
-      ${row("building", esc(S.me.company), esc(S.me.domain), "")}
       ${typeof roleDef === "function" ? row(roleDef().icon, "View as", roleDef().name, `data-act="pickRole"`) : ""}
       ${row("globe", "Language", lang.name, `data-go="#/settings/lang"`)}
       ${row("bell", "Notifications", typeof nset === "function" ? (nset().on ? "On" : "Off") : "On", `data-go="#/settings/notifications"`)}

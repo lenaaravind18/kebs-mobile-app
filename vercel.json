@@ -7,6 +7,10 @@
   "cleanUrls": false,
   "rewrites": [
     {
+      "source": "/kx/:host/:path*",
+      "destination": "/api/kx?host=:host&path=:path*"
+    },
+    {
       "source": "/kebs-api/:path*",
       "destination": "https://primadevprd.kebs.app/api/:path*"
     }

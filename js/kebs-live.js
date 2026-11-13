@@ -2,8 +2,22 @@
 // Calls go to /kebs-api/* on our own site (vercel.json rewrite / server.mjs proxy) → https://primadevprd.kebs.app/api/*
 // so the browser never makes a cross-site call (the KEBS API sends no CORS headers).
 // Signed out of KEBS (or an email KEBS doesn't know) → the demo workspace, exactly as before.
-const KL_KEY = "kebs.live.v1", KL_ME = "kebs.live.demoMe", KL_BASE = "/kebs-api/", KL_DOMAIN = "primadevprd.kebs.app";
+const KL_KEY = "kebs.live.v1", KL_ME = "kebs.live.demoMe", KL_WS = "kebs.live.workspaces";
+// KEBS workspaces (one per client). The email's domain picks the default; "Change" at sign-in picks another.
+const KL_WORKSPACES = [
+  { host: "primadevprd.kebs.app", name: "KEBS demo (primadevprd)" },
+  { host: "vertex-maveric-devprd.kebs.app", name: "Maveric (dev)", domains: ["maveric.com"] },
+];
+let KL_DOMAIN = "primadevprd.kebs.app";
+const klBase = () => `/kx/${KL_DOMAIN}/`; // same-origin proxy → https://<workspace>/api/ (api/kx.js, server.mjs)
+const klWsMemo = () => { try { return JSON.parse(localStorage.getItem(KL_WS)) || {}; } catch { return {}; } };
+function klHostFor(email) {
+  const e = String(email || "").toLowerCase(), d = e.split("@")[1] || "";
+  return klWsMemo()[e] || KL_WORKSPACES.find((w) => (w.domains || []).includes(d))?.host || KL_WORKSPACES[0].host;
+}
+const klWsName = (h) => KL_WORKSPACES.find((w) => w.host === h)?.name || h;
 let KL = (() => { try { return JSON.parse(localStorage.getItem(KL_KEY)) || null; } catch { return null; } })();
+if (KL?.host) KL_DOMAIN = KL.host;
 const KD = { at: 0, busy: false, att: null, attErr: "", apps: [], exCounts: null, exList: null, exTotal: 0, exApprovals: null };
 let KL_PENDING = null, klRenewing = null;
 const klOn = () => !!(KL && KL.jwt);
@@ -14,7 +28,7 @@ function klClaims(jwt = KL?.jwt) { try { return JSON.parse(decodeURIComponent(es
 async function klFetch(path, body, jwt) {
   const headers = { "Content-Type": "application/json" };
   if (jwt) headers.Authorization = "Bearer " + jwt;
-  const r = await fetch(KL_BASE + path.replace(/^\/?api\//, ""), { method: "POST", headers, body: JSON.stringify(body || {}) });
+  const r = await fetch(klBase() + path.replace(/^\/?api\//, ""), { method: "POST", headers, body: JSON.stringify(body || {}) });
   const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch { j = null; }
   return { status: r.status, ok: r.ok, j };
 }
@@ -46,6 +60,7 @@ async function klTenant() {
   return j.data;
 }
 const klDemoSignIn = signIn;
+// sign-in: email → the workspace for that email (domain map / last used, changeable) → password
 act("submit:login", async (f) => {
   const v = f.email.value.trim();
   const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -53,23 +68,44 @@ act("submit:login", async (f) => {
   if (!ok) return;
   const btn = f.querySelector("[type=submit]"), label = btn.innerHTML;
   btn.disabled = true; btn.textContent = "Checking…";
+  await klStartLogin(v, klHostFor(v));
+  btn.disabled = false; btn.innerHTML = label;
+});
+async function klStartLogin(v, host) {
+  KL_DOMAIN = host;
   let t, u;
   try { t = await klTenant(); u = await klOpen("auth/authenticate/checkUser", { email: v, dbName: t.tad }); } catch { u = null; }
-  btn.disabled = false; btn.innerHTML = label;
-  if (!u || u.err) { klDemoSignIn(v); toast("Not a KEBS account here, so you’re in the demo workspace"); return; }
-  KL_PENDING = { email: v, t };
+  closeAllSheets();
+  if (!t) return openSheet({ title: "Sign in to KEBS", body: `<div class="stack"><p class="kl-sub">Couldn’t reach <b>${esc(klWsName(host))}</b>.<br><span class="muted">${esc(host)}</span></p><button class="btn outline block" data-act="klWs" data-e="${esc(v)}">Choose another workspace</button><button class="btn outline block" data-act="klDemo">Use the demo workspace</button></div>` });
+  if (!u || u.err) { KL_PENDING = { email: v }; return openSheet({ title: "Sign in to KEBS", body: `<div class="stack"><p class="kl-sub">${esc(v)} isn’t a KEBS account in <b>${esc(t.tenant_name || klWsName(host))}</b>.</p><button class="btn primary block" data-act="klWs" data-e="${esc(v)}">Choose another workspace</button><button class="btn outline block" data-act="klDemo">Use the demo workspace</button></div>` }); }
+  KL_PENDING = { email: v, t, host };
   const d = u.userDetail || {};
   const blocked = d.is_o365_signIn_mandatory ? "Your KEBS account signs in with Microsoft only. That’s coming to the app next." : d.is_TFA_enabled ? "Your KEBS account uses two-step sign-in. That’s coming to the app next." : !u.hasPsw ? "This KEBS account has no password yet. Set one on KEBS web first." : "";
+  const ws = `<button type="button" class="kl-ws" data-act="klWs" data-e="${esc(v)}">${I("building")}<span class="grow"><b>${esc(t.tenant_name || klWsName(host))}</b><small>${esc(host)}</small></span><span class="link">Change</span></button>`;
   openSheet({ title: "Sign in to KEBS", body: blocked
-    ? `<div class="stack"><p class="kl-sub">${esc(blocked)}</p><button class="btn primary block" data-act="klDemo">Use the demo workspace</button></div>`
+    ? `<div class="stack">${ws}<p class="kl-sub">${esc(blocked)}</p><button class="btn primary block" data-act="klDemo">Use the demo workspace</button></div>`
     : `<form class="stack" data-form="klLogin" novalidate>
-        <p class="kl-sub">${esc(v)}<br><span class="muted">${KL_DOMAIN}</span></p>
+        ${ws}
+        <p class="kl-sub">${esc(v)}</p>
         <input class="inp" type="password" name="password" placeholder="Password" autocomplete="current-password" aria-label="KEBS password" enterkeyhint="go">
         <span class="err" data-err hidden></span>
         <button class="btn primary block" type="submit">Sign in</button>
         <button class="btn outline block" type="button" data-act="klDemo">Use the demo workspace instead</button>
       </form>`,
     onMount: (el) => setTimeout(() => el.querySelector("input[type=password]")?.focus(), 250) });
+}
+// pick a workspace: the known ones, or type a company KEBS address
+act("klWs", (b) => {
+  const email = b.dataset.e || KL_PENDING?.email || "";
+  const s = openSheet({ title: "KEBS workspace", body: `<div class="stack">
+      <div class="list">${KL_WORKSPACES.map((w) => `<button class="opt-row" data-s="pick" data-h="${w.host}"><span class="grow"><b style="display:block">${esc(w.name)}</b><span class="small faint">${w.host}</span></span>${w.host === KL_DOMAIN ? `<span class="tick">${I("check")}</span>` : ""}</button>`).join("")}</div>
+      <div class="field"><label for="kl-wsi">Or your company’s KEBS address</label><div class="hrow"><input id="kl-wsi" class="inp grow" data-h placeholder="company.kebs.app" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="btn primary" data-s="go">Use</button></div><span class="err" data-err hidden></span></div></div>`,
+    onMount(el) {
+      const use = (h) => { h = String(h || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""); if (h && !h.includes(".")) h += ".kebs.app";
+        if (!/^[a-z0-9-]{1,63}\.kebs\.app$/.test(h)) { const e = el.querySelector("[data-err]"); e.textContent = "Enter an address like company.kebs.app"; e.hidden = false; return; }
+        closeSheet(s); klStartLogin(email, h); };
+      onS(el, { pick(btn) { use(btn.dataset.h); }, go() { use(el.querySelector("[data-h]").value); } });
+    } });
 });
 // KEBS sessions last ~15 min and this server can't renew them, so ask for the password again (data stays on screen)
 let klReauthOpen = false;
@@ -97,7 +133,8 @@ act("submit:klLogin", async (f) => {
     const j = await klOpen("auth/authenticate/userLogin", { username: p.email, password: pw, dbName: p.t.tad, tenantId: p.t.tenant_id, isTFACheckToBedone: false, tfaToken: null });
     if (!j?.jwt) throw new Error(j?.msg || "Sign in failed");
     if (p.again && KL) { KL.jwt = j.jwt; KL.refresh = j.refreshToken; klSave(); KL_PENDING = null; document.activeElement?.blur(); closeAllSheets(); toast("Signed in again"); klLoad(true); return; }
-    KL = { jwt: j.jwt, refresh: j.refreshToken, db: p.t.tad, tid: p.t.tenant_id, email: p.email };
+    KL = { jwt: j.jwt, refresh: j.refreshToken, db: p.t.tad, tid: p.t.tenant_id, email: p.email, host: KL_DOMAIN, tenant: p.t.tenant_name || "" };
+    try { const m = klWsMemo(); m[p.email.toLowerCase()] = KL_DOMAIN; localStorage.setItem(KL_WS, JSON.stringify(m)); } catch {}
     klSave(); KL_PENDING = null; klApplyMe(); klSwapIn();
     document.activeElement?.blur(); closeAllSheets();
     S.authed = true; S.email = p.email; save();
@@ -166,6 +203,8 @@ async function klLoad(force) {
   const rows = (j) => (Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : null);
   KD.exList = rows(exL); KD.exApprovals = rows(exA);
   klApplyClaims(); klApplyInbox();
+  // projects + my tasks too, so Home's "My tasks" shows KEBS tasks, not demo ones
+  klPjSwapIn(); klPjLoad();
   if (ph) { KL.photo = ph?.data?.profile_image_url || null; klSave(); }
   KD.at = Date.now(); KD.busy = false;
   if (/^#\/(home|inbox|expenses)/.test(location.hash || "#/home")) rerender();
@@ -919,7 +958,10 @@ async function klPjAccess() {
   let ids = [];
   if (acc?.object_value === "*") ids = [1];
   else if (acc?.object_value === "True") { const e = klJSON(acc.object_entries, acc.object_entries); ids = e == null || e === "null" || e === "*" ? [9] : (Array.isArray(e) ? e : [e]).map(Number); }
-  KPJ.access = roleList.filter((r) => ids.includes(+r.id));
+  // the phone shows MY projects: if you have project access at all, ask with the Team Member view (projects you're on),
+  // even for Admins (KEBS would otherwise return every project in the company)
+  const team = roleList.filter((r) => +r.id === 9);
+  KPJ.access = ids.length ? (team.length ? team : roleList.filter((r) => ids.includes(+r.id))) : [];
   if (!KPJ.access.length) KPJ.err = "You don’t have access to Projects in KEBS.";
   return KPJ.access;
 }

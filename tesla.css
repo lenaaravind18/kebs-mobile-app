@@ -4127,3 +4127,7 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .qa-card .qa-head { padding: 0 2px 8px !important; }
 /* Quick access tile labels: medium weight, a touch softer, so the colourful icons lead */
 .qa-btn { font-weight: 500 !important; color: color-mix(in srgb, var(--text) 82%, transparent) !important; }
+/* sign-in: which KEBS workspace (client) you're signing in to */
+.kl-ws { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.kl-ws b { display: block; font-size: 15px; } .kl-ws small { display: block; color: var(--muted); font-size: 12px; }
+.kl-ws .link { font-weight: 600; font-size: 13px; }
