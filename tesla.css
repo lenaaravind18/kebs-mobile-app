@@ -4131,3 +4131,5 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .kl-ws { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .kl-ws b { display: block; font-size: 15px; } .kl-ws small { display: block; color: var(--muted); font-size: 12px; }
 .kl-ws .link { font-weight: 600; font-size: 13px; }
+/* saved receipt row: tap the receipt to see its details */
+.rc-open { min-width: 0; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
