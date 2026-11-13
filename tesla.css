@@ -4133,3 +4133,11 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .kl-ws .link { font-weight: 600; font-size: 13px; }
 /* saved receipt row: tap the receipt to see its details */
 .rc-open { min-width: 0; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+/* Theme: clean and minimal — a segmented control and flat colour dots */
+.th-min .lbl { display: flex; align-items: baseline; gap: 8px; }
+.th-cur { font-weight: 500; color: var(--muted); font-size: 13px; }
+.th-dots { display: flex; flex-wrap: wrap; gap: 14px; padding: 4px 2px; }
+.th-d { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: var(--c); cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.th-d.on { box-shadow: 0 0 0 2px var(--bg, var(--panel)), 0 0 0 4px var(--c); }
+:root[data-theme="dark"] .th-d { box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+:root[data-theme="dark"] .th-d.on { box-shadow: 0 0 0 2px var(--bg, #0f1115), 0 0 0 4px var(--c); }
