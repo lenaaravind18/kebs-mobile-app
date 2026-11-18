@@ -39,6 +39,13 @@ Left out on purpose: `animate-expo`, `write-swift`, `ask-sonner`, `pick-ui-libra
 | `vercel-react-best-practices` | React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when  |
 | `vercel-react-native-skills` | React Native and Expo best practices for building performant mobile apps. Use |
 
+### Kaan Kızıltuğ: logo-design (MIT)
+Source: [kaankiziltug/logo-design-skill](https://github.com/kaankiziltug/logo-design-skill) (MIT, see `.claude/skills/logo-design/LICENSE`). Copied from `skills/logo-design/` (Nov 2026). Local Python scripts only (SVG audit/render, library search, presentation boards) — no network calls, hooks or secrets (checked before install).
+
+| Skill | What it does |
+|---|---|
+| `logo-design` | Professional logo / brand-mark design from brief to production SVGs — concept generation, mark types, optical refinement, test sheets, delivery variants. Includes a searchable 1,400+ SVG logo library. |
+
 ### From TerminalSkills (Apache-2.0)
 
 Source: [TerminalSkills/skills](https://github.com/TerminalSkills/skills/tree/main/skills/openscreen). Instructions only, no scripts.
