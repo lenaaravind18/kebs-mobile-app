@@ -4141,3 +4141,71 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .th-d.on { box-shadow: 0 0 0 2px var(--bg, var(--panel)), 0 0 0 4px var(--c); }
 :root[data-theme="dark"] .th-d { box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
 :root[data-theme="dark"] .th-d.on { box-shadow: 0 0 0 2px var(--bg, #0f1115), 0 0 0 4px var(--c); }
+
+/* ═════ Expandable island: pill → card on tap ═════ */
+.island.live { width: auto; min-width: 158px; height: 35px; margin-left: 0; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: stretch; padding: 0; overflow: hidden;
+  color: #fff; pointer-events: auto; cursor: pointer; border-radius: 18px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.45); transition: width .4s cubic-bezier(.3,1.25,.5,1), border-radius .3s;
+  animation: islIn .5s cubic-bezier(.3,1.3,.5,1);
+}
+.island.live .isl-pill { display: flex; align-items: center; gap: 8px; height: 35px; padding: 0 14px 0 13px; flex: none;
+  font: 600 13px/1 -apple-system, "SF Pro Text", var(--font); }
+.island.live .isl-time { margin-left: auto; padding-left: 10px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .4px; color: #30d158; }
+.island.live.out .isl-time { color: #d0d0d2; }
+.island.live .isl-lbl { color: rgba(255,255,255,.82); }
+.island.live .isl-card { display: none; padding: 2px 14px 13px; }
+.island.live.expanded { width: 276px; border-radius: 24px; }
+.island.live.expanded .isl-card { display: block; animation: islCard .35s ease; }
+@keyframes islCard { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.island.live .isl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 8px 2px 12px; }
+.island.live .isl-grid > div { display: flex; flex-direction: column; gap: 3px; }
+.island.live .isl-k { font-size: 10.5px; color: rgba(255,255,255,.5); font-weight: 600; letter-spacing: .02em; }
+.island.live .isl-grid b { font-size: 15px; font-weight: 700; }
+.island.live .isl-grid b.isl-big { color: #30d158; font-variant-numeric: tabular-nums; }
+.island.live.out .isl-grid b.isl-big { color: #fff; }
+.island.live .isl-acts { display: flex; gap: 8px; }
+.island.live .isl-btn { flex: 1; height: 34px; border-radius: 11px; font: 600 13px var(--font); color: #fff;
+  background: rgba(255,255,255,.14); transition: background .15s, transform .12s; }
+.island.live .isl-btn:active { transform: scale(.96); }
+.island.live .isl-btn.primary { background: #30d158; color: #06310f; }
+.island.live.out .isl-btn.primary { background: #ff8a5c; color: #3a1403; }
+.island.live .isl-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.island.live .isl-dot.pulse { background: #30d158; animation: islPulse 1.7s ease-out infinite; }
+.island.live .isl-dot.done { background: #8e8e93; position: relative; }
+.island.live .isl-dot.done::after { content: ""; position: absolute; left: 2px; top: 3.5px; width: 3px; height: 1.5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) { .island.live, .island.live .isl-dot, .island.live.expanded .isl-card { animation: none !important; } }
+
+/* ═════ "Never miss a moment" notifications opt-in ═════ */
+.nf-optin .sheet-body { padding: 0 !important; }
+.nf-optin-page { display: flex; flex-direction: column; height: 100%; padding: calc(var(--sat) + 8px) 22px calc(var(--sab) + 18px); }
+.nf-x { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: var(--panel-2); align-self: flex-start; }
+.nf-optin-top { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; gap: 10px; padding: 10px 0 20px; }
+.nf-bell { position: relative; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); margin-bottom: 8px; }
+.nf-bell .i { width: 38px; height: 38px; }
+.nf-badge { position: absolute; top: 6px; right: 6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--panel); font-style: normal; }
+.nf-optin-top h1 { font: 800 27px/1.15 var(--font); letter-spacing: -0.02em; color: var(--ink); }
+.nf-optin-top p { font-size: 14.5px; line-height: 1.5; color: var(--ink-3); max-width: 300px; }
+.nf-cards { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.nf-card { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-radius: 16px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); text-align: left; }
+.nf-card-ic { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; flex: none; background: color-mix(in srgb, var(--t, var(--accent)) 16%, var(--panel)); color: var(--t, var(--accent)); }
+.nf-card-ic.t-green { --t: #16a34a; } .nf-card-ic.t-orange { --t: #ea6a1f; }
+.nf-card-ic .i { width: 20px; height: 20px; }
+.nf-card-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nf-card-tx b { font-size: 14px; font-weight: 600; color: var(--ink); }
+.nf-card-tx span { font-size: 13px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nf-card-t { font-size: 11.5px; color: var(--ink-3); flex: none; }
+.nf-optin-foot { display: flex; flex-direction: column; gap: 10px; }
+
+/* notifications illustration */
+.nf-art { margin: 0 0 6px; width: 200px; max-width: 72%; }
+.nf-art svg { width: 100%; height: auto; display: block; }
+:root { --ill-ring: var(--ill-ring, #c7d2e0); }
+
+/* notifications illustration colours (match .sec-art) */
+.nf-art { --ill-ring: #E9EAEC; --ill-disc: #F1F2F7; --ill-obj: #D8DBEA; --ill-paper: #FEFEFE; --ill-mark: #D2D8DF; }
+:root[data-theme="dark"] .nf-art { --ill-ring: #262b34; --ill-disc: #1c2028; --ill-obj: #343b48; --ill-paper: #20242c; --ill-mark: #3d4452; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nf-art { --ill-ring: #262b34; --ill-disc: #1c2028; --ill-obj: #343b48; --ill-paper: #20242c; --ill-mark: #3d4452; } }
+/* person avatar on a notification sample card */
+.nf-card-av { width: 38px; height: 38px; flex: none; display: block; }
+.nf-card-av .av { width: 38px !important; height: 38px !important; font-size: 13px; }

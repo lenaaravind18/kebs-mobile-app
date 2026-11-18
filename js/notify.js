@@ -138,7 +138,59 @@ act("nfTest", () => { toast("Test notification in 5 seconds"); setTimeout(() => 
 setTimeout(() => {
   if (!S.authed || S.settings.notifAsked || notifyPermission() !== "default" || hpath(location.hash) !== "home") return;
   S.settings.notifAsked = true; save();
-  const s = openSheet({ title: "", body: `<div class="nf-ask"><span class="nf-ask-ic">${I("bell")}</span><h2>Never miss an approval</h2><p class="muted">KEBS can notify you about approvals, mentions, receipts that are ready and reminders to clock in — even when the app is closed.</p></div>`,
-    foot: `<div class="row-btns"><button class="btn outline" style="flex:1" data-s="no">Not now</button><button class="btn primary" style="flex:1" data-s="yes">Turn on</button></div>`,
-    onMount(el) { onS(el, { no() { closeSheet(s); }, yes() { closeSheet(s); requestNotifyPermission(); } }); } });
+  notifOptIn();
 }, 4000);
+
+// Notifications illustration — Design System style: dashed rings, soft cards, coral gradient bell, sparkles.
+function notifyArt() {
+  const card = (x, y, rot, dot) => `<g transform="rotate(${rot} ${x + 34} ${y + 13})"><rect x="${x}" y="${y}" width="68" height="26" rx="9" fill="var(--ill-paper)" stroke="var(--ill-obj)" stroke-width="2"/><circle cx="${x + 14}" cy="${y + 13}" r="6" fill="${dot}"/><rect x="${x + 26}" y="${y + 8}" width="30" height="4" rx="2" fill="var(--ill-obj)"/><rect x="${x + 26}" y="${y + 16}" width="20" height="4" rx="2" fill="var(--ill-mark)"/></g>`;
+  const spark = (x, y, s) => `<path d="M${x} ${y - s}l${s * 0.3} ${s * 0.7} ${s * 0.7} ${s * 0.3}-${s * 0.7} ${s * 0.3}-${s * 0.3} ${s * 0.7}-${s * 0.3}-${s * 0.7}-${s * 0.7}-${s * 0.3} ${s * 0.7}-${s * 0.3}z" fill="url(#ngG)"/>`;
+  return `<figure class="nf-art" aria-hidden="true"><svg viewBox="0 0 240 200">
+    <defs><linearGradient id="ngG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8960"/><stop offset="1" stop-color="#FF62A5"/></linearGradient></defs>
+    <circle cx="120" cy="100" r="92" fill="none" stroke="var(--ill-ring)" stroke-width="2" stroke-dasharray="6 7"/>
+    <circle cx="120" cy="100" r="68" fill="none" stroke="var(--ill-ring)" stroke-width="2" stroke-dasharray="6 7"/>
+    <circle cx="120" cy="100" r="52" fill="var(--ill-disc)"/>
+    <path d="M22 112h-6M20 104l-3 4M218 58l5-2M216 50l4 3" stroke="var(--ill-mark)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="40" cy="56" r="3" fill="var(--ill-mark)"/><circle cx="206" cy="146" r="3.5" fill="none" stroke="var(--ill-mark)" stroke-width="2"/>
+    ${spark(200, 92, 7)}${spark(44, 150, 6)}
+    ${card(30, 54, -8, "url(#ngG)")}
+    ${card(142, 126, 7, "var(--ill-mark)")}
+    <g transform="translate(120 102)"><g transform="translate(-32.4 -34) scale(2.7)">
+      <path d="M12 3a2 2 0 0 1 1.99 1.8l.01.2v.46a6.5 6.5 0 0 1 4.5 5.86L18.5 14l1.44 2.88A1 1 0 0 1 19.05 18.3H4.95a1 1 0 0 1-.9-1.42L5.5 14l.01-2.22A6.5 6.5 0 0 1 10 5.92V5.4A2 2 0 0 1 12 3Z" fill="url(#ngG)"/>
+      <path d="M9.4 19.2h5.2a2.6 2.6 0 0 1-5.2.2z" fill="url(#ngG)"/>
+    </g></g>
+    <g transform="translate(150 70)"><circle r="12" fill="var(--ill-paper)"/><circle r="9" fill="url(#ngG)"/><text y="3.6" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="var(--font)">1</text></g>
+  </svg></figure>`;
+}
+
+// Full-screen "Never miss a moment" opt-in, with sample cards and two choices.
+function notifOptIn() {
+  const sample = (art, who, text, t) => `<div class="nf-card">${art}<span class="nf-card-tx"><b>${who}</b><span>${text}</span></span><span class="nf-card-t">${t}</span></div>`;
+  const s = openSheet({
+    cls: "full nf-optin",
+    raw: `<div class="nf-optin-page">
+      <button class="nf-x" data-s="close" aria-label="Close">${I("x")}</button>
+      <div class="nf-optin-top">
+        ${notifyArt()}
+        <h1>Never miss a moment</h1>
+        <p>Get notified about approvals, timesheets, leave and reminders — even when the app is closed.</p>
+        <div class="nf-cards">
+          ${sample(`<span class="nf-card-av">${avatar("pr")}</span>`, "Riya Menon", "Approved your leave request", "2m ago")}
+          ${sample(`<span class="nf-card-ic t-orange">${I("clock")}</span>`, "Timesheet", "Submit this week — due Friday", "1h ago")}
+        </div>
+      </div>
+      <div class="nf-optin-foot">
+        <button class="btn outline block" data-s="important">Only important notifications</button>
+        <button class="btn primary block" data-s="enable">${I("bell")}Enable notifications</button>
+      </div>
+    </div>`,
+    onMount(el) {
+      onS(el, {
+        close() { closeSheet(s); },
+        important() { const n = nset(); n.on = true; n.cats = { messages: false, social: false }; save(); closeSheet(s); requestNotifyPermission(); toast("Important notifications on", "info"); },
+        enable() { nset().on = true; save(); closeSheet(s); requestNotifyPermission(); toast("Notifications on", "info"); },
+      });
+    },
+  });
+}
+act("notifOptIn", () => notifOptIn());
