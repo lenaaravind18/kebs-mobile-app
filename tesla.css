@@ -4209,3 +4209,7 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 /* person avatar on a notification sample card */
 .nf-card-av { width: 38px; height: 38px; flex: none; display: block; }
 .nf-card-av .av { width: 38px !important; height: 38px !important; font-size: 13px; }
+
+/* hide the "Live from KEBS" indicator (keep the Refresh action) */
+.kl-live { display: none !important; }
+.kl-bar { justify-content: flex-end !important; }

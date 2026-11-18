@@ -958,10 +958,10 @@ async function klPjAccess() {
   let ids = [];
   if (acc?.object_value === "*") ids = [1];
   else if (acc?.object_value === "True") { const e = klJSON(acc.object_entries, acc.object_entries); ids = e == null || e === "null" || e === "*" ? [9] : (Array.isArray(e) ? e : [e]).map(Number); }
-  // the phone shows MY projects: if you have project access at all, ask with the Team Member view (projects you're on),
-  // even for Admins (KEBS would otherwise return every project in the company)
-  const team = roleList.filter((r) => +r.id === 9);
-  KPJ.access = ids.length ? (team.length ? team : roleList.filter((r) => ids.includes(+r.id))) : [];
+  // Show projects using the role you actually have — like the KEBS web: Team Member (id 9) → your projects;
+  // Admin (id 1) / all-project access → the company projects (so admins don't see an empty list).
+  KPJ.access = ids.length ? roleList.filter((r) => ids.includes(+r.id)) : [];
+  if (!KPJ.access.length && ids.length) KPJ.access = roleList.filter((r) => +r.id === 9);
   if (!KPJ.access.length) KPJ.err = "You don’t have access to Projects in KEBS.";
   return KPJ.access;
 }
