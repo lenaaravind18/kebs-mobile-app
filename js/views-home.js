@@ -20,7 +20,9 @@ route("login", () => `
   </div></div>`);
 
 function signIn(email) {
-  S.authed = true; S.email = email; save();
+  S.authed = true; S.email = email;
+  if (typeof applyKebsProfile === "function") applyKebsProfile(email);
+  save();
   navCount = 0; location.replace("#/home");
   toast(`Signed in as ${email}`);
 }
