@@ -364,9 +364,14 @@ act("drawer", () => {
   const scrim = document.createElement("div"); scrim.className = "scrim";
   const el = document.createElement("aside"); el.className = "drawer";
   const lang = LANGS.find((l) => l.id === S.settings.lang);
-  const row = (icon, t, s, attr) => `<button class="li" ${attr}><span class="ic">${I(icon)}</span><span class="grow"><span class="t" style="display:block">${t}</span><span class="s">${s}</span></span></button>`;
-  el.innerHTML = `<div class="drawer-top"><span class="hero-pattern" aria-hidden="true"></span><button class="li" data-go="#/profile" style="border:0">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
-    <div class="list">
+  const row = (icon, t, s, attr) => `<button class="li" ${attr}><span class="ic">${I(icon)}</span><span class="grow"><span class="t" style="display:block">${t}</span><span class="s">${s}</span></span><span class="chev">${I("chevR")}</span></button>`;
+  const wsName = (typeof klWsName === "function" && S.me.domain) ? klWsName(S.me.domain) : "";
+  const hasCo = !!(S.me.company || "").trim();
+  const coTitle = hasCo ? S.me.company : (wsName || S.me.domain || "KEBS");
+  const coSub = hasCo ? (S.me.domain || "Workspace") : "Workspace";
+  el.innerHTML = `<div class="dr-head"><button class="li dr-prof" data-go="#/profile">${avatar("me")}<span class="grow"><span class="t" style="display:block">${esc(fullName())}</span><span class="s">${esc(S.me.role)}</span></span><span class="chev">${I("chevR")}</span></button></div>
+    <button class="li dr-co" data-go="#/profile"><span class="co-logo">${esc(typeof initials === "function" ? initials(coTitle) : coTitle.slice(0, 2).toUpperCase())}</span><span class="grow"><span class="t" style="display:block">${esc(coTitle)}</span><span class="s">${esc(coSub)}</span></span><span class="chev">${I("chevR")}</span></button>
+    <div class="list dr-list">
       ${typeof roleDef === "function" ? row(roleDef().icon, "View as", roleDef().name, `data-act="pickRole"`) : ""}
       ${row("globe", "Language", lang.name, `data-go="#/settings/lang"`)}
       ${row("bell", "Notifications", typeof nset === "function" ? (nset().on ? "On" : "Off") : "On", `data-go="#/settings/notifications"`)}
@@ -376,7 +381,7 @@ act("drawer", () => {
       ${row("download", "Check for updates", S.settings.lastUpdateCheck ? `Last checked ${D.ago(S.settings.lastUpdateCheck) === "now" ? "just now" : D.ago(S.settings.lastUpdateCheck) + " ago"}` : `Web build ${typeof kebsBuild === "function" ? kebsBuild() : ""}`, `data-act="checkUpdates"`)}
       ${row("logout", "Logout", esc(S.email || "demo.kebs.app"), `data-act="logout"`)}
     </div>
-    <div class="drawer-foot"><span class="hrow" style="gap:8px"><img src="icon.svg" alt="" style="width:30px;height:30px;border-radius:9px"><span class="logo-word" style="font-size:24px">KEBS<span>.</span></span></span><span class="tiny faint">v3.18 · 49803</span></div>`;
+    <div class="drawer-foot"><span class="hrow" style="gap:8px"><img src="icon.svg" alt="" style="width:26px;height:26px;border-radius:8px"><span class="logo-word" style="font-size:21px">KEBS<span>.</span></span></span><span class="tiny faint">v3.18 · 49803</span></div>`;
   layer.append(scrim, el);
   drawerEl = { el, scrim };
   scrim.addEventListener("click", closeDrawer);
