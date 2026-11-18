@@ -104,7 +104,7 @@ act("klWs", (b) => {
       const use = (h) => { h = String(h || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""); if (h && !h.includes(".")) h += ".kebs.app";
         if (!/^[a-z0-9-]{1,63}\.kebs\.app$/.test(h)) { const e = el.querySelector("[data-err]"); e.textContent = "Enter an address like company.kebs.app"; e.hidden = false; return; }
         closeSheet(s); klStartLogin(email, h); };
-      onS(el, { pick(btn) { use(btn.dataset.h); }, go() { use(el.querySelector("[data-h]").value); } });
+      onS(el, { pick(btn) { use(btn.dataset.h); }, go() { use(el.querySelector("#kl-wsi").value); } });
     } });
 });
 // KEBS sessions last ~15 min and this server can't renew them, so ask for the password again (data stays on screen)
