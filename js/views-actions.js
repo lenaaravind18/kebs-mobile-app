@@ -18,6 +18,7 @@ MORE_ACTIONS.forEach((a) => { if (a.ms && !MS_STYLE[a.id]) MS_STYLE[a.id] = a.ms
 const ACTION_CATS = ["Attendance", "Leave Management", "Raise Request", "Timesheet", "Expense", "Payroll", "Projects", "Sales", "Approvals", "Reports", "Helpdesk", "Company"];
 function allActions() {
   return [...QUICK_ACTIONS, ...MORE_ACTIONS].filter((a) => {
+    if (typeof klCatOn === "function" && !klCatOn(a.cat)) return false; // hide modules this workspace doesn't have
     if (a.need === "crm") return typeof can !== "function" || can("crm");
     if (a.need === "support") return typeof can !== "function" || can("support");
     if (a.need === "reports") return typeof RPT === "undefined" || Object.keys(RPT).some(rptAllowed);

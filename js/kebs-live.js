@@ -156,6 +156,7 @@ function klApplyMe() {
 }
 function klEnd(msg, notify = true) {
   const k = KL; KL = null; klSave(); Object.assign(KD, { at: 0, att: null, apps: [], exCounts: null, exList: null, exApprovals: null });
+  KL_CATS = null; klModsLoaded = false;
   try { const m = JSON.parse(localStorage.getItem(KL_ME)); if (m) S.me = m; localStorage.removeItem(KL_ME); } catch {}
   klSwapOut(); KM.at = 0;
   S.authed = false; save(); navCount = 0; closeAllSheets(); location.replace("#/login");
@@ -177,8 +178,34 @@ function klNum(j) {
   if (d && typeof d === "object") { const k = Object.keys(d).find((x) => /count|total/i.test(x) && !isNaN(+d[x])); if (k) return +d[k]; }
   return null;
 }
+// Tailor the app to the workspace: only show modules this user's KEBS workspace actually has.
+// KEBS app links → the mobile app's action categories; missing ones (e.g. Payroll) get hidden.
+let KL_CATS = null, klModsLoaded = false;
+const KL_CAT_MAP = [
+  [/timesheet/i, ["Timesheet", "Attendance", "Leave Management", "Raise Request", "Approvals"]],
+  [/expense/i, ["Expense", "Approvals"]],
+  [/project/i, ["Projects"]],
+  [/opportunit|account|contact|\bcrm\b|sales/i, ["Sales", "Approvals"]],
+  [/support|help.?desk|lcdp/i, ["Helpdesk"]],
+  [/report|dashboard|insight/i, ["Reports"]],
+];
+async function klLoadMods() {
+  try {
+    const j = await klPost("acl/getUsersApplicationsBasedOnRoles", {});
+    const apps = Array.isArray(j) ? j : Array.isArray(j?.data) ? j.data : [];
+    if (!apps.length) { KL_CATS = null; return; }
+    const cats = new Set(["Company"]); // Ask Kais is always available
+    for (const a of apps) { const s = `${a.link || ""} ${a.application_name || ""} ${a.label || ""}`; for (const [re, cs] of KL_CAT_MAP) if (re.test(s)) cs.forEach((c) => cats.add(c)); }
+    KL_CATS = cats;
+    if (/^#\/(home|actions|apps)/.test(location.hash)) rerender();
+  } catch { KL_CATS = null; }
+}
+// a category is shown when: not on a live login, apps not loaded yet, or the workspace has it
+window.klCatOn = (cat) => !(typeof klOn === "function" && klOn()) || !KL_CATS || KL_CATS.has(cat);
+
 async function klLoad(force) {
   if (!klOn() || KD.busy || (!force && Date.now() - KD.at < 45000)) return;
+  if (!klModsLoaded) { klModsLoaded = true; klLoadMods(); }
   KD.busy = true;
   const c = klClaims(), ids = { aid: c.aid, oid: c.oid };
   const safe = (p) => p.catch((e) => ({ err: true, msg: e.message }));

@@ -101,7 +101,7 @@ function todayCard(t, late) {
 }
 route("home", () => {
   const hol = nextHoliday();
-  const quick = S.quick.map((id) => QUICK_ACTIONS.find((a) => a.id === id)).filter(Boolean);
+  const quick = S.quick.map((id) => QUICK_ACTIONS.find((a) => a.id === id)).filter(Boolean).filter((a) => typeof klCatOn !== "function" || klCatOn(a.cat));
   const off = S.offThisWeek.week === D.monday(D.today()) ? S.offThisWeek.list : [];
   const ini = esc(initials(fullName()));
   const t = S.att.today, late = t.inTs ? toMin(hhmm(t.inTs)) - toMin(SHIFT.start) > 10 : false;
