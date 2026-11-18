@@ -183,27 +183,23 @@ const THEME_COLORS = [["orange","Default","linear-gradient(135deg, #ff9a6b, #ff4
 // colours from before the dashboard themes map to their closest theme
 const ACCENT_MOVED = { blue: "ocean", navy: "ocean", green: "forest", purple: "royal", teal: "lagoon", rose: "berry", graphite: "midnight" };
 route("settings/theme", () => {
-  const t = S.settings.theme, ac = S.settings.accent || "orange", st = S.settings.style || "classic";
-  return settingsPage("Theme", `<div class="stack s16" style="padding-top:4px">
-    <div class="field"><span class="lbl">Appearance</span><div class="th-modes">${[["auto", "Automatic", "sparkles"], ["light", "Light", "sun"], ["dark", "Dark", "moon"]].map(([v, l, ic]) => `<button class="th-mode ${t === v ? "on" : ""}" data-act="setTheme" data-v="${v}" aria-pressed="${t === v}">${I(ic)}${l}</button>`).join("")}</div>
-      <span class="tiny muted">${t === "auto" ? "Follows your phone’s light or dark setting." : t === "light" ? "Always light." : "Always dark — easier on the eyes at night."}</span></div>
-    <div class="field"><span class="lbl">Colour</span><div class="th-swatches">${THEME_COLORS.map(([v, l, a, b]) => `<button class="th-sw ${ac === v ? "on" : ""}" data-act="setAccent" data-v="${v}" aria-pressed="${ac === v}" aria-label="${l}"><span class="th-dot" style="background:${a};--b:${b}">${I("check")}</span>${l}</button>`).join("")}</div></div>
-    <div class="field"><span class="lbl">Style</span><div class="th-styles">
-      <button class="th-style ${st === "classic" ? "on" : ""}" data-act="setStyle" data-v="classic" aria-pressed="${st === "classic"}"><span class="th-mini classic"><i></i><i></i><i style="width:70%"></i></span><b>Classic</b><small>Soft gradients, depth and colour</small></button>
-      <button class="th-style ${st === "minimal" ? "on" : ""}" data-act="setStyle" data-v="minimal" aria-pressed="${st === "minimal"}"><span class="th-mini minimal"><i></i><i></i><i style="width:70%"></i></span><b>Minimal</b><small>Flat and quiet — no gradients or shadows</small></button>
-    </div></div>
-    <div class="field"><span class="lbl">Corners</span><div class="th-styles">
-      <button class="th-style ${(S.settings.corners || "round") === "round" ? "on" : ""}" data-act="setCorners" data-v="round" aria-pressed="${(S.settings.corners || "round") === "round"}"><span class="th-corner round"><i></i><i></i></span><b>Rounded</b><small>Soft, friendly curves</small></button>
-      <button class="th-style ${S.settings.corners === "sharp" ? "on" : ""}" data-act="setCorners" data-v="sharp" aria-pressed="${S.settings.corners === "sharp"}"><span class="th-corner sharp"><i></i><i></i></span><b>Sharp</b><small>Crisp 6px edges, square header</small></button>
-    </div></div>
-    ${ac !== "orange" || st !== "classic" || S.settings.corners === "sharp" ? `<button class="link" style="align-self:center" data-act="themeReset">Reset to KEBS default</button>` : ""}
+  const t = S.settings.theme, ac = S.settings.accent || "orange", cur = THEME_COLORS.find((c) => c[0] === ac);
+  return settingsPage("Theme", `<div class="stack s16 th-min" style="padding-top:4px">
+    <div class="field"><span class="lbl">Appearance</span>
+      ${seg([["auto", "Automatic"], ["light", "Light"], ["dark", "Dark"]], t, "setTheme")}
+      <span class="tiny muted">${t === "auto" ? "Follows your phone’s light or dark setting." : t === "light" ? "Always light." : "Always dark, easier on the eyes at night."}</span></div>
+    <div class="field"><span class="lbl">Colour<span class="th-cur">${esc(cur ? cur[1] : "")}</span></span>
+      <div class="th-dots">${THEME_COLORS.map(([v, l, a]) => `<button class="th-d ${ac === v ? "on" : ""}" data-act="setAccent" data-v="${v}" aria-pressed="${ac === v}" aria-label="${l}" title="${l}" style="--c:${a}"></button>`).join("")}</div></div>
+    ${ac !== "orange" ? `<button class="link" style="align-self:flex-start" data-act="themeReset">Reset to KEBS orange</button>` : ""}
   </div>`);
 });
+// Style and Corners are gone from Theme: everyone gets the default look
+if (S.settings.style || S.settings.corners) { delete S.settings.style; delete S.settings.corners; save(); }
 act("setTheme", (b) => { S.settings.theme = b.dataset.v; S.settings.themeSet = true; save(); rerender(); });
-act("setAccent", (b) => { S.settings.accent = b.dataset.v; save(); rerender(); toast(`${THEME_COLORS.find((c) => c[0] === b.dataset.v)[1]} theme on`); });
+act("setAccent", (b) => { S.settings.accent = b.dataset.v; save(); rerender(); });
 act("setStyle", (b) => { S.settings.style = b.dataset.v; save(); rerender(); });
 act("setCorners", (b) => { S.settings.corners = b.dataset.v; save(); rerender(); });
-act("themeReset", () => { S.settings.accent = "orange"; S.settings.style = "classic"; S.settings.corners = "round"; save(); rerender(); toast("Back to the KEBS default"); });
+act("themeReset", () => { S.settings.accent = "orange"; save(); rerender(); });
 // Device-lock illustration in the Design System's illustration style: dashed blue-grey rings,
 // soft grey objects, one coral gradient accent (#FF8960 → #FF62A5), tiny sparkles
 function secureArt(on) {

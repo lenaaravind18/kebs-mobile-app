@@ -178,7 +178,7 @@ route("expenses", (_, q) => {
     else body = `<div class="sec" style="margin-top:4px"><h2>Saved claims</h2><span class="tiny muted">Not submitted yet</span></div>
       <div class="stack">${drafts.map(claimCard).join("") || emptyMini("wallet", "No saved claims.")}</div>
       <div class="sec"><h2>Saved receipts</h2>${loose.length > 1 ? `<button class="link" data-act="xClaimAll">Claim all</button>` : ""}</div>
-      <div class="stack" data-lazy="6">${loose.map((r) => `<div class="card hrow">${rcThumb(r)}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.merchant)}</b><span class="tiny muted">${fmtCur(r.inr)} · ${D.short(r.date)} · ${esc(r.cat)}</span></span><button class="btn primary sm" data-act="xClaimOne" data-id="${r.id}">Claim</button><button class="ib sm" data-act="xRcDel" data-id="${r.id}" aria-label="Delete receipt">${I("trash")}</button></div>`).join("") || emptyMini("receipt", "Receipts you save for later appear here.")}</div>`;
+      <div class="stack" data-lazy="6">${loose.map((r) => `<div class="card hrow"><button class="rc-open hrow grow" data-act="xRcView" data-id="${r.id}" aria-label="Receipt details: ${esc(r.merchant)}">${rcThumb(r)}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.merchant)}</b><span class="tiny muted">${fmtCur(r.inr)} · ${D.short(r.date)} · ${esc(r.cat)}</span></span></button><button class="btn primary sm" data-act="xClaimOne" data-id="${r.id}">Claim</button><button class="ib sm" data-act="xRcDel" data-id="${r.id}" aria-label="Delete receipt">${I("trash")}</button></div>`).join("") || emptyMini("receipt", "Receipts you save for later appear here.")}</div>`;
   } else {
     const by = {}; S.claims.filter((c) => c.status !== "rejected" && c.status !== "withdrawn").forEach((c) => claimReceipts(c).forEach((r) => (by[r.cat] = (by[r.cat] || 0) + r.inr)));
     const total = Object.values(by).reduce((a, b) => a + b, 0), top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
@@ -520,7 +520,8 @@ act("xRcView", (b) => {
     <div class="kv"><span>Amount</span><span>${fmtCur(r.inr, r.cur)}${r.cur !== "INR" ? ` · ${money(r.inr)}` : ""}</span></div><div class="kv"><span>Category</span><span>${esc(cat.id)}</span></div>
     <div class="kv"><span>Receipt date</span><span>${D.long(r.date)}</span></div><div class="kv"><span>Receipt ID</span><span>${esc(r.rid)}</span></div>
     <div class="kv"><span>Payment mode</span><span>${esc(r.pay)}</span></div><div class="kv"><span>Tax</span><span>${r.taxPct}% · ${money(Math.round(r.inr * r.taxPct / (100 + r.taxPct)))}</span></div>
-    ${proj ? `<div class="kv"><span>Project</span><span>${esc(proj.name)}</span></div>` : ""}${r.desc ? `<div class="kv"><span>Description</span><span>${esc(r.desc)}</span></div>` : ""}</div>` });
+    ${proj ? `<div class="kv"><span>Project</span><span>${esc(proj.name)}</span></div>` : ""}${r.desc ? `<div class="kv"><span>Description</span><span>${esc(r.desc)}</span></div>` : ""}</div>`,
+    foot: r.claim ? "" : `<div class="row-btns"><button class="btn outline" style="flex:1" data-act="xRcOpen" data-id="${r.id}" data-sheet-close>${I("edit")}Edit</button><button class="btn primary" style="flex:1" data-act="xClaimOne" data-id="${r.id}" data-sheet-close>Claim</button></div>` });
 });
 act("xAddBill", (b) => pickReceipts({ multiple: true, onFiles(files) { startReview("multi", files, { claim: b.dataset.id }); } }));
 act("xSubmit", (b) => {
