@@ -4211,5 +4211,15 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .nf-card-av .av { width: 38px !important; height: 38px !important; font-size: 13px; }
 
 /* hide the "Live from KEBS" indicator (keep the Refresh action) */
-.kl-live { display: none !important; }
+.kl-bar { display: none !important; }
 .kl-bar { justify-content: flex-end !important; }
+
+/* pull-to-refresh indicator */
+.ptr { position: absolute; top: calc(var(--sat) + 4px); left: 50%; z-index: 90; width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--panel); box-shadow: 0 4px 12px rgba(16,24,40,.14), inset 0 0 0 1px var(--line);
+  transform: translate(-50%, calc(var(--p, 0px) - 44px)); opacity: 0; transition: opacity .15s; pointer-events: none; }
+.ptr.show { opacity: 1; }
+.ptr-ring { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); transform: rotate(calc(var(--p, 0px) * 4)); }
+.ptr.ready .ptr-ring { border-top-color: var(--accent); border-right-color: var(--accent); }
+.ptr.run .ptr-ring { animation: ptrSpin .7s linear infinite; }
+@keyframes ptrSpin { to { transform: rotate(360deg); } }
