@@ -1,6 +1,6 @@
 // My Apps hub · Attendance · Time logs · Raise request (WFH / partial / on duty / regularize) · Request history + detail
 
-const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights", payslip: "payslip", tax: "tax" };
+const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights", payslip: "payslip", tax: "tax", plane: "travel", refresh: "repeat" };
 const tileBtn = (icon, tint, t, s, attr) => `<button class="card tile" ${attr}><span class="tico ms">${msIcon(/holiday/i.test(t) ? "holidays" : TILE_MS[icon] || "more")}</span><span class="tt">${t}</span><span class="ts">${s}</span></button>`;
 function reqCard(r) {
   const T2 = REQ_TYPES[r.type];
@@ -71,6 +71,8 @@ route("apps", (_, q) => {
         ${tileBtn("scan", "t-blue", "Scan bill", "Snap a receipt to start a claim.", `data-go="#/expenses/new?mode=single"`)}
         ${tileBtn("receipt", "t-pink", "Saved receipts", "Receipts waiting to be claimed.", `data-go="#/expenses?tab=saved"`)}
         ${tileBtn("chart", "t-violet", "Expense insights", "Where your spend goes.", `data-go="#/expenses?tab=insights"`)}
+        ${typeof klOn === "function" && klOn() || !S.travel ? "" : `${tileBtn("plane", "t-blue", "Trips & advances", "Trips approved before you go, and advances.", `data-go="#/expenses/travel"`)}
+        ${tileBtn("refresh", "t-violet", "Repeating claims", "Monthly bills, claimed for you.", `data-go="#/expenses/repeating"`)}`}
       </div>
       <div class="sec"><h2>Upcoming holidays</h2><button class="link" data-go="#/holidays">View all</button></div>
       <div class="card"><div class="list">${hols.map((h) => `<div class="li"><span class="daycell"><small>${D.f(h.date, { month: "short" }).toUpperCase()}</small><b>${D.parse(h.date).getDate()}</b></span><span class="grow"><span class="t" style="display:block">${esc(h.name)}</span><span class="s">${D.dayName(h.date)}</span></span>${h.floater ? `<span class="chip vio">Floater</span>` : ""}</div>`).join("") || emptyMini("calendar", "No more public holidays this year.")}</div></div>`;

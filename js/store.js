@@ -50,6 +50,8 @@ const QUICK_ACTIONS = [
   { id: "insights", label: "Expense insights", cat: "Expense", icon: "chart", tint: "t-violet", go: "#/expenses?tab=insights" },
   { id: "bills", label: "Saved receipts", cat: "Expense", icon: "receipt", tint: "t-pink", go: "#/expenses?tab=saved" },
   { id: "track", label: "Track expense", cat: "Expense", icon: "wallet", tint: "t-amber", go: "#/expenses" },
+  { id: "travel", label: "Trips & advances", cat: "Expense", icon: "plane", tint: "t-blue", go: "#/expenses/travel" },
+  { id: "repeat", label: "Repeating claims", cat: "Expense", icon: "refresh", tint: "t-violet", go: "#/expenses/repeating" },
   { id: "timesheet", label: "Timesheet", cat: "Timesheet", icon: "clipboard", tint: "t-teal", go: "#/ts" },
   { id: "holidays", label: "Holidays", cat: "Leave Management", icon: "calendar", tint: "t-orange", go: "#/holidays" },
   { id: "compoff", label: "Comp off", cat: "Leave Management", icon: "coffee", tint: "t-amber", go: "#/compoff" },
