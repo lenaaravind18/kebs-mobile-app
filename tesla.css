@@ -4397,3 +4397,20 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .seg button { border-radius: 8px; }
 .pi-sort { border-radius: 10px; }
 .pi-sort button { border-radius: 7px; }
+/* CRM accounts: rounded-square company mark (people stay round), account figures */
+.crm-logo { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--t); background: color-mix(in srgb, var(--t) 14%, var(--panel)); }
+.crm-logo.lg { width: 56px; height: 56px; border-radius: 16px; font-size: 19px; }
+.crm-logo.xs { width: 22px; height: 22px; border-radius: 7px; font-size: 10px; }
+.crm-acc-k { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.crm-acc-k > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.crm-acc-k small { font-size: 12px; color: var(--ink-3); } .crm-acc-k b { font-size: 18px; }
+/* CRM: five tabs fit on a phone */
+.seg:has(> [data-act="crmTab"]) { gap: 2px; }
+.seg button[data-act="crmTab"] { padding: 0 6px; font-size: 13px; }
+.cd-kv b a { color: var(--accent); text-decoration: none; font-weight: 600; }
+/* sign-in: keep the footer above the Android nav buttons / iPhone home bar */
+.login { padding-bottom: calc(26px + var(--sab)) !important; }
+/* bottom safe area everywhere (3-button nav bar or gesture strip on Android, home bar on iPhone) */
+.scroll { padding-bottom: calc(28px + var(--sab)); }          /* screens with no dock and no foot: last item clears the nav bar */
+.has-foot .scroll { padding-bottom: 24px; }                   /* the foot already carries the safe area */
+.sheet-body:last-child { padding-bottom: calc(20px + var(--sab)); } /* sheets with no button bar (pickers, menus) */
