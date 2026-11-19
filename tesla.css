@@ -4381,3 +4381,5 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .cc-open .ell { white-space: nowrap; }
 .inp.sel .hrow > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .inp.sel .hrow { min-width: 0; }
+.tv-ms .ms-ic { width: 38px; height: 38px; overflow: visible; display: block; margin: -2px 0 0 -2px; }
+.tv-tile b { margin-top: 8px; }

@@ -409,9 +409,9 @@ ROUTES.forEach((r) => {
     if (typeof out !== "string" || (typeof klOn === "function" && klOn()) || (q && q.tab && q.tab !== "claims")) return out;
     const upcoming = S.travel.trips.filter((t) => ["approved", "requested"].includes(t.status) && t.start >= D.today()).length, toClose = S.travel.trips.filter(tvToClose).length;
     const active = S.repeat.filter((x) => x.status === "active").length, need = S.repeat.filter(rpNeedsBill).length;
-    const tile = (go, icon, title, sub, warn) => `<button class="card tv-tile" data-go="${go}"><span class="tv-ic">${I(icon)}</span><b>${title}</b><small${warn ? ' class="warn"' : ""}>${sub}</small></button>`;
-    const tiles = `<div class="tv-tiles">${tile("#/expenses/travel", "plane", "Trips & advances", toClose ? `${toClose} trip${toClose === 1 ? "" : "s"} to close` : upcoming ? `${upcoming} upcoming` : "Plan a trip", toClose)}
-      ${tile("#/expenses/repeating", "refresh", "Repeating claims", need ? `${need} bill${need === 1 ? "" : "s"} needed` : `${active} active`, need)}</div>`;
+    const tile = (go, icon, title, sub, warn) => `<button class="card tv-tile" data-go="${go}"><span class="tv-ms">${msIcon(icon)}</span><b>${title}</b><small${warn ? ' class="warn"' : ""}>${sub}</small></button>`;
+    const tiles = `<div class="tv-tiles">${tile("#/expenses/travel", "travel", "Trips & advances", toClose ? `${toClose} trip${toClose === 1 ? "" : "s"} to close` : upcoming ? `${upcoming} upcoming` : "Plan a trip", toClose)}
+      ${tile("#/expenses/repeating", "repeat", "Repeating claims", need ? `${need} bill${need === 1 ? "" : "s"} needed` : `${active} active`, need)}</div>`;
     return out.replace('<div class="scroll">', `<div class="scroll">${tiles}`);
   };
 });
