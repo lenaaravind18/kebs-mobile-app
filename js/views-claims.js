@@ -748,7 +748,7 @@ function xInsights(q) {
   const rows = (o, color) => Object.entries(o).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([l, v]) => ({ l, v, c: color }));
   const card = (title, sub, inner) => `<div class="card xi-card"><div class="xi-h"><b>${title}</b><span class="tiny muted">${sub}</span></div>${inner}</div>`;
   const none = `<p class="small muted" style="margin:4px 0">No claims in this period.</p>`;
-  return `<div class="xi-period">${XI_PERIODS.map(([v, l]) => `<button class="${v === p ? "on" : ""}" data-act="xiPeriod" data-v="${v}" aria-pressed="${v === p}">${l}</button>`).join("")}</div>
+  return `<div class="xi-bar"><span class="xi-bar-l">Overview</span><button class="xi-filter" data-act="xiFilter" data-v="${p}" aria-haspopup="dialog">${I("filter")}<span>${XI_PERIODS.find(([v]) => v === p)[1]}</span>${I("chevD")}</button></div>
     <div class="xi-figs">
       ${fig("receipt", "Claimed", rs(claimed), plural(sent.filter((c) => c.status !== "withdrawn").length, "claim") + " sent")}
       ${fig("checkCircle", "Approved", rs(sum(approved)), plural(approved.length, "claim"), "ok")}
@@ -761,4 +761,4 @@ function xInsights(q) {
     ${card("Spend by cost centre", periodText, Object.keys(cc).length ? rpHbars(rows(cc, "color-mix(in srgb, #2a78d6 70%, var(--panel))"), { fmt: money }) : none)}
     ${card("Paid with", periodText, how["Own money"] + how["Company card"] ? rpHbars(rows(how, "color-mix(in srgb, #1baf7a 70%, var(--panel))"), { fmt: money }) : none)}`;
 }
-act("xiPeriod", (b) => swap(`#/expenses?tab=insights&p=${b.dataset.v}`));
+act("xiFilter", (b) => pickOption({ title: "Show spend for", value: b.dataset.v, options: [["quarter", "Quarter", "This quarter so far"], ["90", "90 days", "The last 90 days"], ["year", "Year", "This year so far"], ["all", "All", "Every claim"]].map(([v, label, sub]) => ({ v, label, sub })), onPick: (v) => swap(`#/expenses?tab=insights&p=${v}`) }));
