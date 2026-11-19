@@ -15,7 +15,7 @@ function seedCardsData() {
   const T = (d, merchant, amount, o = {}) => ({ id: "tx" + ++n, cardId: "cc1", date: day(d), merchant, amount, cat: "Travel", business: 90, at: now - d * 864e5, ...o,
     status: o.status || (amount > CC_RECEIPT_OVER && !o.receipt ? "receipt" : "ready") });
   return {
-    list: [{ id: "cc1", programme: "HDFC Corporate", issuer: "HDFC Bank", network: "VISA", last4: "4417", holder: fullName(), limit: 150000, feedAt: now - 3 * 36e5 }],
+    list: [{ id: "cc1", programme: "HDFC Corporate", issuer: "HDFC Bank", network: "VISA", last4: "4417", number: "4532 7610 0391 4417", holder: "Lena Aravind", limit: 150000, feedAt: now - 3 * 36e5 }],
     txns: [
       T(1, "Uber", 486, { cat: "Local conveyance" }), T(2, "Swiggy", 1240, { cat: "Food", business: 72 }), T(3, "IndiGo", 8960),
       T(3, "Taj Coromandel", 7900, { cat: "Accommodation", logo: "taj" }), T(4, "Amazon", 3299, { cat: "Office supplies", business: 56 }),
@@ -26,6 +26,7 @@ function seedCardsData() {
   };
 }
 if (!S.cards) { S.cards = seedCardsData(); save(); }
+{ const c = S.cards.list[0]; if (c && (c.holder !== "Lena Aravind" || !c.number)) { c.holder = "Lena Aravind"; c.number ||= "4532 7610 0391 4417"; save(); } }
 { const base = resetDemo; resetDemo = function () { base(); S.cards = seedCardsData(); save(); }; }
 
 const ccCard = () => S.cards.list[0];
@@ -40,6 +41,14 @@ const ccLogo = (t) => { const k = t.logo || String(t.merchant).toLowerCase().spl
   ? `<span class="cc-logo"><img src="assets/vendors/${CC_LOGO[k]}" alt=""></span>` : `<span class="cc-logo txt">${esc(t.merchant[0] || "?")}</span>`; };
 const ccAgo = (ts) => { const m = Math.max(1, Math.round((Date.now() - ts) / 6e4)); return m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 
+// card number: hidden by default; the eye shows it (after fingerprint / screen lock in the app) and it hides again after 30 s
+let CC_SHOW = false, CC_SHOW_T = 0;
+act("ccEye", async () => {
+  if (CC_SHOW) { CC_SHOW = false; clearTimeout(CC_SHOW_T); return rerender(); }
+  if (typeof DeviceAuth !== "undefined" && DeviceAuth.isNative()) { const r = await DeviceAuth.verify(); if (!r?.ok) return toast("Couldn’t confirm it’s you", "bad"); }
+  CC_SHOW = true; rerender();
+  clearTimeout(CC_SHOW_T); CC_SHOW_T = setTimeout(() => { CC_SHOW = false; if (location.hash.startsWith("#/expenses/card")) rerender(); }, 30000);
+});
 // the card itself (calm dark gradient, like a real corporate card)
 function ccVisual(c) {
   const spent = ccSpent(), pct = Math.min(100, (spent / c.limit) * 100);
@@ -49,8 +58,9 @@ function ccVisual(c) {
   return `<div class="cc-card ccx" role="img" aria-label="${esc(c.programme)} ${esc(c.network)} card ending ${esc(c.last4)}">
       <span class="ccx-wave" aria-hidden="true"></span><span class="ccx-wave w2" aria-hidden="true"></span>
       <div class="ccx-top"><span class="ccx-bank">${esc(c.issuer.replace(/ Bank$/i, "").toUpperCase())}<small>BANK</small></span><span class="ccx-kind">Corporate</span>${nfc}</div>
-      <div class="ccx-mid">${chip}<span class="ccx-num">•••• &nbsp;•••• &nbsp;•••• &nbsp;${esc(c.last4)}</span></div>
-      <div class="ccx-bot"><span class="ccx-who"><small>CARDHOLDER</small>${esc(String(c.holder).toUpperCase())}</span><span class="ccx-exp"><small>VALID THRU</small>08/29</span><span class="ccx-net">${esc(c.network)}</span></div>
+      <div class="ccx-mid">${chip}<span class="ccx-num" data-cc-num>${CC_SHOW ? esc(c.number).replace(/ /g, " &nbsp;") : `•••• &nbsp;•••• &nbsp;•••• &nbsp;${esc(c.last4)}`}</span>
+        <button class="ccx-eye" data-act="ccEye" aria-pressed="${CC_SHOW}" aria-label="${CC_SHOW ? "Hide card number" : "Show card number"}">${I(CC_SHOW ? "eyeOff" : "eye")}</button></div>
+      <div class="ccx-bot"><span class="ccx-who"><small>CARDHOLDER</small>${esc(c.holder)}</span><span class="ccx-exp"><small>VALID THRU</small>08/29</span><span class="ccx-net">${esc(c.network)}</span></div>
     </div>
     <div class="cc-limit"><div class="hrow"><span class="grow"><b>${ccMoney(spent)}</b> <span class="muted">spent this month</span></span><span class="small muted">of ${ccMoney(c.limit)}</span></div>
       <div class="cc-bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
