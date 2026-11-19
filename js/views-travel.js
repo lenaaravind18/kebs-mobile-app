@@ -54,7 +54,7 @@ function seedTravelData() {
 const RP_TOL = 0.1;
 const RP_ST = { active: ["Active", "ok"], pending: ["Awaiting approval", "blue"], paused: ["Paused", "mute"], stopped: ["Stopped", "mute"] };
 const RP_STEPS = [["drafted", "Drafted"], ["bill", "Bill added"], ["submitted", "Sent"], ["approved", "Approved"], ["paid", "Paid"]];
-const RP_RUNS = [[6, "6 months"], [12, "12 months"], [24, "24 months"], [0, "Until I stop it"]];
+const RP_RUNS = [[6, "6 mo"], [12, "12 mo"], [24, "24 mo"], [0, "No end date"]];
 const RP_LOGO = { jio: "jio.svg", act: "act.svg", airtel: "airtel.svg", linkedin: "linkedin.svg", microsoft: "microsoft.svg", zoom: "zoom.svg", vi: "", netflix: "netflix.svg", amazon: "amazon.svg" };
 const rpCap = (s) => Math.round(s.amount * (1 + RP_TOL));
 const ymOf = (iso) => iso.slice(0, 7);
@@ -324,7 +324,7 @@ route("expenses/repeating/new", () => {
   return `<div class="screen has-foot">${topbar("Repeating claim", { sub: "Approved once, claimed every month" })}<div class="scroll"><div class="stack s16" style="padding-top:6px">
     <div class="field"><label for="rp-n">Name</label><input id="rp-n" class="inp" data-bind="name" value="${esc(F.name)}" maxlength="50" placeholder="Ex: Mobile: Jio postpaid"></div>
     <div class="field"><label for="rp-v">Vendor</label><input id="rp-v" class="inp" data-bind="vendor" value="${esc(F.vendor)}" maxlength="40" placeholder="Ex: Jio"></div>
-    <div class="grid2"><div class="field"><span class="lbl">Category</span>${sel("rpCat", catIcon(F.cat), esc(F.cat), "Category")}</div><div class="field"><span class="lbl">Claim on the</span>${sel("rpDay", "calendar", `${rpOrd(F.day)} of the month`, "")}</div></div>
+    <div class="grid2"><div class="field"><span class="lbl">Category</span>${sel("rpCat", catIcon(F.cat), esc(F.cat), "Category")}</div><div class="field"><span class="lbl">Day of the month</span>${sel("rpDay", "calendar", `The ${rpOrd(F.day)}`, "")}</div></div>
     <div class="field"><span class="lbl">Cost centre</span>${sel("rpCc", "building", F.cc ? esc(ccName(F.cc)) : "", "Choose a cost centre")}</div>
     <div class="field"><span class="lbl">The amount is</span><div class="choices">${[[true, "Same every month"], [false, "Changes each month"]].map(([v, l]) => `<button class="choice ${F.fixed === v ? "on" : ""}" data-act="rpFixed" data-v="${v}">${l}</button>`).join("")}</div></div>
     <div class="field"><label for="rp-a">${F.fixed ? "Monthly amount" : "Usual monthly amount"}</label><input id="rp-a" class="inp num" inputmode="numeric" data-bind="amount" value="${esc(F.amount)}" placeholder="₹0"><span class="tiny muted">Each month’s claim is auto-approved up to 10% over this.</span></div>
