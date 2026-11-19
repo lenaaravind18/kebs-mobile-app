@@ -4392,3 +4392,8 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .tv-due .chev { color: var(--ink-3); opacity: .6; display: inline-flex; }
 .tv-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--warn, #d97706); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn, #d97706) 16%, transparent); margin: 0 4px 0 6px; }
 .tv-due:active { transform: scale(.98); }
+/* tabs: rounded rectangle instead of a full pill (inner radius = outer − padding, so the corners nest) */
+.seg { border-radius: 12px; }
+.seg button { border-radius: 8px; }
+.pi-sort { border-radius: 10px; }
+.pi-sort button { border-radius: 7px; }
