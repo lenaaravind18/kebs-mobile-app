@@ -412,18 +412,33 @@ act("rpBill", (b) => {
   } });
 });
 
-// entry points on My expenses (demo workspace): two tiles under the corporate card
+// My expenses: one slim reminder row under the corporate card, only when something is due (demo workspace).
+// Trips and Repeating claims are always in My apps → Finances → Expenses.
+function tvDue() {
+  const close = S.travel.trips.filter(tvToClose), late = S.travel.advances.filter((a) => tvAgeing(a)?.[1] === "bad"), bills = S.repeat.filter(rpNeedsBill);
+  const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+  return [
+    close.length && { go: close.length === 1 ? null : "#/expenses/travel", trip: close.length === 1 ? close[0].id : null, label: n(close.length, "trip to close", "trips to close"), ms: "travel" },
+    late.length && { go: "#/expenses/travel?tab=advances", label: n(late.length, "advance overdue", "advances overdue"), ms: "track" },
+    bills.length && { go: bills.length === 1 ? `#/expenses/repeating/${bills[0].id}` : "#/expenses/repeating", label: n(bills.length, "bill needed", "bills needed"), ms: "repeat" },
+  ].filter(Boolean);
+}
+act("tvDueOpen", () => {
+  const due = tvDue(); if (!due.length) return;
+  const open = (d) => { if (d.trip) { go("#/expenses/travel"); setTimeout(() => ACTIONS.tvTrip({ dataset: { id: d.trip } }), 350); } else go(d.go); };
+  if (due.length === 1) return open(due[0]);
+  const s = openSheet({ title: "Needs you",
+    body: `<div class="list">${due.map((d, i) => `<button class="opt-row" data-s="pick" data-i="${i}"><span class="tv-msl">${msIcon(d.ms)}</span><span class="grow"><span class="b">${d.label}</span></span>${I("chevR")}</button>`).join("")}</div>`,
+    onMount(el) { onS(el, { pick(b) { closeSheet(s); open(due[+b.dataset.i]); } }); } });
+});
 ROUTES.forEach((r) => {
   if (r.re.source !== "^expenses$") return;
   const prev = r.render;
   r.render = (m, q, ...rest) => {
     const out = prev(m, q, ...rest);
     if (typeof out !== "string" || (typeof klOn === "function" && klOn()) || (q && q.tab && q.tab !== "claims")) return out;
-    const upcoming = S.travel.trips.filter((t) => ["approved", "requested"].includes(t.status) && t.start >= D.today()).length, toClose = S.travel.trips.filter(tvToClose).length;
-    const active = S.repeat.filter((x) => x.status === "active").length, need = S.repeat.filter(rpNeedsBill).length;
-    const tile = (go, icon, title, sub, warn) => `<button class="card tv-tile" data-go="${go}"><span class="tv-ms">${msIcon(icon)}</span><b>${title}</b><small${warn ? ' class="warn"' : ""}>${sub}</small></button>`;
-    const tiles = `<div class="tv-tiles">${tile("#/expenses/travel", "travel", "Trips & advances", toClose ? `${toClose} trip${toClose === 1 ? "" : "s"} to close` : upcoming ? `${upcoming} upcoming` : "Plan a trip", toClose)}
-      ${tile("#/expenses/repeating", "repeat", "Repeating claims", need ? `${need} bill${need === 1 ? "" : "s"} needed` : `${active} active`, need)}</div>`;
-    return out.replace('<div class="scroll">', `<div class="scroll">${tiles}`);
+    const due = tvDue(); if (!due.length) return out;
+    const row = `<button class="card hrow tv-due" data-act="tvDueOpen"><span class="tv-dot" aria-hidden="true"></span><span class="grow" style="min-width:0"><b class="ell" style="display:block">${due.map((d) => d.label).join(" · ")}</b><span class="small muted">${due.length === 1 ? "Tap to sort it out" : "Tap to see what needs you"}</span></span><span class="chev">${I("chevR")}</span></button>`;
+    return out.replace('<div class="scroll">', `<div class="scroll">${row}`);
   };
 });

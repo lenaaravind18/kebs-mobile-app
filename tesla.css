@@ -4387,3 +4387,8 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .tv-msl .ms-ic { width: 40px; height: 40px; overflow: visible; }
 .av.tv-sys { display: grid; place-items: center; color: var(--ink-3); background: color-mix(in srgb, var(--ink) 7%, var(--panel)); }
 .av.tv-sys .i, .av.tv-sys svg { width: 18px; height: 18px; }
+.tv-due { margin-bottom: 12px; gap: 12px; text-align: left; font: inherit; color: inherit; border: 0; width: 100%; cursor: pointer; }
+.tv-due b { font-size: 14px; font-weight: 600; }
+.tv-due .chev { color: var(--ink-3); opacity: .6; display: inline-flex; }
+.tv-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--warn, #d97706); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn, #d97706) 16%, transparent); margin: 0 4px 0 6px; }
+.tv-due:active { transform: scale(.98); }

@@ -26,6 +26,7 @@ const MS_STYLE = {
   alert:     ["alert",       "#F7B928", "#C98A00", "#FCE6A8", "#F6CD61"],
   payslip:   ["rupee",       "#0FA36B", "#0A6E48", "#B4EBD3", "#62CFA2"], // payroll green
   tax:       ["percent",     "#4C8BF5", "#1A56C4", "#BBD3FB", "#7AA7F2"], // Word blue
+  tasks:     ["checkCircle", "#6366F1", "#3730A3", "#CDCEFB", "#9497F5"], // indigo
   travel:    ["plane",       "#0EA5E9", "#0369A1", "#B9E6FB", "#6CC8F3"], // sky blue
   repeat:    ["refresh",     "#9061F9", "#5B2BC9", "#D8C7FD", "#AF8BFB"], // purple
   "travel-off":  ["plane",   "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"], // done: grey

@@ -1,6 +1,6 @@
 // My Apps hub · Attendance · Time logs · Raise request (WFH / partial / on duty / regularize) · Request history + detail
 
-const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights", payslip: "payslip", tax: "tax", plane: "travel", refresh: "repeat" };
+const TILE_MS = { file: "request", history: "logs", fingerprint: "attend", list: "balances", calendar: "leave", coffee: "compoff", clipboard: "timesheet", alert: "alert", wallet: "track", scan: "scan", receipt: "bills", chart: "insights", payslip: "payslip", tax: "tax", plane: "travel", refresh: "repeat", briefcase: "onduty", checkCircle: "tasks" };
 const tileBtn = (icon, tint, t, s, attr) => `<button class="card tile" ${attr}><span class="tico ms">${msIcon(/holiday/i.test(t) ? "holidays" : TILE_MS[icon] || "more")}</span><span class="tt">${t}</span><span class="ts">${s}</span></button>`;
 function reqCard(r) {
   const T2 = REQ_TYPES[r.type];
