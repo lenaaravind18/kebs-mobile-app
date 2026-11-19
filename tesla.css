@@ -4328,3 +4328,5 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .ccx-who, .ccx-exp { display: flex; flex-direction: column; gap: 1px; font-size: 11.5px; font-weight: 600; letter-spacing: .6px; color: #e6e9ef; }
 .ccx-who small, .ccx-exp small { font-size: 8px; font-weight: 600; letter-spacing: 1px; opacity: .6; }
 .ccx-net { margin-left: auto; font-weight: 900; font-style: italic; font-size: 22px; letter-spacing: .5px; line-height: 1; color: #fff; }
+/* active tab tints its icon and label, never the badge count */
+.dock-btn.on .badge, .dock-btn .badge { color: #fff !important; }
