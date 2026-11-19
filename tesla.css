@@ -4299,3 +4299,32 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .cc-row .ccp { width: 22px; height: 22px; border-radius: 50%; border: 1.6px solid color-mix(in srgb, var(--ink) 30%, transparent); display: grid; place-items: center; transition: background-color .15s ease-out, border-color .15s ease-out; }
 .cc-row .ccp .i, .cc-row .ccp svg { width: 13px; height: 13px; }
 .cc-row .cc-pick[aria-pressed="true"] .ccp { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* smaller corporate card, centred */
+.cc-card { width: 78%; max-width: 290px; margin: 2px auto 0; padding: 14px 16px; border-radius: 14px; }
+.cc-top b { font-size: 14px; } .cc-top small { font-size: 11px; }
+.cc-net { font-size: 16px; }
+.cc-num { font-size: 15px; letter-spacing: 1.5px; }
+.cc-bot { font-size: 12px; }
+.cc-chip { width: 30px; height: 22px; border-radius: 5px; }
+/* corporate card: full width again, only shorter */
+.cc-card { width: auto; max-width: none; margin: 0; aspect-ratio: auto; height: 150px; padding: 14px 18px; border-radius: 16px; }
+.cc-top b { font-size: 15px; } .cc-num { font-size: 16px; letter-spacing: 2px; }
+/* corporate card — real card look (full width, compact height) */
+.cc-card.ccx { height: 168px; padding: 14px 18px 12px; justify-content: space-between; border-radius: 16px;
+  background: radial-gradient(140% 120% at 0% 0%, #2b3550 0%, transparent 55%), linear-gradient(135deg, #1a2133 0%, #0e121c 70%, #151b29 100%);
+  box-shadow: 0 12px 28px rgba(14, 18, 28, .28), inset 0 1px 0 rgba(255,255,255,.08); }
+.ccx-wave { position: absolute; right: -60px; top: -70px; width: 260px; height: 260px; border-radius: 50%; border: 26px solid rgba(255,255,255,.035); pointer-events: none; }
+.ccx-wave.w2 { right: -10px; top: 30px; width: 200px; height: 200px; border-width: 18px; border-color: rgba(255,255,255,.03); }
+.ccx-top, .ccx-mid, .ccx-bot { position: relative; display: flex; align-items: center; }
+.ccx-bank { font-weight: 800; font-size: 15px; letter-spacing: .5px; }
+.ccx-bank small { font-weight: 600; font-size: 9px; letter-spacing: 1.5px; margin-left: 4px; opacity: .75; }
+.ccx-kind { margin-left: 10px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,.25); font-size: 11px; font-weight: 600; opacity: .8; letter-spacing: .3px; }
+.ccx-nfc { width: 22px; height: 22px; margin-left: auto; opacity: .85; transform: rotate(0deg); }
+.ccx-mid { gap: 14px; }
+.ccx-chip { width: 36px; height: 27px; flex: none; }
+.ccx-num { font-family: "OCR A Std", "Courier New", ui-monospace, monospace; font-size: 15px; font-weight: 600; letter-spacing: 1.2px; color: #eef1f6;
+  text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 -1px 0 rgba(255,255,255,.12); white-space: nowrap; }
+.ccx-bot { gap: 18px; align-items: flex-end; }
+.ccx-who, .ccx-exp { display: flex; flex-direction: column; gap: 1px; font-size: 11.5px; font-weight: 600; letter-spacing: .6px; color: #e6e9ef; }
+.ccx-who small, .ccx-exp small { font-size: 8px; font-weight: 600; letter-spacing: 1px; opacity: .6; }
+.ccx-net { margin-left: auto; font-weight: 900; font-style: italic; font-size: 22px; letter-spacing: .5px; line-height: 1; color: #fff; }

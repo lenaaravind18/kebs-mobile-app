@@ -43,10 +43,14 @@ const ccAgo = (ts) => { const m = Math.max(1, Math.round((Date.now() - ts) / 6e4
 // the card itself (calm dark gradient, like a real corporate card)
 function ccVisual(c) {
   const spent = ccSpent(), pct = Math.min(100, (spent / c.limit) * 100);
-  return `<div class="cc-card"><span class="cc-shine" aria-hidden="true"></span>
-      <div class="cc-top"><span><b>${esc(c.programme)}</b><small>${esc(c.issuer)}</small></span><span class="cc-net">${esc(c.network)}</span></div>
-      <div class="cc-num">•••• •••• •••• ${esc(c.last4)}</div>
-      <div class="cc-bot"><span>${esc(c.holder)}</span><span class="cc-chip" aria-hidden="true"></span></div>
+  // a real card: bank top-left, contactless, EMV chip, embossed number, name + valid thru, network bottom-right
+  const chip = `<svg class="ccx-chip" viewBox="0 0 40 30" aria-hidden="true"><defs><linearGradient id="ccg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2a6"/><stop offset=".5" stop-color="#d4b46a"/><stop offset="1" stop-color="#a8853f"/></linearGradient></defs><rect x=".5" y=".5" width="39" height="29" rx="5" fill="url(#ccg)" stroke="#8a6d33" stroke-opacity=".5"/><path d="M0 10h12M0 20h12M28 10h12M28 20h12M12 0v30M28 0v30M12 15h16" stroke="#7a5f2b" stroke-opacity=".55" stroke-width="1" fill="none"/><rect x="15" y="8" width="10" height="14" rx="2" fill="none" stroke="#7a5f2b" stroke-opacity=".55"/></svg>`;
+  const nfc = `<svg class="ccx-nfc" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7.5c1.4 2.9 1.4 6.1 0 9M12 5.5c2 4.1 2 8.9 0 13M15.5 3.5c2.7 5.4 2.7 11.6 0 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  return `<div class="cc-card ccx" role="img" aria-label="${esc(c.programme)} ${esc(c.network)} card ending ${esc(c.last4)}">
+      <span class="ccx-wave" aria-hidden="true"></span><span class="ccx-wave w2" aria-hidden="true"></span>
+      <div class="ccx-top"><span class="ccx-bank">${esc(c.issuer.replace(/ Bank$/i, "").toUpperCase())}<small>BANK</small></span><span class="ccx-kind">Corporate</span>${nfc}</div>
+      <div class="ccx-mid">${chip}<span class="ccx-num">•••• &nbsp;•••• &nbsp;•••• &nbsp;${esc(c.last4)}</span></div>
+      <div class="ccx-bot"><span class="ccx-who"><small>CARDHOLDER</small>${esc(String(c.holder).toUpperCase())}</span><span class="ccx-exp"><small>VALID THRU</small>08/29</span><span class="ccx-net">${esc(c.network)}</span></div>
     </div>
     <div class="cc-limit"><div class="hrow"><span class="grow"><b>${ccMoney(spent)}</b> <span class="muted">spent this month</span></span><span class="small muted">of ${ccMoney(c.limit)}</span></div>
       <div class="cc-bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
