@@ -180,11 +180,7 @@ route("expenses", (_, q) => {
       <div class="sec"><h2>Saved receipts</h2>${loose.length > 1 ? `<button class="link" data-act="xClaimAll">Claim all</button>` : ""}</div>
       <div class="stack" data-lazy="6">${loose.map((r) => `<div class="card hrow"><button class="rc-open hrow grow" data-act="xRcView" data-id="${r.id}" aria-label="Receipt details: ${esc(r.merchant)}">${rcThumb(r)}<span class="grow" style="min-width:0"><b class="ell" style="display:block">${esc(r.merchant)}</b><span class="tiny muted">${fmtCur(r.inr)} · ${D.short(r.date)} · ${esc(r.cat)}</span></span></button><button class="btn primary sm" data-act="xClaimOne" data-id="${r.id}">Claim</button><button class="ib sm" data-act="xRcDel" data-id="${r.id}" aria-label="Delete receipt">${I("trash")}</button></div>`).join("") || emptyMini("receipt", "Receipts you save for later appear here.")}</div>`;
   } else {
-    const by = {}; S.claims.filter((c) => c.status !== "rejected" && c.status !== "withdrawn").forEach((c) => claimReceipts(c).forEach((r) => (by[r.cat] = (by[r.cat] || 0) + r.inr)));
-    const total = Object.values(by).reduce((a, b) => a + b, 0), top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
-    body = `<div class="card accent"><span class="eyebrow">Total claimed</span><div class="timer" style="font-size:28px;margin-top:6px">${money(total)}</div>${top ? `<span class="small muted">Most spent on <b style="color:var(--ink)">${esc(top[0])}</b></span>` : ""}</div>
-      <div class="sec"><h2>By category</h2></div>
-      <div class="card ch-card">${Object.keys(by).length ? capsuleBars({ tone: "low", values: Object.values(by), labels: Object.keys(by).map((c) => ({ "Food & Beverages": "Food", "Local conveyance": "Local", Accommodation: "Stay", Software: "Apps", Internet: "Net" }[c] || c.split(" ")[0])), active: Object.values(by).indexOf(Math.max(...Object.values(by))), fmt: (v) => money(Math.round(v)), height: 132 }) : `<p class="muted small">No spend yet.</p>`}</div>`;
+    body = xInsights(q);
   }
   return `<div class="screen has-foot">${topbar("My expenses")}${seg([["claims", "Claims"], ["saved", "Saved"], ["insights", "Insights"]], tab, "expTab")}<div class="scroll">${body}</div>
     <div class="foot"><button class="btn primary block" data-act="xNew">${I("plus")}New claim</button></div></div>`;
@@ -712,3 +708,57 @@ function successTick() {
   return `<div class="s-tick" role="img" aria-label="Success"><span class="tick-ring"></span><span class="tick-ring r2"></span><span class="tick-bits">${bits}</span>
     <svg viewBox="0 0 96 96"><circle class="tick-c" cx="48" cy="48" r="44"/><path class="tick-p" d="M29 49.5 L42 62 L67 35"/></svg></div>`;
 }
+
+// ── Insights (like the KEBS web expense Overview): period, figures, where the money is, by month, category, cost centre, paid with ──
+const XI_PERIODS = [["quarter", "Quarter"], ["90", "90 days"], ["year", "Year"], ["all", "All"]];
+function xiFrom(p) {
+  const t = D.today(), d = D.parse(t);
+  if (p === "90") return D.add(t, -90);
+  if (p === "year") return `${d.getFullYear()}-01-01`;
+  if (p === "all") return "0000-01-01";
+  const m = Math.floor(d.getMonth() / 3) * 3; return `${d.getFullYear()}-${String(m + 1).padStart(2, "0")}-01`;
+}
+function xInsights(q) {
+  const p = q.p || "quarter", from = xiFrom(p), periodText = { quarter: "This quarter", 90: "Last 90 days", year: "This year", all: "All time" }[p];
+  const sent = S.claims.filter((c) => c.status !== "saved" && claimDate(c) >= from);
+  const sum = (l) => l.reduce((a, c) => a + claimTotal(c), 0);
+  const pending = sent.filter((c) => c.status === "pending"), approved = sent.filter((c) => c.status === "approved"), rejected = sent.filter((c) => c.status === "rejected");
+  const paid = approved.reduce((a, c) => a + Math.min(c.paid || 0, claimTotal(c)), 0), claimed = sum(sent.filter((c) => c.status !== "withdrawn"));
+  const decided = approved.length + rejected.length, rejShare = decided ? Math.round((rejected.length / decided) * 100) : 0;
+  const rs = (n) => `<span class="pc-cur">₹</span>${Math.round(n).toLocaleString("en-IN")}`;
+  const fig = (ic, label, v, sub, tone = "") => `<div class="xi-fig"><span class="xi-ic ${tone}">${I(ic)}</span><span class="tiny muted">${label}</span><b class="num">${v}</b><small class="muted">${sub}</small></div>`;
+  // where the money is
+  const stages = [
+    { l: "Awaiting approval", v: sum(pending), f: money(sum(pending)), c: "#2a78d6" },
+    { l: "Approved, not paid", v: Math.max(0, sum(approved) - paid), f: money(Math.max(0, sum(approved) - paid)), c: "#eb6834" },
+    { l: "Paid", v: paid, f: money(paid), c: "#1baf7a" },
+    { l: "Rejected", v: sum(rejected), f: money(sum(rejected)), c: "#eda100" },
+  ];
+  // claimed and paid by month (last 6 months)
+  const mon = D.today().slice(0, 7), months = Array.from({ length: 6 }, (_, i) => { const d = D.parse(mon + "-01"); d.setMonth(d.getMonth() - 5 + i); return D.iso(d).slice(0, 7); });
+  const live = S.claims.filter((c) => c.status !== "saved" && c.status !== "withdrawn");
+  const byM = (fn) => months.map((m) => live.filter((c) => claimDate(c).startsWith(m)).reduce((a, c) => a + fn(c), 0));
+  const claimedM = byM(claimTotal), paidM = byM((c) => (c.status === "approved" ? Math.min(c.paid || 0, claimTotal(c)) : 0));
+  // category, cost centre, paid with
+  const cat = {}, cc = {}, how = { "Own money": 0, "Company card": 0 };
+  sent.filter((c) => c.status !== "withdrawn" && c.status !== "rejected").forEach((c) => {
+    claimReceipts(c).forEach((r) => { cat[r.cat] = (cat[r.cat] || 0) + r.inr; how[r.pay === "Corporate card" || r.card ? "Company card" : "Own money"] += r.inr; });
+    const k = ccName(c.cc); cc[k] = (cc[k] || 0) + claimTotal(c);
+  });
+  const rows = (o, color) => Object.entries(o).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([l, v]) => ({ l, v, c: color }));
+  const card = (title, sub, inner) => `<div class="card xi-card"><div class="xi-h"><b>${title}</b><span class="tiny muted">${sub}</span></div>${inner}</div>`;
+  const none = `<p class="small muted" style="margin:4px 0">No claims in this period.</p>`;
+  return `<div class="xi-period">${XI_PERIODS.map(([v, l]) => `<button class="${v === p ? "on" : ""}" data-act="xiPeriod" data-v="${v}" aria-pressed="${v === p}">${l}</button>`).join("")}</div>
+    <div class="xi-figs">
+      ${fig("receipt", "Claimed", rs(claimed), plural(sent.filter((c) => c.status !== "withdrawn").length, "claim") + " sent")}
+      ${fig("checkCircle", "Approved", rs(sum(approved)), plural(approved.length, "claim"), "ok")}
+      ${fig("wallet", "Paid to you", rs(paid), paid ? "Reimbursed" : "Nothing paid yet", "ok")}
+      ${fig("alert", "Rejected", rejShare + "%", decided ? `${rejected.length} of ${decided} decided` : "None decided", rejShare > 15 ? "warn" : "")}
+    </div>
+    ${card("Where the money is", periodText + " · " + money(stages.reduce((a, x) => a + x.v, 0)), stages.some((x) => x.v) ? rpDonut(stages, money(stages.reduce((a, x) => a + x.v, 0)), "claimed") : none)}
+    ${card("Claimed and paid by month", "Last 6 months", claimedM.some((v) => v) ? rpLine({ series: [{ v: claimedM, c: "#2a78d6", label: "Claimed", area: true }, { v: paidM, c: "#eb6834", label: "Paid" }], labels: months.map((m) => D.f(m + "-01", { month: "short" })), fmt: (v) => (v >= 1000 ? Math.round(v / 1000) + "k" : String(Math.round(v))) }) : none)}
+    ${card("Spend by category", periodText, Object.keys(cat).length ? rpHbars(rows(cat), { fmt: money }) : none)}
+    ${card("Spend by cost centre", periodText, Object.keys(cc).length ? rpHbars(rows(cc, "color-mix(in srgb, #2a78d6 70%, var(--panel))"), { fmt: money }) : none)}
+    ${card("Paid with", periodText, how["Own money"] + how["Company card"] ? rpHbars(rows(how, "color-mix(in srgb, #1baf7a 70%, var(--panel))"), { fmt: money }) : none)}`;
+}
+act("xiPeriod", (b) => swap(`#/expenses?tab=insights&p=${b.dataset.v}`));

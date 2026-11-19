@@ -4336,3 +4336,18 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .ccx-eye .i, .ccx-eye svg { width: 17px; height: 17px; }
 .ccx-eye:active { transform: scale(.94); }
 .ccx-num { letter-spacing: 1px; }
+
+/* ── Expense insights (like the web Overview) ── */
+.xi-period { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 6%, transparent); margin-bottom: 12px; }
+.xi-period button { flex: 1; height: 32px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink-3); cursor: pointer; }
+.xi-period button.on { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
+.xi-figs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.xi-fig { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 16px; background: var(--panel); }
+.xi-fig b { font-size: 20px; } .xi-fig small { font-size: 11px; }
+.xi-ic { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 4px; color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+.xi-ic.ok { color: #15803d; background: color-mix(in srgb, #1baf7a 14%, transparent); }
+.xi-ic.warn { color: #b45309; background: color-mix(in srgb, #eda100 16%, transparent); }
+.xi-ic .i, .xi-ic svg { width: 15px; height: 15px; }
+.xi-card { margin-bottom: 12px; gap: 10px; }
+.xi-h { display: flex; flex-direction: column; gap: 1px; margin-bottom: 2px; } .xi-h b { font-size: 16px; }
+.xi-card .rp-legend { grid-template-columns: 1fr 1fr !important; }
