@@ -96,17 +96,18 @@ function tvAgeing(a) {
   return left < 0 ? [`Overdue ${-left} d`, "bad"] : left <= 7 ? [`Due in ${left} d`, "warn"] : [`Settle by ${D.short(a.settleBy)}`, "mute"];
 }
 const tvToClose = (t) => t.status === "approved" && t.end < D.today();
-const tvIc = (icon, tone = "") => `<span class="cc-logo tv-ic ${tone}">${I(icon)}</span>`;
+const tvIc = (ms, mute) => `<span class="tv-msl">${msIcon(mute ? ms + "-off" : ms)}</span>`;
+const tvAdvMs = (a) => (a.type === "salary" ? "payslip" : "track");
 
 function tvTripRow(t) {
   const [label, tone] = tvToClose(t) ? ["To close", "warn"] : TV_TRIP_ST[t.status];
-  return `<div class="cc-row"><button class="cc-open" data-act="tvTrip" data-id="${t.id}">${tvIc(TV_MODE_IC[t.mode] || "plane", t.status === "closed" ? "mute" : "")}
+  return `<div class="cc-row"><button class="cc-open" data-act="tvTrip" data-id="${t.id}">${tvIc("travel", t.status === "closed")}
     <span class="grow" style="min-width:0"><b class="ell">${esc(t.purpose)}</b><span class="small muted ell">${esc(t.to)} · ${D.range(t.start, t.end)}</span></span>
     <span class="cc-amt"><b class="num">${tvMoney(tvEstTotal(t.estimate))}</b>${tvTxt(label, tone)}</span></button></div>`;
 }
 function tvAdvRow(a) {
   const age = tvAgeing(a), [label, tone] = age || TV_ADV_ST[a.status], bal = tvBalance(a);
-  return `<div class="cc-row"><button class="cc-open" data-act="tvAdv" data-id="${a.id}">${tvIc(a.type === "salary" ? "rupee" : "wallet", a.status === "settled" ? "mute" : "")}
+  return `<div class="cc-row"><button class="cc-open" data-act="tvAdv" data-id="${a.id}">${tvIc(tvAdvMs(a), a.status === "settled")}
     <span class="grow" style="min-width:0"><b class="ell">${TV_ADV_TYPE[a.type]}</b><span class="small muted ell">${esc(a.reason)}</span></span>
     <span class="cc-amt"><b class="num">${tvMoney(a.amount)}</b>${bal && bal < a.amount ? tvTxt(`${tvMoney(bal)} left`, tone) : tvTxt(label, tone)}</span></button></div>`;
 }
@@ -135,7 +136,18 @@ route("expenses/travel", (_, q) => {
 }, { parent: "#/expenses" });
 act("tvTab", (b) => swap(`#/expenses/travel?tab=${b.dataset.v}`));
 
-const tvActivity = (events) => events?.length ? `<div class="card tv-log"><span class="lbl">Activity</span>${events.slice().reverse().map((e) => `<div class="tv-ev"><i></i><span class="grow"><b>${esc(e.who || "KEBS")}</b> ${esc(e.text)}${e.snip ? `<small>${esc(e.snip)}</small>` : ""}</span><small>${D.short(D.iso(e.at))}</small></div>`).join("")}</div>` : "";
+function tvActivity(events) {
+  if (!events?.length) return "";
+  const mgr = S.me.manager, when = (ts) => new Date(ts).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  const ev = events.slice().reverse().map((e) => {
+    const who = e.who === "You" ? "me" : e.who && e.who !== "Finance" ? mgr : null, t = e.text;
+    const ic = /approved/.test(t) ? ["checkCircle", "t-green"] : /rejected/.test(t) ? ["x", "t-red"] : /paid/.test(t) ? ["rupee", "t-teal"] : /settled|closed/.test(t) ? ["check", "t-green"] : ["send", "t-orange"];
+    const name = who === "me" ? "You" : e.who || "KEBS";
+    return `<div class="fd"><div class="fd-av">${who ? avatar(who) : `<span class="av tv-sys">${I(e.who === "Finance" ? "building" : "sparkles")}</span>`}<span class="fd-badge ${ic[1]}">${I(ic[0])}</span></div>
+      <div class="grow" style="min-width:0"><b class="fd-t">${esc(name)} ${esc(t)}</b><span class="small muted" style="display:block">${e.snip ? esc(e.snip) + " · " : ""}${when(e.at)}</span></div></div>`;
+  });
+  return `<div class="sec"><h2 class="sec-ic">${I("history")}Activity</h2></div><div class="card"><div class="feed">${ev.join("")}</div></div>`;
+}
 
 // one trip: estimate vs spent, its advance, close it
 act("tvTrip", (b) => {
@@ -145,7 +157,7 @@ act("tvTrip", (b) => {
   const line = (k, v) => `<div class="kv"><span>${k}</span><span class="num">${tvMoney(v)}</span></div>`;
   const s = openSheet({ title: esc(t.purpose),
     body: `<div class="stack">
-      <div class="hrow">${tvIc(TV_MODE_IC[t.mode] || "plane")}<span class="grow"><b style="display:block;font-size:17px">${esc(t.from)} → ${esc(t.to)}</b><span class="small muted">${D.range(t.start, t.end)} · ${D.days(t.start, t.end)} day${D.days(t.start, t.end) === 1 ? "" : "s"} · ${esc(t.mode)}</span></span></div>
+      <div class="hrow">${tvIc("travel")}<span class="grow"><b style="display:block;font-size:17px">${esc(t.from)} → ${esc(t.to)}</b><span class="small muted">${D.range(t.start, t.end)} · ${D.days(t.start, t.end)} day${D.days(t.start, t.end) === 1 ? "" : "s"} · ${esc(t.mode)}</span></span></div>
       <p class="small" style="margin:0;color:${TV_COL[tone]};font-weight:600">${label}${t.status === "requested" ? ` · ${esc(person("pr").name)}` : ""}</p>
       ${t.status !== "requested" && t.status !== "rejected" ? `<div class="card"><div class="hrow" style="justify-content:space-between"><span class="lbl" style="margin:0">Spent so far</span><b class="num">${tvMoney(spent)} <span class="small muted">of ${tvMoney(est)}</span></b></div>
         <div class="tv-bar"><i style="width:${pct}%;background:${over ? TV_COL.warn : "var(--accent)"}"></i></div>
@@ -190,7 +202,7 @@ act("tvAdv", (b) => {
   const inst = a.type === "salary" && a.instalments ? Math.round(a.amount / a.instalments) : 0, done = inst ? Math.round((a.amount - bal) / inst) : 0;
   const s = openSheet({ title: TV_ADV_TYPE[a.type],
     body: `<div class="stack">
-      <div class="hrow">${tvIc(a.type === "salary" ? "rupee" : "wallet")}<span class="grow"><b style="display:block;font-size:22px" class="num">${tvMoney(a.amount)}</b><span class="small" style="color:${TV_COL[tone]};font-weight:600">${label}</span></span></div>
+      <div class="hrow">${tvIc(tvAdvMs(a))}<span class="grow"><b style="display:block;font-size:22px" class="num">${tvMoney(a.amount)}</b><span class="small" style="color:${TV_COL[tone]};font-weight:600">${label}</span></span></div>
       ${a.status === "paid" ? `<div class="card"><div class="hrow" style="justify-content:space-between"><span class="lbl" style="margin:0">${a.type === "salary" ? "Still to recover" : "Still to settle"}</span><b class="num">${tvMoney(bal)}</b></div>
         <div class="tv-bar"><i style="width:${Math.round(((a.amount - bal) / a.amount) * 100)}%;background:var(--ok,#15803d)"></i></div>
         <p class="tiny muted" style="margin:6px 0 0">${inst ? `${done} of ${a.instalments} instalments of ${tvMoney(inst)} taken from payroll.` : age ? `${age[0]}. Add the claims for it; anything left is recovered through payroll.` : ""}</p></div>` : ""}

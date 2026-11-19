@@ -28,6 +28,9 @@ const MS_STYLE = {
   tax:       ["percent",     "#4C8BF5", "#1A56C4", "#BBD3FB", "#7AA7F2"], // Word blue
   travel:    ["plane",       "#0EA5E9", "#0369A1", "#B9E6FB", "#6CC8F3"], // sky blue
   repeat:    ["refresh",     "#9061F9", "#5B2BC9", "#D8C7FD", "#AF8BFB"], // purple
+  "travel-off":  ["plane",   "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"], // done: grey
+  "track-off":   ["wallet",  "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"],
+  "payslip-off": ["rupee",   "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"],
   more:      ["gridPlus",  "#7C8798", "#4B5563", "#DDE2EA", "#B3BCC9"],
 };
 let MS_ID = 0;
