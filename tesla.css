@@ -4126,16 +4126,16 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .home-scroll > .qa-card, .qa-card { background: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 2px 0 0 !important; }
 .qa-card .qa-head { padding: 0 2px 8px !important; }
 /* Quick access tile labels: medium weight, a touch softer, so the colourful icons lead */
-.qa-btn { font-weight: 500 !important; color: color-mix(in srgb, var(--text) 82%, transparent) !important; }
+.qa-btn { font-weight: 500 !important; color: color-mix(in srgb, var(--ink) 82%, transparent) !important; }
 /* sign-in: which KEBS workspace (client) you're signing in to */
 .kl-ws { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); text-align: left; font: inherit; color: inherit; cursor: pointer; }
-.kl-ws b { display: block; font-size: 15px; } .kl-ws small { display: block; color: var(--muted); font-size: 12px; }
+.kl-ws b { display: block; font-size: 15px; } .kl-ws small { display: block; color: var(--ink-3); font-size: 12px; }
 .kl-ws .link { font-weight: 600; font-size: 13px; }
 /* saved receipt row: tap the receipt to see its details */
 .rc-open { min-width: 0; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 /* Theme: clean and minimal — a segmented control and flat colour dots */
 .th-min .lbl { display: flex; align-items: baseline; gap: 8px; }
-.th-cur { font-weight: 500; color: var(--muted); font-size: 13px; }
+.th-cur { font-weight: 500; color: var(--ink-3); font-size: 13px; }
 .th-dots { display: flex; flex-wrap: wrap; gap: 14px; padding: 4px 2px; }
 .th-d { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: var(--c); cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
 .th-d.on { box-shadow: 0 0 0 2px var(--bg, var(--panel)), 0 0 0 4px var(--c); }
@@ -4248,3 +4248,54 @@ img[src="kais.svg"], img[src^="kais.svg"] { filter: var(--kais-f) !important; }
 .dr-prof .chev svg, .dr-co .chev svg, .dr-list .li .chev svg { width: 18px; height: 18px; }
 /* white drawer → dark status-bar clock (overrides the white-on-gradient rule) */
 .shell:has(.drawer) .statusbar { color: var(--ink) !important; }
+/* selected colour: a neutral ring + a check (the dots are gradients, so the ring can't reuse their colour) */
+.th-d { position: relative; transition: transform .15s; }
+.th-d.on, :root[data-theme="dark"] .th-d.on { box-shadow: 0 0 0 2.5px var(--bg, #f6f7f9), 0 0 0 4.5px var(--ink) !important; transform: scale(1.04); }
+:root[data-theme="dark"] .th-d.on { box-shadow: 0 0 0 2.5px var(--bg, #0f1115), 0 0 0 4.5px var(--ink) !important; }
+.th-d.on::after { content: ""; position: absolute; left: 50%; top: 46%; width: 7px; height: 13px; border: solid #fff; border-width: 0 2.5px 2.5px 0; border-radius: 1px; transform: translate(-50%, -50%) rotate(45deg); }
+.th-d[data-v="cloud"].on::after { border-color: #111827; }
+.th-d.on { outline: 2px solid var(--ink) !important; outline-offset: 3px; }
+.th-min .th-dots .th-d.on { outline-style: solid !important; outline-width: 2px !important; outline-color: var(--ink) !important; outline-offset: 3px !important; }
+
+/* ── Corporate card (card inbox) ── */
+.cc-card { position: relative; overflow: hidden; aspect-ratio: 1.586; border-radius: 18px; padding: 18px 20px; color: #fff; display: flex; flex-direction: column; justify-content: space-between;
+  background: radial-gradient(120% 90% at 100% 0%, #3a4256 0%, transparent 60%), linear-gradient(140deg, #1d2230 0%, #11141c 100%); box-shadow: 0 10px 30px rgba(17, 20, 28, .25); }
+.cc-shine { position: absolute; inset: -40% -10% auto auto; width: 70%; height: 140%; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.07) 50%, transparent 70%); transform: rotate(8deg); pointer-events: none; }
+.cc-top, .cc-bot { position: relative; display: flex; align-items: flex-start; justify-content: space-between; }
+.cc-top b { display: block; font-size: 16px; } .cc-top small { display: block; opacity: .7; font-size: 12px; }
+.cc-net { font-weight: 800; font-style: italic; font-size: 20px; letter-spacing: .5px; }
+.cc-num { position: relative; font-size: 19px; letter-spacing: 2px; font-variant-numeric: tabular-nums; opacity: .95; }
+.cc-bot { align-items: center; font-size: 13px; font-weight: 600; opacity: .9; }
+.cc-chip { width: 38px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #e9d29b, #b8964c); }
+.cc-limit { display: flex; flex-direction: column; gap: 6px; margin: 14px 2px 4px; }
+.cc-limit b { font-size: 17px; }
+.cc-bar { height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 9%, transparent); overflow: hidden; }
+.cc-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ff9a6b, var(--accent)); }
+.cc-figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 14px; }
+.cc-fig { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 10px 12px; border: 0; border-radius: 14px; background: var(--panel); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.cc-fig b { font-size: 20px; } .cc-fig span { font-size: 12px; font-weight: 600; } .cc-fig small { font-size: 11px; color: var(--ink-3); }
+.cc-fig.on { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cc-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.cc-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--panel); }
+.cc-row.on { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cc-open { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cc-open b.ell, .cc-open .small.ell { display: block; }
+.cc-amt { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; } .cc-amt small { font-size: 12px; font-weight: 600; }
+.cc-logo { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 5%, var(--panel)); overflow: hidden; }
+.cc-logo img { width: 26px; height: 26px; object-fit: contain; } .cc-logo.txt { font-weight: 700; color: var(--ink-3); }
+.cc-pick { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); background: none; display: grid; place-items: center; color: transparent; padding: 0; cursor: pointer; }
+.cc-pick .i, .cc-pick svg { width: 14px; height: 14px; }
+.cc-pick[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cc-kais { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 14px; }
+.cc-kais b { display: block; font-size: 14px; } .cc-kais small { color: var(--ink-3); font-size: 12px; }
+.cc-kais.ok { background: color-mix(in srgb, #16a34a 9%, var(--panel)); } .cc-kais.warn { background: color-mix(in srgb, #d97706 10%, var(--panel)); }
+.cc-entry { margin-bottom: 12px; gap: 12px; }
+.cc-mini { flex: none; width: 46px; height: 30px; border-radius: 6px; display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 800; font-style: italic; background: linear-gradient(140deg, #2a3142, #11141c); }
+@media (hover: hover) and (pointer: fine) { .cc-open:hover b { text-decoration: underline; text-underline-offset: 2px; } }
+.cc-fig:active, .cc-pick:active { transform: scale(.97); }
+.cc-row .cc-pick { border: 0 !important; box-shadow: inset 0 0 0 1.6px color-mix(in srgb, var(--ink) 28%, transparent) !important; background: transparent !important; }
+.cc-row .cc-pick[aria-pressed="true"] { box-shadow: none !important; background: var(--accent) !important; color: #fff !important; }
+.cc-row .cc-pick { background: none !important; color: transparent; }
+.cc-row .ccp { width: 22px; height: 22px; border-radius: 50%; border: 1.6px solid color-mix(in srgb, var(--ink) 30%, transparent); display: grid; place-items: center; transition: background-color .15s ease-out, border-color .15s ease-out; }
+.cc-row .ccp .i, .cc-row .ccp svg { width: 13px; height: 13px; }
+.cc-row .cc-pick[aria-pressed="true"] .ccp { background: var(--accent); border-color: var(--accent); color: #fff; }
